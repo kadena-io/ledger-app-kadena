@@ -21,16 +21,19 @@ mod tests {
     use std::env;
     use tokio::sync::Semaphore;
 
+    use blake2::{Blake2b, Digest};
+    use ed25519_dalek::{Verifier, Signature, PublicKey};
+
     static DID_BUILD: AtomicBool = AtomicBool::new(false);
     use lazy_static::lazy_static;
     lazy_static! {
         static ref LEDGER_APP: Semaphore = Semaphore::new(1);
     }
 
-    async fn with_speculos<F, Fut, O>(f: F) -> O
+    async fn with_speculos<F, Fut, O>(f: F) -> Option<O>
     where
         F: Fn(apis::DefaultApiClient<HttpConnector>) -> Fut,
-        Fut: Future<Output = O>,
+        Fut: Future<Output = Option<O> >,
     {
         let speculos_lock = LEDGER_APP.acquire();
         println!("PASSED THE LOCK");
@@ -39,6 +42,7 @@ mod tests {
             let debug = env::var("DEBUG").unwrap_or_default();
             let features = match debug.as_str() {
                 "verbose" => "speculos,extra_debug",
+                "none" => "",
                 _ => "speculos",
             };
             eprintln!("Building with {}\n", features);
@@ -89,6 +93,8 @@ mod tests {
 
         core::mem::drop(speculos_lock);
 
+        assert_eq!(rv.is_some(), true);
+
         rv
     }
 
@@ -104,7 +110,7 @@ mod tests {
             .status().await.map(|s| s.success()).ok());
     }*/
 
-    #[test]
+    // #[test]
     async fn test_provide_pubkey() {
         with_speculos(|client| async move {
             let payload = vec!(0x01,0x00,0x00,0x00,0x00);
@@ -127,7 +133,7 @@ mod tests {
             };
             let (res, _) = futures::join!(res_async, btns);
 
-            assert_eq!(res.ok(), Some(Apdu { data: "046f760e57383e3b5900f7c23b78a424e74bebbe9b7b46316da7c0b4b9c2c9301c0c076310eda30506141dd47c2d0a8a1d7ca2542482926ae23b781546193b96169000".to_string() }));
+            assert_eq!(res.ok(), Some(Apdu { data: "8118ad392b9276e348c1473649a3bbb7ec2b39380e40898d25b55e9e6ee94ca39000".to_string() }));
             client.events_delete().await.ok()?;
             Some(())
 
@@ -135,7 +141,7 @@ mod tests {
         ()
     }
 
-    #[test]
+    // #[test]
     async fn test_provide_pubkey_twice() {
         with_speculos(|client| async move {
             let payload = vec!(0x01,0x00,0x00,0x00,0x00);
@@ -158,7 +164,7 @@ mod tests {
             };
             let (res, _) = futures::join!(res_async, btns);
 
-            assert_eq!(res.ok(), Some(Apdu { data: "046f760e57383e3b5900f7c23b78a424e74bebbe9b7b46316da7c0b4b9c2c9301c0c076310eda30506141dd47c2d0a8a1d7ca2542482926ae23b781546193b96169000".to_string() }));
+            assert_eq!(res.ok(), Some(Apdu { data: "8118ad392b9276e348c1473649a3bbb7ec2b39380e40898d25b55e9e6ee94ca39000".to_string() }));
 
             let payload_2 = vec!(0x02,  0x00,0x00,0x00,0x00,  0x00, 0x01, 0x00, 0x00);
             let provide_pubkey_2 = APDUCommand {
@@ -180,7 +186,7 @@ mod tests {
             };
             let (res_2, _) = futures::join!(res_async_2, btns);
 
-            assert_eq!(res_2.ok(), Some(Apdu { data: "04b90248e0ca25f494e709105e82624145dae654449d81fb557f6b764d1461940080139785d8fc752bb070751f1ef3ff4723119fb6ba1ab14c01a8be8f975311649000".to_string() }));
+            assert_eq!(res_2.ok(), Some(Apdu { data: "a8b48f8ae7e421a628b926401d358e365fdd614c1b499a11c23f91cc2c614b2c9000".to_string() }));
             client.events_delete().await.ok()?;
             Some(())
         }).await;
@@ -192,25 +198,7 @@ mod tests {
         with_speculos(|client| async move {
             let bip32 : Vec<u8> = vec!(0x01,0x00,0x00,0x00,0x00);
             let cmd = br#"
-              {
-                "payload":{
-                  "exec":{
-                    "data": null,
-                    "code": "(+ 1 2)"
-                  }
-                },
-                "signers":[{
-                  "pubKey":"368820f80c324bbc7c2b0610688a7da43e39f91d118732671cd9c7500ff43cca",
-                  "caps": ["(accounts.PAY \"alice\" \"bob\" 20.0)"]
-                  }],
-                "meta":{
-                  "gasLimit":1000,
-                  "chainId":"0",
-                  "gasPrice":1.0e-2,
-                  "sender":"sender00"
-                  },
-                "nonce":"\\\"2019-06-20 20:56:39.509435 UTC\\\"",
-                "networkId": "testnet00"
+       {"networkId":"mainnet01","payload":{"exec":{"data":{},"code":"(coin.transfer \"83934c0f9b005f378ba3520f9dea952fb0a90e5aa36f1b5ff837d9b30c471790\" \"9790d119589a26114e1a42d92598b3f632551c566819ec48e0e8c54dae6ebb42\" 11.0)"}},"signers":[{"pubKey":"83934c0f9b005f378ba3520f9dea952fb0a90e5aa36f1b5ff837d9b30c471790","clist":[{"args":[],"name":"coin.GAS"},{"args":["83934c0f9b005f378ba3520f9dea952fb0a90e5aa36f1b5ff837d9b30c471790","9790d119589a26114e1a42d92598b3f632551c566819ec48e0e8c54dae6ebb42",11],"name":"coin.TRANSFER"}]}],"meta":{"creationTime":1634009214,"ttl":28800,"gasLimit":600,"chainId":"0","gasPrice":1.0e-5,"sender":"83934c0f9b005f378ba3520f9dea952fb0a90e5aa36f1b5ff837d9b30c471790"},"nonce":"\"2021-10-12T03:27:53.700Z\"",
               }"#;
             let payload : Vec<_>= (cmd.len() as u32).to_le_bytes().iter().chain(cmd.iter()).chain(bip32.iter()).cloned().collect();
             // let payload : Vec<_>= cmd.iter().chain(bip32.iter()).cloned().collect();
@@ -257,8 +245,25 @@ mod tests {
             };
             let (res, _) = futures::join!(res_async, btns);
 
-            assert_eq!(res.ok(), Some(Apdu { data: "304402204a962141bf360df448babd764c0a9553cf63319bbd29817de6bcf9904a4f910802204a349b649d3ba85590b54e8130c28cb9573ffb84e7abc10f72e5f6d1e02b3a159000".to_string() }));
+            let res_str = &res.as_ref().unwrap().data;
 
+            use core::convert::TryInto; 
+            let sig1 = hex::decode(&res_str[0..res_str.len()-2]).unwrap();
+            print!("Decoded: {:?}\n", sig1);
+            let sig = Signature::new(hex::decode(&res_str[0..res_str.len()-4]).unwrap().try_into().unwrap());
+            print!("Sig: {:?}\n", sig);
+            let key_base = &hex::decode("8118ad392b9276e348c1473649a3bbb7ec2b39380e40898d25b55e9e6ee94ca3").unwrap();
+            print!("Key: {:?} {}\n", key_base, key_base.len());
+            let key = PublicKey::from_bytes(&hex::decode("8118ad392b9276e348c1473649a3bbb7ec2b39380e40898d25b55e9e6ee94ca3").unwrap()).unwrap();
+            use generic_array::{GenericArray, typenum::U64};
+            let mut message2 : GenericArray<u8, U64> = Blake2b::digest(cmd);
+            let mut message : GenericArray<u8, U64> = Default::default();
+
+            print!("Hash is: {:?}\n", message2);
+
+            assert_eq!(key.verify_strict(message2.as_slice(), &sig).unwrap(), ());
+            
+            
             Some(())
         }).await;
         ()
