@@ -8,7 +8,7 @@ use ledger_log::*;
 
 pub const BIP32_PATH: [u32; 5] = nanos_sdk::ecc::make_bip32_path(b"m/44'/535348'/0'/0/0");
 
-/// Helper function that derives the seed over secp256k1
+/// Helper function that derives the seed over Ed25519
 pub fn bip32_derive_eddsa(path: &[u32]) -> Result<[u8; 32], SyscallError> {
     let mut raw_key = [0u8; 32];
     unsafe {
@@ -20,7 +20,7 @@ pub fn bip32_derive_eddsa(path: &[u32]) -> Result<[u8; 32], SyscallError> {
             core::ptr::null_mut()
         )
     };
-    error!("bip32 result: {:?}", raw_key);
+    trace!("bip32 result: {:?}", raw_key);
     Ok(raw_key)
 }
 
@@ -41,10 +41,6 @@ macro_rules! call_c_api_function {
     }
 }
 
-
-/// Helper function that signs with ECDSA in deterministic nonce,
-/// using SHA256
-#[allow(dead_code)]
 pub fn eddsa_sign(
     m: &[u8],
     ec_k: &cx_ecfp_private_key_t,
@@ -63,36 +59,20 @@ pub fn eddsa_sign(
 }
 
 pub fn get_pubkey(path: &[u32]) -> Result<nanos_sdk::bindings::cx_ecfp_public_key_t, SyscallError> {
-
     let mut ec_k = get_private_key(path)?;
-    /*let raw_key = bip32_derive_eddsa(path)?;
-    let mut ec_k = cx_ecfp_private_key_t::default();
-    call_c_api_function!(cx_ecfp_init_private_key_no_throw(
-            CX_CURVE_Ed25519,
-            raw_key.as_ptr(),
-            raw_key.len() as u32,
-            &mut ec_k
-        ))?;
-
-*/
     get_pubkey_from_privkey(&mut ec_k)
 }
 
 pub fn get_pubkey_from_privkey(ec_k: &mut nanos_sdk::bindings::cx_ecfp_private_key_t) -> Result<nanos_sdk::bindings::cx_ecfp_public_key_t, SyscallError> {
     let mut pubkey = cx_ecfp_public_key_t::default();
 
-    error!("Private key: {:?}", ec_k.d);
     call_c_api_function!(cx_ecfp_generate_pair_no_throw(CX_CURVE_Ed25519, &mut pubkey, ec_k, true))?;
-    error!("Private key 2: {:?}", ec_k.d);
-    error!("Public key: {:?}", pubkey.W);
     call_c_api_function!(cx_edwards_compress_point_no_throw(CX_CURVE_Ed25519, pubkey.W.as_mut_ptr(), pubkey.W_len))?;
     pubkey.W_len = 33;
-    error!("Public key: {:?}", pubkey.W);
 
     Ok(pubkey)
 }
 
-#[allow(dead_code)]
 pub fn get_private_key(
     path: &[u32],
 ) -> Result<nanos_sdk::bindings::cx_ecfp_private_key_t, SyscallError> {
@@ -163,7 +143,7 @@ impl Hasher {
     pub fn finalize(&mut self) -> Hash {
         let mut rv = [0; 64];
         unsafe { cx_hash_final(&mut self.0 as *mut cx_blake2b_s as *mut cx_hash_t, rv.as_mut_ptr()) };
-        error!("Hash value now: {:?}", rv);
+        trace!("Hash value now: {:?}", rv);
         Hash(rv)
     }
 }

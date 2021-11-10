@@ -71,7 +71,7 @@ pub type SignImplT = Action<
             >,
             fn(
                 &(
-                    Option< KadenaCmd<Option<()>, Option<()>, Option<()>, Option<()>, Option<()>>>,
+                    Option< <DropInterp as JsonInterp<KadenaCmdSchema>>::Returning>,
                     Hasher,
                 ),
                 &mut Option<[u8; 64]>
@@ -184,6 +184,10 @@ pub enum ParsersState {
     NoState,
     GetAddressState(<GetAddressImplT as InterpParser<Bip32Key>>::State),
     SignState(<SignImplT as InterpParser<SignParameters>>::State),
+}
+
+pub fn reset_parsers_state(state: &mut ParsersState) {
+    *state = ParsersState::NoState;
 }
 
 define_json_struct_interp! { Meta 16 {

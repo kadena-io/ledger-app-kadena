@@ -7,14 +7,14 @@ autobins = false
 target = "thumv6m-none-eabi"
 
 [dependencies]
-ledger-parser-combinators = { git = "https://github.com/obsidiansystems/ledger-parser-combinators", branch = "json-parser"}
-ledger-log = { path = "./ledger-log", features=["log_trace"] } # change to log_info, log_trace, etc. to change log level.
+ledger-parser-combinators = {  git = "https://github.com/obsidiansystems/ledger-parser-combinators", branch = "json-parser-with-explicit-return" }
+ledger-log = { path = "./ledger-log", features=[ "log_error" ] } # change to log_info, log_trace, etc. to change log level.
 arrayvec = { version = "0.7.1", default-features = false }
 
 [features]
 default = [ "speculos" ]
-speculos = ["nanos_sdk/speculos", "ledger-log/speculos"]
-extra_debug = []
+speculos = ["nanos_sdk/speculos", "ledger-log/speculos" ]
+extra_debug = ["ledger-log/log_trace"]
 
 [target.thumbv6m-none-eabi.dependencies]
 nanos_sdk = { git = "https://github.com/LedgerHQ/ledger-nanos-sdk.git" } 
@@ -37,6 +37,9 @@ async-std = { version = "1.9.0", features = ["attributes", "unstable"] }
 futures = "0.3.16"
 lazy_static = "1.4.0"
 os-sync = "0.3.3"
+blake2 = "0.9.2"
+ed25519-dalek = "1.0.1"
+generic-array = "0.14.4"
 
 [[bin]]
 name = "rust-app"
@@ -57,6 +60,7 @@ branch = "use-ambient-compiler-and-target"
 
 [profile.dev]
 # panic = "abort"
+lto = true
 
 [profile.release]
 # panic = "abort"

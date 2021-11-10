@@ -128,7 +128,7 @@ fn run_parser_apdu<P: InterpParser<A, Returning = ArrayVec<u8, 260>>, A>(
         match parse_rv {
             // Explicit rejection; reset the parser. Possibly send error message to host?
             Err((Some(OOB::Reject), _)) => {
-                *states = ParsersState::NoState;
+                reset_parsers_state(states);
                 break Err(io::StatusWords::Unknown.into());
             }
             // Deliberately no catch-all on the Err((Some case; we'll get error messages if we
@@ -138,7 +138,7 @@ fn run_parser_apdu<P: InterpParser<A, Returning = ArrayVec<u8, 260>>, A>(
             Err((None, [])) => { trace!("Parser needs more; continuing"); break Ok(()) }
             // Didn't consume the whole chunk; reset and error message.
             Err((None, _)) => {
-                *states = ParsersState::NoState;
+                reset_parsers_state(states);
                 break Err(io::StatusWords::Unknown.into());
             }
             // Consumed the whole chunk and parser finished; send response.
@@ -149,12 +149,12 @@ fn run_parser_apdu<P: InterpParser<A, Returning = ArrayVec<u8, 260>>, A>(
                     None => break Err(io::StatusWords::Unknown.into()),
                 }
                 // Parse finished; reset.
-                *states = ParsersState::NoState;
+                reset_parsers_state(states);
                 break Ok(());
             }
             // Parse ended before the chunk did; reset.
             Ok(_) => {
-                *states = ParsersState::NoState;
+                reset_parsers_state(states);
                 break Err(io::StatusWords::Unknown.into());
             }
         }
