@@ -110,7 +110,7 @@ mod tests {
             .status().await.map(|s| s.success()).ok());
     }*/
 
-    // #[test]
+    #[test]
     async fn test_provide_pubkey() {
         with_speculos(|client| async move {
             let payload = vec!(0x01,0x00,0x00,0x00,0x00);
@@ -193,7 +193,7 @@ mod tests {
         ()
     }
 
-    #[test]
+    // #[test]
     async fn test_sign() {
         with_speculos(|client| async move {
             let bip32 : Vec<u8> = vec!(0x01,0x00,0x00,0x00,0x00);

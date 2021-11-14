@@ -1,6 +1,6 @@
 use crate::crypto_helpers::{eddsa_sign, get_pkh, get_private_key, get_pubkey, get_pubkey_from_privkey, Hasher};
 use crate::interface::*;
-use arrayvec::{ArrayString, ArrayVec};
+use arrayvec::ArrayVec;
 use core::fmt::Write;
 use ledger_log::*;
 use ledger_parser_combinators::interp_parser::{
@@ -8,6 +8,7 @@ use ledger_parser_combinators::interp_parser::{
 };
 use ledger_parser_combinators::json::Json;
 use nanos_ui::ui;
+use crate::ui::{write_scroller, final_accept_prompt};
 
 use ledger_parser_combinators::define_json_struct_interp;
 use ledger_parser_combinators::json::*;
@@ -16,29 +17,20 @@ use ledger_parser_combinators::json_interp::*;
 pub type GetAddressImplT =
     Action<SubInterp<DefaultInterp>, fn(&ArrayVec<u32, 10>, &mut Option<ArrayVec<u8, 260>>) -> Option<()>>;
 
+
 pub const GET_ADDRESS_IMPL: GetAddressImplT =
     Action(SubInterp(DefaultInterp), |path: &ArrayVec<u32, 10>, destination: &mut Option<ArrayVec<u8, 260>>| {
         let key = get_pubkey(&path).ok()?;
-        //let mut rv = ArrayVec::<u8, 260>::new();
-        // rv.try_extend_from_slice(&[(key.W.len() as u8)][..]).ok()?;
-
-        // At this point we have the value to send to the host; but there's a bit more to do to
-        // ask permission from the user.
 
         let pkh = get_pkh(key);
+        
+        write_scroller("Provide Public Key", |w| write!(w, "{}", pkh))?;
 
-        let mut pmpt = ""; // ArrayString::<128>::new();
-        //write!(pmpt, "{}", pkh).ok()?;
+        final_accept_prompt(&[])?;
 
-        if !ui::MessageValidator::new(&["Provide Public Key", &pmpt], &[&"Confirm"], &[]).ask() {
-            trace!("User rejected\n");
-            None
-        } else {
-            trace!("User accepted");
-            *destination=Some(ArrayVec::new());
-            destination.as_mut()?.try_extend_from_slice(&key.W[1..key.W_len as usize]).ok()?;
-            Some(())
-        }
+        *destination=Some(ArrayVec::new());
+        destination.as_mut()?.try_extend_from_slice(&key.W[1..key.W_len as usize]).ok()?;
+        Some(())
     });
 
 pub type SignImplT = Action<
@@ -122,53 +114,31 @@ pub const SIGN_IMPL: SignImplT = Action(
             false),
             // Ask the user if they accept the transaction body's hash
             |(_, mut hash): &(_, Hasher), destination: &mut _| {
-                error!("Prompting with hash");
                 let the_hash = hash.finalize();
-                
-                error!("Hash is: {}", the_hash);
-                /*
-
-                let mut pmpt = "";// ArrayString::<128>::new();
-                //write!(pmpt, "{}", the_hash).ok()?;
-
-                error!("Prompt formatted");
-
-                if !ui::MessageValidator::new(&["Sign Hash?", &pmpt], &[], &[]).ask() {
-                    None
-                } else {*/
-                    *destination=Some(the_hash.0.into());
-                    Some(())
-                /*}*/
+                write_scroller("Transaction hash", |w| write!(w, "{}", the_hash))?;
+                *destination=Some(the_hash.0.into());
+                Some(())
             },
         ),
         Action(
             SubInterp(DefaultInterp),
             // And ask the user if this is the key the meant to sign with:
             |path: &ArrayVec<u32, 10>, destination: &mut _| {
-                error!("Getting private key");
                 // Mutable because of some awkwardness with the C api.
                 let mut privkey = get_private_key(&path).ok()?;
-                error!("Getting public key");
                 let pubkey = get_pubkey_from_privkey(&mut privkey).ok()?;
-                error!("Getting pKH");
                 let pkh = get_pkh(pubkey);
 
-                error!("Prompting for public key");
-                let mut pmpt = ""; // ArrayString::<128>::new();
-                //write!(pmpt, "{}", pkh).ok()?;
-
-                /* if !ui::MessageValidator::new(&["With Public Key", &pmpt], &[], &[]).ask() {
-                    None
-                } else { */
-                    *destination = Some(privkey);
-                    Some(())
-                // }
+                write_scroller("sign for address", |w| write!(w, "{}", pkh))?;
+                *destination = Some(privkey);
+                Some(())
             },
         ),
     ),
     |(hash, key): &(Option<[u8; 64]>, Option<_>), destination: &mut _| {
+        final_accept_prompt(&[&"Sign Transaction?"])?;
+        
         // By the time we get here, we've approved and just need to do the signature.
-        error!("SIGNING");
         let sig = eddsa_sign(&hash.as_ref()?[..], key.as_ref()?)?;
         let mut rv = ArrayVec::<u8, 260>::new();
         rv.try_extend_from_slice(&sig.0[..]).ok()?;

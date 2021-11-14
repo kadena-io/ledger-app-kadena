@@ -1,8 +1,6 @@
-use crate::info;
 use core::default::Default;
 use core::fmt;
 use nanos_sdk::bindings::*;
-use nanos_sdk::ecc::{CurvesId};
 use nanos_sdk::io::SyscallError;
 use ledger_log::*;
 

@@ -21,6 +21,8 @@ pub mod interface;
 pub mod utils;
 
 #[cfg(all(target_os = "nanos"))]
+pub mod ui;
+#[cfg(all(target_os = "nanos"))]
 pub mod crypto_helpers;
 #[cfg(all(target_os = "nanos"))]
 pub mod implementation;

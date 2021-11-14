@@ -9,7 +9,7 @@ target = "thumv6m-none-eabi"
 [dependencies]
 ledger-parser-combinators = {  git = "https://github.com/obsidiansystems/ledger-parser-combinators", branch = "json-parser-with-explicit-return" }
 ledger-log = { path = "./ledger-log", features=[ "log_error" ] } # change to log_info, log_trace, etc. to change log level.
-arrayvec = { version = "0.7.1", default-features = false }
+arrayvec = { version = "0.7.2", default-features = false }
 
 [features]
 default = [ "speculos" ]
@@ -49,6 +49,7 @@ path = "bin-src/main.rs"
 [[test]]
 name = "integration"
 test = false
+forced-target = "x86_64-unknown-linux-gnu.dev-dependencies"
 
 #[target.thumbv6m-none-eabi.unstable]
 #build-std = ["core"]
