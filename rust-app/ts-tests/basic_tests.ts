@@ -10,6 +10,7 @@ let setAcceptAutomationRules = async function() {
       version: 1,
       rules: [
         { "text": "W e l c o m e", "actions": [] },
+        { "y": 16, "actions": [] },
         { "text": "Confirm", "actions": [ [ "button", 1, true ], [ "button", 2, true ], [ "button", 2, false ], [ "button", 1, false ] ]},
         { "actions": [ [ "button", 2, true ], [ "button", 2, false ] ]}
       ]
@@ -46,24 +47,44 @@ describe('basic tests', () => {
       console.log("Started pubkey get");
       let rv = await kda.getPublicKey("0");
       console.log("Reached Pubkey Got");
-      expect(rv.publicKey).to.equal("046f760e57383e3b5900f7c23b78a424e74bebbe9b7b46316da7c0b4b9c2c9301c0c076310eda30506141dd47c2d0a8a1d7ca2542482926ae23b781546193b9616");
+      expect(rv.publicKey).to.equal("18ad392b9276e348c1473649a3bbb7ec2b39380e40898d25b55e9e6ee94ca39000");
       return;
     }, [
-        {
-          "text": "Provide Public Key",
-          "x": 16,
-          "y": 11
-        },
-        {
-          "text": "pkh-CBB24246905B6BA63DB45BE62EDAEA0BEC58166BF39F9492CD199D5479686B2",
-          "x": -48,
-          "y": 11
-        },
-        {
-          "text": "Confirm",
-          "x": 43,
-          "y": 11
-        }
+      {
+        "text": "8118ad392b9276e3",
+        "x": 15,
+        "y": 16,
+      },
+      {
+        "text": "Provide Public Key",
+        "x": 16,
+        "y": 1,
+      },
+      {
+        "text": "48c1473649a3bbb7",
+        "x": 12,
+        "y": 16,
+      },
+      {
+        "text": "Provide Public Key",
+        "x": 16,
+        "y": 1,
+      },
+      {
+        "text": "ec2b39380e40898d",
+        "x": 15,
+        "y": 16,
+      },
+      {
+        "text": "Provide Public Key",
+        "x": 16,
+        "y": 1,
+      },
+      {
+        "text": "Confirm",
+        "x": 43,
+        "y": 11,
+      }
     ]);
   });
   

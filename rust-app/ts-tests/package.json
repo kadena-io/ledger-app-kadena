@@ -32,6 +32,6 @@
 		"node-fetch": "^3.0.0",
 		"openapi-typescript-codegen": "^0.9.3",
 		"typescript": "^4.4.3",
-		"hw-app-kda": "^0.0.0"
+		"hw-app-kda": "git+https://github.com/obsidiansystems/hw-app-kda"
 	}
 }

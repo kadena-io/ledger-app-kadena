@@ -15,11 +15,16 @@ define_json_struct! { Meta 16 {
     creationTime: JsonNumber
 }}
 
+define_json_struct! { KadenaCapability 4 {
+    args: JsonArray<JsonAny>,
+    name: JsonString
+}}
+
 define_json_struct! { Signer 16 {
     scheme: JsonString,
     pubKey: JsonString,
     addr: JsonString,
-    caps: JsonArray<JsonString>
+    clist: JsonArray<KadenaCapabilitySchema>
 }}
 
 define_json_struct! { KadenaCmd 16 {

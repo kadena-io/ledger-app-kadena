@@ -35,7 +35,19 @@ pub fn final_accept_prompt(prompt: &[&str]) -> Option<()> {
     }
 }
 
-pub fn write_scroller< F: for <'b> Fn(&mut PromptWrite<'b, 16>) -> core::fmt::Result > (title: &str, prompt_function: F) -> Option<()> {
+pub struct ScrollerError;
+impl From<core::fmt::Error> for ScrollerError {
+    fn from(_: core::fmt::Error) -> Self {
+        ScrollerError
+    }
+}
+impl From<core::str::Utf8Error> for ScrollerError {
+    fn from(_: core::str::Utf8Error) -> Self {
+        ScrollerError
+    }
+}
+
+pub fn write_scroller< F: for <'b> Fn(&mut PromptWrite<'b, 16>) -> Result<(), ScrollerError> > (title: &str, prompt_function: F) -> Option<()> {
     if !WriteScroller::<_, 16>::new(title, prompt_function).ask() {
         trace!("User rejected prompt");
         None
@@ -44,20 +56,20 @@ pub fn write_scroller< F: for <'b> Fn(&mut PromptWrite<'b, 16>) -> core::fmt::Re
     }
 }
 
-pub struct WriteScroller<'a, F: for<'b> Fn(&mut PromptWrite<'b, CHAR_N>) -> core::fmt::Result, const CHAR_N: usize> {
+pub struct WriteScroller<'a, F: for<'b> Fn(&mut PromptWrite<'b, CHAR_N>) -> Result<(), ScrollerError>, const CHAR_N: usize> {
     title: &'a str,
     contents: F
 }
 
 const RIGHT_CHECK : Icon = Icon::new(Icons::Check).pos(120,12);
 
-impl<'a, F: for<'b> Fn(&mut PromptWrite<'b, CHAR_N>) -> core::fmt::Result, const CHAR_N: usize> WriteScroller<'a, F, CHAR_N> {
+impl<'a, F: for<'b> Fn(&mut PromptWrite<'b, CHAR_N>) -> Result<(), ScrollerError>, const CHAR_N: usize> WriteScroller<'a, F, CHAR_N> {
 
     pub fn new(title: &'a str, contents: F) -> Self {
         WriteScroller { title, contents }
     }
 
-    fn get_length(&self) -> Result<usize, core::fmt::Error> {
+    fn get_length(&self) -> Result<usize, ScrollerError> {
         let mut buffer = ArrayString::new();
         let mut prompt_write = PromptWrite{ offset: 0, buffer: &mut buffer, total: 0 };
         (self.contents)(&mut prompt_write)?;
@@ -69,7 +81,7 @@ impl<'a, F: for<'b> Fn(&mut PromptWrite<'b, CHAR_N>) -> core::fmt::Result, const
         self.ask_err().unwrap_or(false)
     }
 
-    pub fn ask_err(&self) -> Result<bool, core::fmt::Error> {
+    pub fn ask_err(&self) -> Result<bool, ScrollerError> {
         let mut buttons = ButtonsState::new();
         let page_count = (self.get_length()?-1) / CHAR_N + 1;
         if page_count == 0 {
@@ -81,7 +93,7 @@ impl<'a, F: for<'b> Fn(&mut PromptWrite<'b, CHAR_N>) -> core::fmt::Result, const
 
         // A closure to draw common elements of the screen
         // cur_page passed as parameter to prevent borrowing
-        let draw = |page: usize| -> core::fmt::Result {
+        let draw = |page: usize| -> Result<(), ScrollerError> {
             let offset = page * CHAR_N;
             let mut buffer = ArrayString::new();
             (self.contents)(&mut PromptWrite{ offset, buffer: &mut buffer, total: 0 })?;
