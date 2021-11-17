@@ -1,7 +1,7 @@
-use rust_app::crypto_helpers::*;
-use rust_app::implementation::*;
-use rust_app::interface::*;
-use rust_app::utils;
+use Kadena::crypto_helpers::*;
+use Kadena::implementation::*;
+use Kadena::interface::*;
+use Kadena::utils;
 
 use core::str::from_utf8;
 use nanos_sdk::io;
@@ -52,7 +52,7 @@ fn menu_example() {
 }
 
 use ledger_parser_combinators::interp_parser::OOB;
-use rust_app::*;
+use Kadena::*;
 
 #[cfg(not(test))]
 #[no_mangle]

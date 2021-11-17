@@ -1,5 +1,5 @@
 [package]
-name = "rust-app"
+name = "Kadena"
 version = "0.2.0"
 authors = ["yhql"]
 edition = "2018"
@@ -48,6 +48,6 @@ lto = true
 
 
 [package.metadata.nanos]
-curve = "secp256k1"
+curve = "Ed25519"
 flags = "0"
-icon = "crab.gif"
+icon = "kadena.gif"
