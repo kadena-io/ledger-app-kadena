@@ -47,6 +47,7 @@ impl From<core::str::Utf8Error> for ScrollerError {
     }
 }
 
+#[inline(never)]
 pub fn write_scroller< F: for <'b> Fn(&mut PromptWrite<'b, 16>) -> Result<(), ScrollerError> > (title: &str, prompt_function: F) -> Option<()> {
     if !WriteScroller::<_, 16>::new(title, prompt_function).ask() {
         trace!("User rejected prompt");
@@ -74,6 +75,7 @@ impl<'a, F: for<'b> Fn(&mut PromptWrite<'b, CHAR_N>) -> Result<(), ScrollerError
         let mut prompt_write = PromptWrite{ offset: 0, buffer: &mut buffer, total: 0 };
         (self.contents)(&mut prompt_write)?;
         let length = prompt_write.total;
+        trace!("Prompt length: {}", length);
         Ok(length)
     }
 
@@ -83,9 +85,13 @@ impl<'a, F: for<'b> Fn(&mut PromptWrite<'b, CHAR_N>) -> Result<(), ScrollerError
 
     pub fn ask_err(&self) -> Result<bool, ScrollerError> {
         let mut buttons = ButtonsState::new();
-        let page_count = (self.get_length()?-1) / CHAR_N + 1;
+        let page_count = (core::cmp::max(1, self.get_length()?)-1) / CHAR_N + 1;
         if page_count == 0 {
             return Ok(true);
+        }
+        if page_count > 1000 {
+            trace!("Page count too large: {}", page_count);
+            panic!("Page count too large: {}", page_count);
         }
         let title_label = LabelLine::new().pos(0, 10).text(self.title);
         let label = LabelLine::new().pos(0,25); 
@@ -99,6 +105,7 @@ impl<'a, F: for<'b> Fn(&mut PromptWrite<'b, CHAR_N>) -> Result<(), ScrollerError
             (self.contents)(&mut PromptWrite{ offset, buffer: &mut buffer, total: 0 })?;
             label.text(buffer.as_str()).display();
             title_label.paint();
+            trace!("Prompting with ({} of {}) {}: {}", page, page_count, self.title, buffer);
             if page > 0 {
                 LEFT_ARROW.paint();
             }

@@ -134,6 +134,7 @@ impl Hasher {
     pub fn update(&mut self, bytes: &[u8]) {
         unsafe {
             trace!("Hashing bytes: {:?}", bytes);
+            trace!("as text: {:?}", core::str::from_utf8(bytes));
             cx_hash_update(&mut self.0 as *mut cx_blake2b_s as *mut cx_hash_t, bytes.as_ptr(), bytes.len() as u32);
         }
     }

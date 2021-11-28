@@ -1,5 +1,6 @@
 use crate::crypto_helpers::{eddsa_sign, get_pkh, get_private_key, get_pubkey, get_pubkey_from_privkey, Hasher};
 use crate::interface::*;
+use crate::*;
 use arrayvec::ArrayVec;
 use core::fmt::Write;
 use ledger_log::*;
@@ -33,6 +34,25 @@ pub const GET_ADDRESS_IMPL: GetAddressImplT =
         Some(())
     });
 
+pub struct Preaction<S>(fn() -> Option<()>, S);
+
+impl<A, S: JsonInterp<A>> JsonInterp<A> for Preaction<S> {
+    type State = Option<<S as JsonInterp<A>>::State>;
+    type Returning = <S as JsonInterp<A>>::Returning;
+
+    fn init(&self) -> Self::State { None }
+    fn parse<'a>(&self, state: &mut Self::State, token: JsonToken<'a>, destination: &mut Option<Self::Returning>) -> Result<(), Option<OOB>> {
+        loop { break match state {
+            None => {
+                (self.0)().ok_or(Some(OOB::Reject))?;
+                set_from_thunk(state, || Some(<S as JsonInterp<A>>::init(&self.1)));
+                continue;
+            }
+            Some(ref mut s) => <S as JsonInterp<A>>::parse(&self.1, s, token, destination)
+        }}
+    }
+}
+
 pub type SignImplT = Action<
     (
         Action<
@@ -40,21 +60,21 @@ pub type SignImplT = Action<
                 Hasher,
                 fn(&mut Hasher, &[u8]),
                 Json<
-                    KadenaCmd<
+                    KadenaCmdInterp<
                         DropInterp,
                         DropInterp,
                         SubInterp<
-                            Signer<
+                            Preaction<SignerInterp<
                                 DropInterp,
                                 DropInterp,
                                 DropInterp,
                                 SubInterp<
                                     Action<
-                                        KadenaCapability<KadenaCapabilityArgsInterp, JsonStringAccumulate<14>>,
-                                        fn(&KadenaCapability<Option<(Option<AltResult<ArrayVec<u8, 70>, ()>>, Option<AltResult<ArrayVec<u8, 70>, ()>>, Option<AltResult<ArrayVec<u8, 70>, ()>>)>, Option<ArrayVec<u8, 14>>>, &mut Option<()>) -> Option<()>,
+                                        KadenaCapabilityInterp<KadenaCapabilityArgsInterp, JsonStringAccumulate<14>>,
+                                        fn(&KadenaCapability<Option<(Option<AltResult<ArrayVec<u8, 65>, ()>>, Option<AltResult<ArrayVec<u8, 65>, ()>>, Option<AltResult<ArrayVec<u8, 20>, ()>>)>, Option<ArrayVec<u8, 14>>>, &mut Option<()>) -> Option<()>,
                                     >,
                                 >,
-                            >,
+                            >>,
                         >,
                         DropInterp,
                         DropInterp,
@@ -87,7 +107,11 @@ pub const SIGN_IMPL: SignImplT = Action(
                 Json(KadenaCmd {
                     field_nonce: DropInterp,
                     field_meta: DropInterp,
-                    field_signers: SubInterp(Signer {
+                    field_signers: SubInterp(Preaction(
+                            || {
+                                write_scroller("Required", |w| Ok(write!(w, "Signature")?))
+                            },
+                            Signer {
                         field_scheme: DropInterp,
                         field_pub_key: DropInterp,
                         field_addr: DropInterp,
@@ -99,11 +123,12 @@ pub const SIGN_IMPL: SignImplT = Action(
                             |cap, _| {
                                 use core::str::from_utf8;
                                 use AltResult::*;
+                                error!("Handling capability.");
                                 let name = cap.field_name.as_ref()?.as_slice();
-                                trace!("Handling capability with name {}", from_utf8(name).ok()?);
+                                error!("Handling capability with name {:?}", name);
                                 match cap.field_args.as_ref()? {
                                     (None, None, None) if name == b"coin.GAS" => {
-                                        write_scroller("Paying Gas", |_| Ok(()))?;
+                                        write_scroller("Paying Gas", |w| Ok(write!(w, " ")?))?;
                                     }
                                     _ if name == b"coin.GAS" => { return None; }
                                     (Some(First(acct)), None, None) if name == b"coin.ROTATE" => {
@@ -119,11 +144,11 @@ pub const SIGN_IMPL: SignImplT = Action(
                                 Some(())
                             },
                         )),
-                    }),
+                    })),
                     field_payload: DropInterp,
                     field_network_id: DropInterp,
                 }),
-            false),
+            true),
             // Ask the user if they accept the transaction body's hash
             |(_, mut hash): &(_, Hasher), destination: &mut _| {
                 let the_hash = hash.finalize();
@@ -161,13 +186,15 @@ pub const SIGN_IMPL: SignImplT = Action(
 
 pub struct KadenaCapabilityArgsInterp;
 
+#[derive(Debug)]
 pub enum KadenaCapabilityArgsInterpState {
     Start,
-    FirstArgument(<Alt<JsonStringAccumulate<70>, DropInterp> as JsonInterp<Alt<JsonString, JsonAny>>>::State),
+    Begin,
+    FirstArgument(<Alt<JsonStringAccumulate<65>, DropInterp> as JsonInterp<Alt<JsonString, JsonAny>>>::State),
     FirstValueSep,
-    SecondArgument(<Alt<JsonStringAccumulate<70>, DropInterp> as JsonInterp<Alt<JsonString, JsonAny>>>::State),
+    SecondArgument(<Alt<JsonStringAccumulate<65>, DropInterp> as JsonInterp<Alt<JsonString, JsonAny>>>::State),
     SecondValueSep,
-    ThirdArgument(<Alt<JsonStringAccumulate<70>, DropInterp> as JsonInterp<Alt<JsonNumber, JsonAny>>>::State),
+    ThirdArgument(<Alt<JsonStringAccumulate<20>, DropInterp> as JsonInterp<Alt<JsonNumber, JsonAny>>>::State),
     ThirdValueSep,
     FallbackValue(<DropInterp as JsonInterp<JsonAny>>::State),
     FallbackValueSep
@@ -175,39 +202,46 @@ pub enum KadenaCapabilityArgsInterpState {
 
 impl JsonInterp<JsonArray<JsonAny>> for KadenaCapabilityArgsInterp {
     type State = (KadenaCapabilityArgsInterpState, Option<<DropInterp as JsonInterp<JsonAny>>::Returning>);
-    type Returning = ( Option<AltResult<ArrayVec<u8, 70>, ()>>, Option<AltResult<ArrayVec<u8, 70>, ()>>, Option<AltResult<ArrayVec<u8, 70>, ()>> );
+    type Returning = ( Option<AltResult<ArrayVec<u8, 65>, ()>>, Option<AltResult<ArrayVec<u8, 65>, ()>>, Option<AltResult<ArrayVec<u8, 20>, ()>> );
     fn init(&self) -> Self::State {
         (KadenaCapabilityArgsInterpState::Start, None)
     }
+    #[inline(never)]
     fn parse<'a, 'b>(&self, (ref mut state, ref mut scratch): &'b mut Self::State, token: JsonToken<'a>, destination: &mut Option<Self::Returning>) -> Result<(), Option<OOB>> {
-        let str_interp = Alt(JsonStringAccumulate::<70>, DropInterp);
-        let dec_interp = Alt(JsonStringAccumulate::<70>, DropInterp);
+        let str_interp = Alt(JsonStringAccumulate::<65>, DropInterp);
+        let dec_interp = Alt(JsonStringAccumulate::<20>, DropInterp);
         loop {
             use KadenaCapabilityArgsInterpState::*;
             match state {
-                Start => {
+                Start if token == JsonToken::BeginArray => {
                     set_from_thunk(destination, || Some((None, None, None)));
-                    set_from_thunk(state, || FirstArgument(<Alt<JsonStringAccumulate<70>, DropInterp> as JsonInterp<Alt<JsonString, JsonAny>>>::init(&str_interp)));
+                    set_from_thunk(state, || Begin);
+                }
+                Begin if token == JsonToken::EndArray => {
+                    return Ok(());
+                }
+                Begin => {
+                    set_from_thunk(state, || FirstArgument(<Alt<JsonStringAccumulate<65>, DropInterp> as JsonInterp<Alt<JsonString, JsonAny>>>::init(&str_interp)));
                     continue;
                 }
                 FirstArgument(ref mut s) => {
-                    <Alt<JsonStringAccumulate<70>, DropInterp> as JsonInterp<Alt<JsonString, JsonAny>>>::parse(&str_interp, s, token, &mut destination.as_mut().ok_or(Some(OOB::Reject))?.0)?;
+                    <Alt<JsonStringAccumulate<65>, DropInterp> as JsonInterp<Alt<JsonString, JsonAny>>>::parse(&str_interp, s, token, &mut destination.as_mut().ok_or(Some(OOB::Reject))?.0)?;
                     set_from_thunk(state, || FirstValueSep);
                 }
                 FirstValueSep if token == JsonToken::ValueSeparator => {
-                    set_from_thunk(state, || SecondArgument(<Alt<JsonStringAccumulate<70>, DropInterp> as JsonInterp<Alt<JsonString, JsonAny>>>::init(&str_interp)));
+                    set_from_thunk(state, || SecondArgument(<Alt<JsonStringAccumulate<65>, DropInterp> as JsonInterp<Alt<JsonString, JsonAny>>>::init(&str_interp)));
                 }
                 FirstValueSep if token == JsonToken::EndArray => return Ok(()),
                 SecondArgument(ref mut s) => {
-                    <Alt<JsonStringAccumulate<70>, DropInterp> as JsonInterp<Alt<JsonString, JsonAny>>>::parse(&str_interp, s, token, &mut destination.as_mut().ok_or(Some(OOB::Reject))?.1)?;
+                    <Alt<JsonStringAccumulate<65>, DropInterp> as JsonInterp<Alt<JsonString, JsonAny>>>::parse(&str_interp, s, token, &mut destination.as_mut().ok_or(Some(OOB::Reject))?.1)?;
                     set_from_thunk(state, || SecondValueSep);
                 }
                 SecondValueSep if token == JsonToken::ValueSeparator => {
-                    set_from_thunk(state, || ThirdArgument(<Alt<JsonStringAccumulate<70>, DropInterp> as JsonInterp<Alt<JsonNumber, JsonAny>>>::init(&str_interp)));
+                    set_from_thunk(state, || ThirdArgument(<Alt<JsonStringAccumulate<20>, DropInterp> as JsonInterp<Alt<JsonNumber, JsonAny>>>::init(&dec_interp)));
                 }
                 SecondValueSep if token == JsonToken::EndArray => return Ok(()),
                 ThirdArgument(ref mut s) => {
-                    <Alt<JsonStringAccumulate<70>, DropInterp> as JsonInterp<Alt<JsonNumber, JsonAny>>>::parse(&dec_interp, s, token, &mut destination.as_mut().ok_or(Some(OOB::Reject))?.1)?;
+                    <Alt<JsonStringAccumulate<20>, DropInterp> as JsonInterp<Alt<JsonNumber, JsonAny>>>::parse(&dec_interp, s, token, &mut destination.as_mut().ok_or(Some(OOB::Reject))?.2)?;
                     set_from_thunk(state, || FirstValueSep);
                 }
                 ThirdValueSep if token == JsonToken::EndArray => {
@@ -246,6 +280,12 @@ pub fn reset_parsers_state(state: &mut ParsersState) {
     *state = ParsersState::NoState;
 }
 
+meta_definition!{}
+kadena_capability_definition!{}
+signer_definition!{}
+kadena_cmd_definition!{}
+
+/*
 define_json_struct_interp! { Meta 16 {
     chainId: JsonString,
     sender: JsonString,
@@ -271,6 +311,7 @@ define_json_struct_interp! { KadenaCmd 16 {
   payload: JsonAny,
   networkId: JsonAny
 }}
+*/
 
 #[inline(never)]
 pub fn get_get_address_state(

@@ -7,7 +7,7 @@ autobins = false
 target = "thumv6m-none-eabi"
 
 [dependencies]
-ledger-parser-combinators = {  git = "https://github.com/obsidiansystems/ledger-parser-combinators", branch = "jg-json-parser-alternatives" }
+ledger-parser-combinators = {  git = "https://github.com/obsidiansystems/ledger-parser-combinators", branch = "jg-fix-more-excessive-memory-use" }
 ledger-log = { path = "./ledger-log", features=[ "log_error" ] } # change to log_info, log_trace, etc. to change log level.
 arrayvec = { version = "0.7.2", default-features = false }
 
