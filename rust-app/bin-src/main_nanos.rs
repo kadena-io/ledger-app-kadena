@@ -30,6 +30,11 @@ fn show_pubkey() {
     }
 }
 
+#[inline(never)]
+fn noinline_call<F: FnOnce() -> ()>(f: F) {
+    f();
+}
+
 /// Basic nested menu. Will be subject
 /// to simplifications in the future.
 #[allow(clippy::needless_borrow)]
@@ -67,7 +72,7 @@ extern "C" fn sample_main() {
 
     loop {
         // Draw some 'welcome' screen
-        ui::SingleMessage::new("W e l c o m e").show();
+        noinline_call(|| ui::SingleMessage::new("W e l c o m e").show());
 
         info!("Fetching next event.");
         // Wait for either a specific button push to exit the app
@@ -162,6 +167,7 @@ fn run_parser_apdu<P: InterpParser<A, Returning = ArrayVec<u8, 260>>, A>(
 }
 
 // fn handle_apdu<P: for<'a> FnMut(ParserTag, &'a [u8]) -> RX<'a, ArrayVec<u8, 260> > >(comm: &mut io::Comm, ins: Ins, parser: &mut P) -> Result<(), Reply> {
+#[inline(never)]
 fn handle_apdu(comm: &mut io::Comm, ins: Ins, parser: &mut ParsersState) -> Result<(), Reply> {
     info!("entering handle_apdu with command {:?}", ins);
     if comm.rx == 0 {
