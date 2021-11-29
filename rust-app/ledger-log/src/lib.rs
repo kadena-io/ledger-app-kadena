@@ -35,6 +35,7 @@ impl Write for DBG {
     }
 }
 
+#[cfg(not(all(target_os = "nanos", not(feature = "speculos"))))]
 #[macro_export]
 macro_rules! log {
     (target: $target:expr, $lvl:expr, $fmt:literal $($arg:tt)*) => ({
@@ -44,6 +45,12 @@ macro_rules! log {
     ($lvl:expr, $fmt:literal $($arg:tt)*) => (log!(target: __log_module_path!(), $lvl, $fmt $($arg)*))
 }
 
+#[cfg(all(target_os = "nanos", not(feature = "speculos")))]
+#[macro_export]
+macro_rules! log {
+    (target: $target:expr, $lvl:expr, $fmt:literal $($arg:tt)*) => ({ });
+    ($lvl:expr, $fmt:literal $($arg:tt)*) => (log!(target: __log_module_path!(), $lvl, $fmt $($arg)*))
+}
 
 #[cfg(feature = "log_error")]
 #[macro_export]
@@ -53,7 +60,7 @@ macro_rules! error {
 #[cfg(not(feature = "log_error"))]
 #[macro_export]
 macro_rules! error {
-    ($fmt:literal $($arg:tt)*) => ()
+    ($fmt:literal $($arg:tt)*) => ({ })
 }
 #[cfg(feature = "log_warn")]
 #[macro_export]
@@ -63,7 +70,7 @@ macro_rules! warn {
 #[cfg(not(feature = "log_warn"))]
 #[macro_export]
 macro_rules! warn {
-    ($fmt:literal $($arg:tt)*) => ()
+    ($fmt:literal $($arg:tt)*) => ({ })
 }
 #[cfg(feature = "log_info")]
 #[macro_export]
@@ -73,7 +80,7 @@ macro_rules! info {
 #[cfg(not(feature = "log_info"))]
 #[macro_export]
 macro_rules! info {
-    ($fmt:literal $($arg:tt)*) => ()
+    ($fmt:literal $($arg:tt)*) => ({ })
 }
 #[cfg(feature = "log_debug")]
 #[macro_export]
@@ -83,7 +90,7 @@ macro_rules! debug {
 #[cfg(not(feature = "log_debug"))]
 #[macro_export]
 macro_rules! debug {
-    ($fmt:literal $($arg:tt)*) => ()
+    ($fmt:literal $($arg:tt)*) => ({ })
 }
 #[cfg(feature = "log_trace")]
 #[macro_export]
@@ -93,7 +100,7 @@ macro_rules! trace {
 #[cfg(not(feature = "log_trace"))]
 #[macro_export]
 macro_rules! trace {
-    ($fmt:literal $($arg:tt)*) => ()
+    ($fmt:literal $($arg:tt)*) => ({ })
 }
 
 #[test]

@@ -8,12 +8,13 @@ target = "thumv6m-none-eabi"
 
 [dependencies]
 ledger-parser-combinators = {  git = "https://github.com/obsidiansystems/ledger-parser-combinators", branch = "jg-fix-more-excessive-memory-use" }
-ledger-log = { path = "./ledger-log", features=[ "log_error" ] } # change to log_info, log_trace, etc. to change log level.
+# Pass --features speculos,ledger-log/log_info (or log_trace, etc) to enable speculos logging and change log level.
+ledger-log = { path = "./ledger-log" }
 arrayvec = { version = "0.7.2", default-features = false }
 
 [features]
-default = [ "speculos" ]
-speculos = ["nanos_sdk/speculos", "ledger-log/speculos" ]
+default = [ ]
+speculos = [ "nanos_sdk/speculos", "ledger-log/speculos", "ledger-log/log_error" ]
 extra_debug = ["ledger-log/log_trace"]
 
 [target.thumbv6m-none-eabi.dependencies]
@@ -27,7 +28,7 @@ nanos_sdk = { git = "https://github.com/LedgerHQ/ledger-nanos-sdk.git", features
 testmacro = { git = "https://github.com/yhql/testmacro"}
 
 [[bin]]
-name = "rust-app"
+name = "Kadena"
 test = false
 path = "bin-src/main.rs"
 
