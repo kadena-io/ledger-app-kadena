@@ -117,7 +117,7 @@ impl<'a, F: for<'b> Fn(&mut PromptWrite<'b, CHAR_N>) -> Result<(), ScrollerError
             Ok(())
         };
 
-        draw(cur_page);
+        draw(cur_page)?;
 
         loop {
             match get_event(&mut buttons) {
@@ -132,7 +132,7 @@ impl<'a, F: for<'b> Fn(&mut PromptWrite<'b, CHAR_N>) -> Result<(), ScrollerError
                         cur_page -= 1;
                     }
                     // We need to draw anyway to clear button press arrow
-                    draw(cur_page);
+                    draw(cur_page)?;
                 }    
                 Some(ButtonEvent::RightButtonRelease) => {
                     if cur_page + 1 < page_count {
@@ -142,7 +142,7 @@ impl<'a, F: for<'b> Fn(&mut PromptWrite<'b, CHAR_N>) -> Result<(), ScrollerError
                         break Ok(true);
                     }
                     // We need to draw anyway to clear button press arrow
-                    draw(cur_page);
+                    draw(cur_page)?;
                 }
                 Some(ButtonEvent::BothButtonsRelease) => break Ok(false),
                 Some(_) | None => ()
