@@ -131,14 +131,16 @@ impl Hasher {
         // Self([0;255])
     }
 
+    #[inline(never)]
     pub fn update(&mut self, bytes: &[u8]) {
         unsafe {
-            trace!("Hashing bytes: {:?}", bytes);
-            trace!("as text: {:?}", core::str::from_utf8(bytes));
+            debug!("Hashing bytes: {:?}", bytes);
+            debug!("as text: {:?}", core::str::from_utf8(bytes));
             cx_hash_update(&mut self.0 as *mut cx_blake2b_s as *mut cx_hash_t, bytes.as_ptr(), bytes.len() as u32);
         }
     }
 
+    #[inline(never)]
     pub fn finalize(&mut self) -> Hash {
         let mut rv = [0; 64];
         unsafe { cx_hash_final(&mut self.0 as *mut cx_blake2b_s as *mut cx_hash_t, rv.as_mut_ptr()) };
