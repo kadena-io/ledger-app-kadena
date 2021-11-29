@@ -3,7 +3,7 @@ use crate::interface::*;
 use crate::*;
 use arrayvec::ArrayVec;
 use core::fmt::Write;
-use ledger_log::*;
+use ledger_log::{info};
 use ledger_parser_combinators::interp_parser::{
     Action, DefaultInterp, DropInterp, InterpParser, ObserveLengthedBytes, SubInterp, OOB, set_from_thunk
 };
@@ -41,6 +41,7 @@ impl<A, S: JsonInterp<A>> JsonInterp<A> for Preaction<S> {
     type Returning = <S as JsonInterp<A>>::Returning;
 
     fn init(&self) -> Self::State { None }
+    #[inline(never)]
     fn parse<'a>(&self, state: &mut Self::State, token: JsonToken<'a>, destination: &mut Option<Self::Returning>) -> Result<(), Option<OOB>> {
         loop { break match state {
             None => {
@@ -104,28 +105,26 @@ pub const SIGN_IMPL: SignImplT = Action(
             ObserveLengthedBytes(
                 Hasher::new,
                 Hasher::update,
-                Json(KadenaCmd {
+                Json(KadenaCmdInterp {
                     field_nonce: DropInterp,
                     field_meta: DropInterp,
                     field_signers: SubInterp(Preaction(
                             || {
                                 write_scroller("Required", |w| Ok(write!(w, "Signature")?))
                             },
-                            Signer {
+                            SignerInterp {
                         field_scheme: DropInterp,
                         field_pub_key: DropInterp,
                         field_addr: DropInterp,
                         field_clist: SubInterp(Action(
-                                KadenaCapability {
+                                KadenaCapabilityInterp {
                                     field_args: KadenaCapabilityArgsInterp,
                                     field_name: JsonStringAccumulate::<14>
                                 },
-                            |cap, _| {
+                            |cap : &KadenaCapability<Option<<KadenaCapabilityArgsInterp as JsonInterp<JsonArray<JsonAny>>>::Returning>, Option<ArrayVec<u8, 14>>>, _| {
                                 use core::str::from_utf8;
                                 use AltResult::*;
-                                error!("Handling capability.");
                                 let name = cap.field_name.as_ref()?.as_slice();
-                                error!("Handling capability with name {:?}", name);
                                 match cap.field_args.as_ref()? {
                                     (None, None, None) if name == b"coin.GAS" => {
                                         write_scroller("Paying Gas", |w| Ok(write!(w, " ")?))?;
@@ -137,7 +136,7 @@ pub const SIGN_IMPL: SignImplT = Action(
                                     _ if name == b"coin.ROTATE" => { return None; }
                                     (Some(First(sender)), Some(First(receiver)), Some(First(amount))) if name == b"coin.TRANSFER" => {
                                         write_scroller("Transfer", |w| Ok(write!(w, "{} from {} to {}", from_utf8(amount.as_slice())?, from_utf8(sender.as_slice())?, from_utf8(receiver.as_slice())?)?))?;
-                                            }
+                                    }
                                     _ if name == b"coin.TRANSFER" => { return None; }
                                     _ => { return None; } // Change this to allow unknown capabilities.
                                 }
@@ -320,7 +319,7 @@ pub fn get_get_address_state(
     match s {
         ParsersState::GetAddressState(_) => {}
         _ => {
-            trace!("Non-same state found; initializing state.");
+            info!("Non-same state found; initializing state.");
             *s = ParsersState::GetAddressState(<GetAddressImplT as InterpParser<Bip32Key>>::init(
                 &GET_ADDRESS_IMPL,
             ));
@@ -341,7 +340,7 @@ pub fn get_sign_state(
     match s {
         ParsersState::SignState(_) => {}
         _ => {
-            trace!("Non-same state found; initializing state.");
+            info!("Non-same state found; initializing state.");
             *s = ParsersState::SignState(<SignImplT as InterpParser<SignParameters>>::init(
                 &SIGN_IMPL,
             ));

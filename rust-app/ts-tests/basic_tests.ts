@@ -163,14 +163,227 @@ describe("Signing tests", function() {
      testTransaction(
        "0/0",
        '{"networkId":"mainnet01","payload":{"exec":{"data":{},"code":"(coin.transfer \\"83934c0f9b005f378ba3520f9dea952fb0a90e5aa36f1b5ff837d9b30c471790\\" \\"9790d119589a26114e1a42d92598b3f632551c566819ec48e0e8c54dae6ebb42\\" 11.0)"}},"signers":[{"pubKey":"83934c0f9b005f378ba3520f9dea952fb0a90e5aa36f1b5ff837d9b30c471790","clist":[{"args":[],"name":"coin.GAS"},{"args":["83934c0f9b005f378ba3520f9dea952fb0a90e5aa36f1b5ff837d9b30c471790","9790d119589a26114e1a42d92598b3f632551c566819ec48e0e8c54dae6ebb42",11],"name":"coin.TRANSFER"}]}],"meta":{"creationTime":1634009214,"ttl":28800,"gasLimit":600,"chainId":"0","gasPrice":1.0e-5,"sender":"83934c0f9b005f378ba3520f9dea952fb0a90e5aa36f1b5ff837d9b30c471790"},"nonce":"\\"2021-10-12T03:27:53.700Z\\""}',
-       []));
-  it("can sign a different simple transfer",
-     testTransaction(
-       "0/0",
-       '{"networkId":"mainnet01","payload":{"exec":{"data":{},"code":"(coin.transfer \"aab7d3e457f3f78480832d6ac4ace7387f460620a63a5b68c8c799d6bff1566a\" \"4c310df6224d674d80463a29cde00cb0ecfb71e0cfdce494243a61b8ea572dfd\" 2.0)"}},"signers":[{"pubKey":"aab7d3e457f3f78480832d6ac4ace7387f460620a63a5b68c8c799d6bff1566a","clist":[{"args":["aab7d3e457f3f78480832d6ac4ace7387f460620a63a5b68c8c799d6bff1566a","4c310df6224d674d80463a29cde00cb0ecfb71e0cfdce494243a61b8ea572dfd",2],"name":"coin.TRANSFER"},{"args":[],"name":"coin.GAS"}]}],"meta":{"creationTime":1634009195,"ttl":900,"gasLimit":600,"chainId":"0","gasPrice":1.0e-6,"sender":"aab7d3e457f3f78480832d6ac4ace7387f460620a63a5b68c8c799d6bff1566a"},"nonce":"\"2021-10-12T03:27:35.231Z\""}',
-       []));
-  it("can sign a transfer-create",
-     testTransaction(
+       [
+         {
+           "text": "Signature",
+           "x": 40,
+           "y": 16,
+         },
+         {
+           "text": "Required",
+           "x": 41,
+           "y": 1,
+         },
+         {
+           "text": " ",
+           "x": 63,
+           "y": 16,
+         },
+         {
+           "text": "Paying Gas",
+           "x": 36,
+           "y": 1,
+         },
+         {
+           "text": "11 from 83934c0f",
+           "x": 18,
+           "y": 16,
+         },
+         {
+           "text": "Transfer",
+           "x": 42,
+           "y": 1,
+         },
+         {
+           "text": "9b005f378ba3520f",
+           "x": 16,
+           "y": 16,
+         },
+         {
+           "text": "Transfer",
+           "x": 42,
+           "y": 1,
+         },
+         {
+           "text": "9dea952fb0a90e5a",
+           "x": 16,
+           "y": 16,
+         },
+         {
+           "text": "Transfer",
+           "x": 42,
+           "y": 1,
+         },
+         {
+           "text": "a36f1b5ff837d9b3",
+           "x": 16,
+           "y": 16,
+         },
+         {
+           "text": "Transfer",
+           "x": 42,
+           "y": 1,
+         },
+         {
+           "text": "0c471790 to 9790",
+           "x": 19,
+           "y": 16,
+         },
+         {
+           "text": "Transfer",
+           "x": 42,
+           "y": 1,
+         },
+         {
+           "text": "d119589a26114e1a",
+           "x": 15,
+           "y": 16,
+         },
+         {
+           "text": "Transfer",
+           "x": 42,
+           "y": 1,
+         },
+         {
+           "text": "42d92598b3f63255",
+           "x": 15,
+           "y": 16,
+         },
+         {
+           "text": "Transfer",
+           "x": 42,
+           "y": 1,
+         },
+         {
+           "text": "1c566819ec48e0e8",
+           "x": 16,
+           "y": 16,
+         },
+         {
+           "text": "Transfer",
+           "x": 42,
+           "y": 1,
+         },
+         {
+           "text": "B4ED85985F49CA6B",
+           "x": 11,
+           "y": 16,
+         },
+
+         {
+           "text": "Transaction hash",
+           "x": 20,
+           "y": 1,
+         },
+         {
+           "text": "48FF3F91362189CF",
+           "x": 15,
+           "y": 16,
+         },
+         {
+           "text": "Transaction hash",
+           "x": 20,
+           "y": 1,
+         },
+         {
+           "text": "6E3179823709F299",
+           "x": 16,
+           "y": 16,
+         },
+         {
+           "text": "Transaction hash",
+           "x": 20,
+           "y": 1,
+         },
+         {
+           "text": "0D837171EA2CB7CB",
+           "x": 13,
+           "y": 16,
+         },
+         {
+           "text": "Transaction hash",
+           "x": 20,
+           "y": 1,
+         },
+         {
+           "text": "C7D70E53D9BA7A93",
+           "x": 12,
+           "y": 16,
+         },
+         {
+           "text": "Transaction hash",
+           "x": 20,
+           "y": 1,
+         },
+         {
+           "text": "974C320723F839F1",
+           "x": 15,
+           "y": 16,
+         },
+         {
+           "text": "Transaction hash",
+           "x": 20,
+           "y": 1,
+         },
+         {
+           "text": "25C064F578ADBD25",
+           "x": 12,
+           "y": 16,
+         },
+         {
+           "text": "Transaction hash",
+           "x": 20,
+           "y": 1,
+         },
+         {
+           "text": "ffd8cd79deb956fa",
+           "x": 16,
+           "y": 16,
+         },
+         {
+           "text": "sign for address",
+           "x": 23,
+           "y": 1,
+         },
+         {
+           "text": "3c7d9be0f836f20a",
+           "x": 17,
+           "y": 16,
+         },
+         {
+           "text": "sign for address",
+           "x": 23,
+           "y": 1,
+         },
+         {
+           "text": "c84b140168a087a8",
+           "x": 14,
+           "y": 16,
+         },
+         {
+           "text": "sign for address",
+           "x": 23,
+           "y": 1,
+         },
+         {
+           "text": "Sign Transaction?",
+           "x": 19,
+           "y": 11,
+         },
+         {
+           "text": "Confirm",
+           "x": 43,
+           "y": 11,
+         },
+       ]
+     ));
+     it("can sign a different simple transfer",
+        testTransaction(
+          "0/0",
+          '{"networkId":"mainnet01","payload":{"exec":{"data":{},"code":"(coin.transfer \"aab7d3e457f3f78480832d6ac4ace7387f460620a63a5b68c8c799d6bff1566a\" \"4c310df6224d674d80463a29cde00cb0ecfb71e0cfdce494243a61b8ea572dfd\" 2.0)"}},"signers":[{"pubKey":"aab7d3e457f3f78480832d6ac4ace7387f460620a63a5b68c8c799d6bff1566a","clist":[{"args":["aab7d3e457f3f78480832d6ac4ace7387f460620a63a5b68c8c799d6bff1566a","4c310df6224d674d80463a29cde00cb0ecfb71e0cfdce494243a61b8ea572dfd",2],"name":"coin.TRANSFER"},{"args":[],"name":"coin.GAS"}]}],"meta":{"creationTime":1634009195,"ttl":900,"gasLimit":600,"chainId":"0","gasPrice":1.0e-6,"sender":"aab7d3e457f3f78480832d6ac4ace7387f460620a63a5b68c8c799d6bff1566a"},"nonce":"\"2021-10-12T03:27:35.231Z\""}',
+          []));
+          it("can sign a transfer-create",
+             testTransaction(
        "0/0",
        '{"networkId":"mainnet01","payload":{"exec":{"data":{"recp-ks":{"pred":"keys-all","keys":["875e4493e19c8721583bfb46f0768f10266ebcca33c4a0e04bc099a7044a90f7"]}},"code":"(coin.transfer-create \"e4a1b2980c086c4551ab7d2148cf56e9774c64eb86f795d5fd83e39ccfd2ec66\" \"875e4493e19c8721583bfb46f0768f10266ebcca33c4a0e04bc099a7044a90f7\" (read-keyset \"recp-ks\") 4.98340488)"}},"signers":[{"pubKey":"e4a1b2980c086c4551ab7d2148cf56e9774c64eb86f795d5fd83e39ccfd2ec66","clist":[{"args":[],"name":"coin.GAS"},{"args":["e4a1b2980c086c4551ab7d2148cf56e9774c64eb86f795d5fd83e39ccfd2ec66","875e4493e19c8721583bfb46f0768f10266ebcca33c4a0e04bc099a7044a90f7",4.98340488],"name":"coin.TRANSFER"}]}],"meta":{"creationTime":1634009142,"ttl":28800,"gasLimit":60000,"chainId":"0","gasPrice":1.0e-6,"sender":"e4a1b2980c086c4551ab7d2148cf56e9774c64eb86f795d5fd83e39ccfd2ec66"},"nonce":"\"1634009156943\""}',
        []));
