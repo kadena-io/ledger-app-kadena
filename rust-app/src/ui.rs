@@ -1,6 +1,7 @@
 use nanos_sdk::buttons::{ButtonsState, ButtonEvent};
 use nanos_ui::bagls::*;
-use nanos_ui::ui::{get_event, MessageValidator};
+use nanos_ui::ui::{get_event, MessageValidator, SingleMessage};
+use nanos_sdk::pic_rs;
 use arrayvec::ArrayString;
 use core::fmt::Write;
 use ledger_log::trace;
@@ -148,5 +149,35 @@ impl<'a, F: for<'b> Fn(&mut PromptWrite<'b, CHAR_N>) -> Result<(), ScrollerError
                 Some(_) | None => ()
             }
         }
+    }
+}
+
+pub struct RootMenu<'a, const N: usize> {
+    screens: [&'a str; N],
+    state: usize,
+}
+
+impl<'a, const N: usize> RootMenu<'a, N> {
+    pub fn new(screens: [&'a str; N]) -> RootMenu<'a, N> {
+        RootMenu {
+            screens,
+            state: 0
+        }
+    }
+
+    #[inline(never)]
+    pub fn show(&self) {
+        SingleMessage::new(self.screens[self.state]).show();
+    }
+
+    #[inline(never)]
+    pub fn update(&mut self, btn: ButtonEvent) -> Option<usize> {
+        match btn {
+            ButtonEvent::LeftButtonRelease => self.state = if self.state > 0 { self.state - 1 } else {0},
+            ButtonEvent::RightButtonRelease => self.state = core::cmp::min(self.state+1, N-1),
+            ButtonEvent::BothButtonsRelease => return Some(self.state),
+            _ => (),
+        }
+        None
     }
 }

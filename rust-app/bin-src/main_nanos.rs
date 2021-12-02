@@ -1,7 +1,9 @@
 use Kadena::crypto_helpers::*;
 use Kadena::implementation::*;
 use Kadena::interface::*;
+use Kadena::ui::RootMenu;
 use Kadena::utils;
+use ledger_parser_combinators::interp_parser::set_from_thunk;
 
 use core::str::from_utf8;
 use nanos_sdk::io;
@@ -30,11 +32,6 @@ fn show_pubkey() {
     }
 }
 
-#[inline(never)]
-fn noinline_call<F: FnOnce() -> ()>(f: F) {
-    f();
-}
-
 /// Basic nested menu. Will be subject
 /// to simplifications in the future.
 #[allow(clippy::needless_borrow)]
@@ -59,11 +56,15 @@ fn menu_example() {
 use ledger_parser_combinators::interp_parser::OOB;
 use Kadena::*;
 
+
 #[cfg(not(test))]
 #[no_mangle]
 extern "C" fn sample_main() {
     let mut comm = io::Comm::new();
     let mut states = ParsersState::NoState;
+
+    let mut idle_menu = RootMenu::new([ "Kadena", "Exit" ]);
+    let mut busy_menu = RootMenu::new([ "Working...", "Cancel" ]);
 
     info!(
         "State struct uses {} bytes",
@@ -72,18 +73,29 @@ extern "C" fn sample_main() {
 
     loop {
         // Draw some 'welcome' screen
-        noinline_call(|| ui::SingleMessage::new("W e l c o m e").show());
+        match states {
+            ParsersState::NoState => idle_menu.show(),
+            _ => busy_menu.show(),
+        }
 
         info!("Fetching next event.");
         // Wait for either a specific button push to exit the app
         // or an APDU command
         match comm.next_event() {
-            // io::Event::Button(ButtonEvent::RightButtonRelease) => nanos_sdk::exit_app(0),
             io::Event::Command(ins) => match handle_apdu(&mut comm, ins, &mut states) {
                 Ok(()) => comm.reply_ok(),
                 Err(sw) => comm.reply(sw),
             },
-            _ => (),
+            io::Event::Button(btn) => match states {
+                ParsersState::NoState => {match idle_menu.update(btn) {
+                    Some(1) => { info!("Exiting app at user direction via root menu"); nanos_sdk::exit_app(0) },
+                    _ => (),
+                } }
+                _ => { match busy_menu.update(btn) {
+                    Some(1) => { info!("Resetting at user direction via busy menu"); set_from_thunk(&mut states, || ParsersState::NoState); }
+                    _ => (),
+                } }
+            }
         }
         info!("Event handled.");
     }
