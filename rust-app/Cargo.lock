@@ -3,18 +3,6 @@
 version = 3
 
 [[package]]
-name = "Kadena"
-version = "0.2.0"
-dependencies = [
- "arrayvec",
- "ledger-log",
- "ledger-parser-combinators",
- "nanos_sdk",
- "nanos_ui",
- "testmacro",
-]
-
-[[package]]
 name = "arrayvec"
 version = "0.7.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -46,9 +34,9 @@ checksum = "baf1de4339761588bc0619e3cbc0120ee582ebb74b53b4efbf79117bd2da40fd"
 
 [[package]]
 name = "cty"
-version = "0.2.1"
+version = "0.2.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7313c0d620d0cb4dbd9d019e461a4beb501071ff46ec0ab933efb4daa76d73e3"
+checksum = "b365fabc795046672053e29c954733ec3b05e4be654ab130fe8f1f94d7051f35"
 
 [[package]]
 name = "generic-array"
@@ -61,8 +49,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "kadena"
+version = "0.2.0"
+dependencies = [
+ "arrayvec",
+ "ledger-log",
+ "ledger-parser-combinators",
+ "nanos_sdk",
+ "nanos_ui",
+ "testmacro",
+]
+
+[[package]]
 name = "ledger-log"
 version = "0.1.0"
+source = "git+https://github.com/obsidiansystems/ledger-platform?branch=jg-add-rust-libs#9d6ea2a3446f77fb035a6b30262b0494f1b1c407"
 dependencies = [
  "arrayvec",
  "nanos_sdk",
@@ -71,7 +72,7 @@ dependencies = [
 [[package]]
 name = "ledger-parser-combinators"
 version = "0.1.0"
-source = "git+https://github.com/obsidiansystems/ledger-parser-combinators?branch=jg-fix-more-excessive-memory-use#44cdf508b1043463b7cf0c086270c24211399d9c"
+source = "git+https://github.com/obsidiansystems/ledger-parser-combinators?branch=jg-fix-more-excessive-memory-use#fb4df5bbe4651587c8baaf8354f0ed02ce554231"
 dependencies = [
  "arrayvec",
  "bstringify",

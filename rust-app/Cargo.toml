@@ -1,15 +1,14 @@
 [package]
-name = "Kadena"
+name = "kadena"
 version = "0.2.0"
 authors = ["yhql"]
 edition = "2018"
 autobins = false
-target = "thumv6m-none-eabi"
 
 [dependencies]
 ledger-parser-combinators = {  git = "https://github.com/obsidiansystems/ledger-parser-combinators", branch = "jg-fix-more-excessive-memory-use" }
 # Pass --features speculos,ledger-log/log_info (or log_trace, etc) to enable speculos logging and change log level.
-ledger-log = { path = "./ledger-log" }
+ledger-log = { git = "https://github.com/obsidiansystems/ledger-platform", branch="jg-add-rust-libs", features=["log_trace"] }
 arrayvec = { version = "0.7.2", default-features = false }
 
 [features]
@@ -28,12 +27,12 @@ nanos_sdk = { git = "https://github.com/LedgerHQ/ledger-nanos-sdk.git", features
 testmacro = { git = "https://github.com/yhql/testmacro"}
 
 [[bin]]
-name = "Kadena"
+name = "kadena"
 test = false
 path = "bin-src/main.rs"
 
 [patch."https://github.com/LedgerHQ/ledger-nanos-sdk.git".nanos_sdk]
-git = "https://github.com/ObsidianSystems/ledger-nanos-sdk.git"
+git = "https://github.com/obsidiansystems/ledger-nanos-sdk.git"
 branch = "use-ambient-compiler-and-target"
 
 [profile.dev]
@@ -49,6 +48,8 @@ lto = true
 
 
 [package.metadata.nanos]
-curve = "Ed25519"
+name = "Kadena"
+path = "44'/626'"
+curve = "ed25519"
 flags = "0"
 icon = "kadena.gif"
