@@ -1,7 +1,6 @@
 use nanos_sdk::buttons::{ButtonsState, ButtonEvent};
 use nanos_ui::bagls::*;
 use nanos_ui::ui::{get_event, MessageValidator, SingleMessage};
-use nanos_sdk::pic_rs;
 use arrayvec::ArrayString;
 use core::fmt::Write;
 use ledger_log::trace;
@@ -104,8 +103,8 @@ impl<'a, F: for<'b> Fn(&mut PromptWrite<'b, CHAR_N>) -> Result<(), ScrollerError
             let offset = page * CHAR_N;
             let mut buffer = ArrayString::new();
             (self.contents)(&mut PromptWrite{ offset, buffer: &mut buffer, total: 0 })?;
-            label.text(buffer.as_str()).display();
-            title_label.paint();
+            title_label.display();
+            label.text(buffer.as_str()).paint();
             trace!("Prompting with ({} of {}) {}: {}", page, page_count, self.title, buffer);
             if page > 0 {
                 LEFT_ARROW.paint();

@@ -14,22 +14,24 @@ use crate::ui::{write_scroller, final_accept_prompt};
 use ledger_parser_combinators::define_json_struct_interp;
 use ledger_parser_combinators::json::*;
 use ledger_parser_combinators::json_interp::*;
+use core::convert::TryFrom;
 
 pub type GetAddressImplT =
-    Action<SubInterp<DefaultInterp>, fn(&ArrayVec<u32, 10>, &mut Option<ArrayVec<u8, 260>>) -> Option<()>>;
+    Action<SubInterp<DefaultInterp>, fn(&ArrayVec<u32, 10>, &mut Option<ArrayVec<u8, 128>>) -> Option<()>>;
 
 
 pub const GET_ADDRESS_IMPL: GetAddressImplT =
-    Action(SubInterp(DefaultInterp), |path: &ArrayVec<u32, 10>, destination: &mut Option<ArrayVec<u8, 260>>| {
+    Action(SubInterp(DefaultInterp), |path: &ArrayVec<u32, 10>, destination: &mut Option<ArrayVec<u8, 128>>| {
         let key = get_pubkey(&path).ok()?;
 
         let pkh = get_pkh(key);
-        
+
         write_scroller("Provide Public Key", |w| Ok(write!(w, "{}", pkh)?))?;
 
         final_accept_prompt(&[])?;
 
         *destination=Some(ArrayVec::new());
+        destination.as_mut()?.try_push(u8::try_from(key.W_len).ok()?).ok()?;
         destination.as_mut()?.try_extend_from_slice(&key.W[1..key.W_len as usize]).ok()?;
         Some(())
     });
@@ -95,7 +97,7 @@ pub type SignImplT = Action<
             fn(&ArrayVec<u32, 10>, &mut Option<nanos_sdk::bindings::cx_ecfp_private_key_t>) -> Option<()>,
         >,
     ),
-    fn(&(Option<[u8; 64]>, Option<nanos_sdk::bindings::cx_ecfp_private_key_t>), &mut Option<ArrayVec<u8, 260>>) -> Option<()>,
+    fn(&(Option<[u8; 64]>, Option<nanos_sdk::bindings::cx_ecfp_private_key_t>), &mut Option<ArrayVec<u8, 128>>) -> Option<()>,
 >;
 
 pub const SIGN_IMPL: SignImplT = Action(
@@ -173,10 +175,10 @@ pub const SIGN_IMPL: SignImplT = Action(
     ),
     |(hash, key): &(Option<[u8; 64]>, Option<_>), destination: &mut _| {
         final_accept_prompt(&[&"Sign Transaction?"])?;
-        
+
         // By the time we get here, we've approved and just need to do the signature.
         let sig = eddsa_sign(&hash.as_ref()?[..], key.as_ref()?)?;
-        let mut rv = ArrayVec::<u8, 260>::new();
+        let mut rv = ArrayVec::<u8, 128>::new();
         rv.try_extend_from_slice(&sig.0[..]).ok()?;
         *destination = Some(rv);
         Some(())

@@ -1,61 +1,14 @@
-use Kadena::crypto_helpers::*;
-use Kadena::implementation::*;
-use Kadena::interface::*;
-use Kadena::ui::RootMenu;
-use Kadena::utils;
+use kadena::implementation::*;
+use kadena::interface::*;
+use kadena::ui::RootMenu;
 use ledger_parser_combinators::interp_parser::set_from_thunk;
 
-use core::str::from_utf8;
 use nanos_sdk::io;
-use nanos_ui::ui;
 
 nanos_sdk::set_panic!(nanos_sdk::exiting_panic);
 
-/// Display public key in two separate
-/// message scrollers
-fn show_pubkey() {
-    let pubkey = get_pubkey(&BIP32_PATH);
-    match pubkey {
-        Ok(pk) => {
-            {
-                let hex0 = utils::to_hex(&pk.W[1..33]).unwrap();
-                let m = from_utf8(&hex0).unwrap();
-                ui::MessageScroller::new(m).event_loop();
-            }
-            {
-                let hex1 = utils::to_hex(&pk.W[33..65]).unwrap();
-                let m = from_utf8(&hex1).unwrap();
-                ui::MessageScroller::new(m).event_loop();
-            }
-        }
-        Err(_) => ui::popup("Error"),
-    }
-}
-
-/// Basic nested menu. Will be subject
-/// to simplifications in the future.
-#[allow(clippy::needless_borrow)]
-fn menu_example() {
-    loop {
-        match ui::Menu::new(&[&"PubKey", &"Infos", &"Back", &"Exit App"]).show() {
-            0 => show_pubkey(),
-            1 => loop {
-                match ui::Menu::new(&[&"Copyright", &"Authors", &"Back"]).show() {
-                    0 => ui::popup("2020 Ledger"),
-                    1 => ui::popup("???"),
-                    _ => break,
-                }
-            },
-            2 => return,
-            3 => nanos_sdk::exit_app(2),
-            _ => (),
-        }
-    }
-}
-
 use ledger_parser_combinators::interp_parser::OOB;
-use Kadena::*;
-
+use kadena::*;
 
 #[cfg(not(test))]
 #[no_mangle]
@@ -63,13 +16,10 @@ extern "C" fn sample_main() {
     let mut comm = io::Comm::new();
     let mut states = ParsersState::NoState;
 
-    let mut idle_menu = RootMenu::new([ "Kadena", "Exit" ]);
+    let mut idle_menu = RootMenu::new([ concat!("Kadena ", env!("CARGO_PKG_VERSION")), "Exit" ]);
     let mut busy_menu = RootMenu::new([ "Working...", "Cancel" ]);
 
-    info!(
-        "State struct uses {} bytes",
-        core::mem::size_of_val(&states)
-    );
+    info!("Kadena app {}", env!("CARGO_PKG_VERSION"));
 
     loop {
         // Draw some 'welcome' screen
@@ -97,27 +47,28 @@ extern "C" fn sample_main() {
                 } }
             }
         }
-        info!("Event handled.");
+
+        // info!("Event handled.");
     }
 }
 
 #[repr(u8)]
 #[derive(Debug)]
 enum Ins {
+    GetVersion,
     GetPubkey,
     Sign,
-    Menu,
-    ShowPrivateKey,
-    Exit,
+    GetVersionStr,
+    Exit
 }
 
 impl From<u8> for Ins {
     fn from(ins: u8) -> Ins {
         match ins {
+            0 => Ins::GetVersion,
             2 => Ins::GetPubkey,
             3 => Ins::Sign,
-            4 => Ins::Menu,
-            0xfe => Ins::ShowPrivateKey,
+            0xfe => Ins::GetVersionStr,
             0xff => Ins::Exit,
             _ => panic!(),
         }
@@ -128,8 +79,7 @@ use arrayvec::ArrayVec;
 use nanos_sdk::io::Reply;
 
 use ledger_parser_combinators::interp_parser::InterpParser;
-#[inline(never)]
-fn run_parser_apdu<P: InterpParser<A, Returning = ArrayVec<u8, 260>>, A>(
+fn run_parser_apdu<P: InterpParser<A, Returning = ArrayVec<u8, 128>>, A>(
     states: &mut ParsersState,
     get_state: fn(&mut ParsersState) -> &mut <P as InterpParser<A>>::State,
     parser: &P,
@@ -187,17 +137,21 @@ fn handle_apdu(comm: &mut io::Comm, ins: Ins, parser: &mut ParsersState) -> Resu
     }
 
     match ins {
+        Ins::GetVersion => {
+            comm.append(&[env!("CARGO_PKG_VERSION_MAJOR").parse().unwrap(), env!("CARGO_PKG_VERSION_MINOR").parse().unwrap(), env!("CARGO_PKG_VERSION_PATCH").parse().unwrap()]);
+            comm.append(b"Kadena");
+        }
         Ins::GetPubkey => {
             run_parser_apdu::<_, Bip32Key>(parser, get_get_address_state, &GET_ADDRESS_IMPL, comm)?
         }
         Ins::Sign => {
             run_parser_apdu::<_, SignParameters>(parser, get_sign_state, &SIGN_IMPL, comm)?
         }
-
-        Ins::Menu => menu_example(),
-        Ins::ShowPrivateKey => comm.append(&bip32_derive_eddsa(&BIP32_PATH)?),
+        Ins::GetVersionStr => {
+            comm.append(concat!("Kadena ", env!("CARGO_PKG_VERSION")).as_ref());
+        }
         Ins::Exit => nanos_sdk::exit_app(0),
-        // _ => nanos_sdk::exit_app(0)
     }
     Ok(())
 }
+

@@ -9,6 +9,7 @@ pub const BIP32_PATH: [u32; 5] = nanos_sdk::ecc::make_bip32_path(b"m/44'/535348'
 /// Helper function that derives the seed over Ed25519
 pub fn bip32_derive_eddsa(path: &[u32]) -> Result<[u8; 32], SyscallError> {
     let mut raw_key = [0u8; 32];
+    trace!("Calling os_perso_derive_node_bip32 with path {:?}", path);
     unsafe {
         os_perso_derive_node_bip32(
             CX_CURVE_Ed25519,
@@ -18,7 +19,7 @@ pub fn bip32_derive_eddsa(path: &[u32]) -> Result<[u8; 32], SyscallError> {
             core::ptr::null_mut()
         )
     };
-    trace!("bip32 result: {:?}", raw_key);
+    trace!("Success");
     Ok(raw_key)
 }
 
@@ -57,14 +58,18 @@ pub fn eddsa_sign(
 }
 
 pub fn get_pubkey(path: &[u32]) -> Result<nanos_sdk::bindings::cx_ecfp_public_key_t, SyscallError> {
-    let mut ec_k = get_private_key(path)?;
+    info!("Getting private key");
+    let mut ec_k = get_private_key(path).unwrap();
+    info!("Getting public key");
     get_pubkey_from_privkey(&mut ec_k)
 }
 
 pub fn get_pubkey_from_privkey(ec_k: &mut nanos_sdk::bindings::cx_ecfp_private_key_t) -> Result<nanos_sdk::bindings::cx_ecfp_public_key_t, SyscallError> {
     let mut pubkey = cx_ecfp_public_key_t::default();
 
+    info!("Calling generate_pair_no_throw");
     call_c_api_function!(cx_ecfp_generate_pair_no_throw(CX_CURVE_Ed25519, &mut pubkey, ec_k, true))?;
+    info!("Calling compress_point_no_throw");
     call_c_api_function!(cx_edwards_compress_point_no_throw(CX_CURVE_Ed25519, pubkey.W.as_mut_ptr(), pubkey.W_len))?;
     pubkey.W_len = 33;
 
@@ -74,14 +79,17 @@ pub fn get_pubkey_from_privkey(ec_k: &mut nanos_sdk::bindings::cx_ecfp_private_k
 pub fn get_private_key(
     path: &[u32],
 ) -> Result<nanos_sdk::bindings::cx_ecfp_private_key_t, SyscallError> {
+    info!("Deriving path");
     let raw_key = bip32_derive_eddsa(path)?;
     let mut ec_k = cx_ecfp_private_key_t::default();
+    info!("Generating key");
     call_c_api_function!(cx_ecfp_init_private_key_no_throw(
             CX_CURVE_Ed25519,
             raw_key.as_ptr(),
             raw_key.len() as u32,
             &mut ec_k
         ))?;
+    info!("Key generated");
     Ok(ec_k)
 }
 
@@ -99,7 +107,7 @@ pub fn get_pkh(key: nanos_sdk::bindings::cx_ecfp_public_key_t) -> PKH {
 
 impl fmt::Display for PKH {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        for byte in &self.0.W[1..self.0.W_len as usize] {
+        for byte in &self.0.W[1.. 1+self.0.W_len as usize] {
             write!(f, "{:02x}", byte)?;
         }
         Ok(())
