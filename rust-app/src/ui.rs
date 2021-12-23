@@ -5,6 +5,7 @@ use arrayvec::ArrayString;
 use core::fmt::Write;
 use ledger_log::trace;
 
+#[derive(Debug)]
 pub struct PromptWrite<'a, const N: usize> {
     offset: usize,
     buffer: &'a mut ArrayString<N>,
@@ -19,9 +20,10 @@ impl<'a, const N: usize> Write for PromptWrite<'a, N> {
         if self.offset > 0 {
             return Ok(());
         }
-        self.buffer.try_push_str(
+        let rv = self.buffer.try_push_str(
             &s[offset_in_s .. core::cmp::min(s.len(), offset_in_s + self.buffer.remaining_capacity())]
-        ).map_err(|_| core::fmt::Error)
+        ).map_err(|_| core::fmt::Error);
+        rv
     }
 }
 
@@ -43,6 +45,11 @@ impl From<core::fmt::Error> for ScrollerError {
 }
 impl From<core::str::Utf8Error> for ScrollerError {
     fn from(_: core::str::Utf8Error) -> Self {
+        ScrollerError
+    }
+}
+impl From<core::option::NoneError> for ScrollerError {
+    fn from(_: core::option::NoneError) -> Self {
         ScrollerError
     }
 }
@@ -109,7 +116,7 @@ impl<'a, F: for<'b> Fn(&mut PromptWrite<'b, CHAR_N>) -> Result<(), ScrollerError
             if page > 0 {
                 LEFT_ARROW.paint();
             }
-            if page + 2 < page_count {
+            if page + 1 < page_count {
                 RIGHT_ARROW.paint();
             } else {
                 RIGHT_CHECK.paint();
@@ -135,10 +142,10 @@ impl<'a, F: for<'b> Fn(&mut PromptWrite<'b, CHAR_N>) -> Result<(), ScrollerError
                     draw(cur_page)?;
                 }    
                 Some(ButtonEvent::RightButtonRelease) => {
-                    if cur_page + 1 < page_count {
+                    if cur_page < page_count {
                         cur_page += 1;
                     }
-                    if cur_page + 1 == page_count {
+                    if cur_page == page_count {
                         break Ok(true);
                     }
                     // We need to draw anyway to clear button press arrow
