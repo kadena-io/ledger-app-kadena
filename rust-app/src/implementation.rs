@@ -15,6 +15,7 @@ use ledger_parser_combinators::define_json_struct_interp;
 use ledger_parser_combinators::json::*;
 use ledger_parser_combinators::json_interp::*;
 use core::convert::TryFrom;
+use core::str::from_utf8;
 
 pub type GetAddressImplT =
     Action<SubInterp<DefaultInterp>, fn(&ArrayVec<u32, 10>, &mut Option<ArrayVec<u8, 128>>) -> Option<()>>;
@@ -63,13 +64,13 @@ pub type SignImplT = Action<
                 Hasher,
                 fn(&mut Hasher, &[u8]),
                 Json<
-                    KadenaCmdInterp<
+                    Preaction<KadenaCmdInterp<
                         DropInterp,
                         DropInterp,
                         SubInterp<
                             Preaction<SignerInterp<
                                 DropInterp,
-                                DropInterp,
+                                Action<JsonStringAccumulate<64>,fn(&ArrayVec<u8, 64>, &mut Option<()>) -> Option<()>>,
                                 DropInterp,
                                 SubInterp<
                                     Action<
@@ -81,7 +82,7 @@ pub type SignImplT = Action<
                         >,
                         DropInterp,
                         DropInterp,
-                    >,
+                    >>,
                 >,
             >,
             fn(
@@ -89,7 +90,7 @@ pub type SignImplT = Action<
                     Option< <DropInterp as JsonInterp<KadenaCmdSchema>>::Returning>,
                     Hasher,
                 ),
-                &mut Option<[u8; 64]>
+                &mut Option<[u8; 32]>
             ) -> Option<()>,
         >,
         Action<
@@ -97,7 +98,7 @@ pub type SignImplT = Action<
             fn(&ArrayVec<u32, 10>, &mut Option<nanos_sdk::bindings::cx_ecfp_private_key_t>) -> Option<()>,
         >,
     ),
-    fn(&(Option<[u8; 64]>, Option<nanos_sdk::bindings::cx_ecfp_private_key_t>), &mut Option<ArrayVec<u8, 128>>) -> Option<()>,
+    fn(&(Option<[u8; 32]>, Option<nanos_sdk::bindings::cx_ecfp_private_key_t>), &mut Option<ArrayVec<u8, 128>>) -> Option<()>,
 >;
 
 pub const SIGN_IMPL: SignImplT = Action(
@@ -107,16 +108,18 @@ pub const SIGN_IMPL: SignImplT = Action(
             ObserveLengthedBytes(
                 Hasher::new,
                 Hasher::update,
-                Json(KadenaCmdInterp {
+                Json(Preaction( || { write_scroller("Signing", |w| Ok(write!(w, "Transaction")?)) } , KadenaCmdInterp {
                     field_nonce: DropInterp,
                     field_meta: DropInterp,
                     field_signers: SubInterp(Preaction(
                             || {
-                                write_scroller("Required", |w| Ok(write!(w, "Signature")?))
+                                write_scroller("Requiring", |w| Ok(write!(w, "Capabilities")?))
                             },
                             SignerInterp {
                         field_scheme: DropInterp,
-                        field_pub_key: DropInterp,
+                        field_pub_key: Action(JsonStringAccumulate::<64>, |key : &ArrayVec<u8, 64>, _| {
+                            write_scroller("Of Key", |w| Ok(write!(w, "{}", from_utf8(key.as_slice())?)?))
+                        }),
                         field_addr: DropInterp,
                         field_clist: SubInterp(Action(
                                 KadenaCapabilityInterp {
@@ -124,7 +127,6 @@ pub const SIGN_IMPL: SignImplT = Action(
                                     field_name: JsonStringAccumulate::<14>
                                 },
                             |cap : &KadenaCapability<Option<<KadenaCapabilityArgsInterp as JsonInterp<JsonArray<JsonAny>>>::Returning>, Option<ArrayVec<u8, 14>>>, _| {
-                                use core::str::from_utf8;
                                 use AltResult::*;
                                 let name = cap.field_name.as_ref()?.as_slice();
                                 match cap.field_args.as_ref()? {
@@ -148,7 +150,7 @@ pub const SIGN_IMPL: SignImplT = Action(
                     })),
                     field_payload: DropInterp,
                     field_network_id: DropInterp,
-                }),
+                })),
             true),
             // Ask the user if they accept the transaction body's hash
             |(_, mut hash): &(_, Hasher), destination: &mut _| {
@@ -167,13 +169,13 @@ pub const SIGN_IMPL: SignImplT = Action(
                 let pubkey = get_pubkey_from_privkey(&mut privkey).ok()?;
                 let pkh = get_pkh(pubkey);
 
-                write_scroller("sign for address", |w| Ok(write!(w, "{}", pkh)?))?;
+                write_scroller("Sign for Address", |w| Ok(write!(w, "{}", pkh)?))?;
                 *destination = Some(privkey);
                 Some(())
             },
         ),
     ),
-    |(hash, key): &(Option<[u8; 64]>, Option<_>), destination: &mut _| {
+    |(hash, key): &(Option<[u8; 32]>, Option<_>), destination: &mut _| {
         final_accept_prompt(&[&"Sign Transaction?"])?;
 
         // By the time we get here, we've approved and just need to do the signature.

@@ -2,6 +2,7 @@
 #![allow(incomplete_features)]
 #![feature(const_generics)]
 #![feature(str_internals)]
+#![feature(try_trait)]
 #![cfg_attr(all(target_os = "nanos", test), no_main)]
 #![cfg_attr(target_os = "nanos", feature(custom_test_frameworks))]
 #![reexport_test_harness_main = "test_main"]
@@ -33,10 +34,10 @@ use core::panic::PanicInfo;
 #[cfg(all(target_os = "nanos", test))]
 #[inline]
 #[cfg_attr(all(target_os = "nanos", test), panic_handler)]
-pub fn exiting_panic(info: &PanicInfo) -> ! {
+pub fn exiting_panic(_info: &PanicInfo) -> ! {
     //let mut comm = io::Comm::new();
     //comm.reply(io::StatusWords::Panic);
-    error!("Panicking: {:?}\n", info);
+    error!("Panicking: {:?}\n", _info);
     nanos_sdk::exit_app(1)
 }
 
