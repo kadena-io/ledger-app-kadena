@@ -10,6 +10,7 @@ ledger-parser-combinators = {  git = "https://github.com/obsidiansystems/ledger-
 # Pass --features speculos,ledger-log/log_info (or log_trace, etc) to enable speculos logging and change log level.
 ledger-log = { git = "https://github.com/obsidiansystems/ledger-platform", branch="jg-add-rust-libs", features=["log_trace"] }
 arrayvec = { version = "0.7.2", default-features = false }
+base64 = { version = "0.13.0", default-features = false }
 
 [features]
 default = [ ]

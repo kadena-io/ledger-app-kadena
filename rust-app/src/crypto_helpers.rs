@@ -3,6 +3,7 @@ use core::fmt;
 use nanos_sdk::bindings::*;
 use nanos_sdk::io::SyscallError;
 use ledger_log::*;
+use base64;
 
 pub const BIP32_PATH: [u32; 5] = nanos_sdk::ecc::make_bip32_path(b"m/44'/535348'/0'/0/0");
 
@@ -107,10 +108,7 @@ pub fn get_pkh(key: nanos_sdk::bindings::cx_ecfp_public_key_t) -> PKH {
 
 impl fmt::Display for PKH {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        for byte in &self.0.W[1.. 1+self.0.W_len as usize] {
-            write!(f, "{:02x}", byte)?;
-        }
-        Ok(())
+        write!(f, "{}", HexSlice(&self.0.W[1..self.0.W_len as usize]))
     }
 }
 
@@ -121,7 +119,7 @@ impl fmt::Display for HexSlice<'_> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         for byte in self.0 {
             // Decide if you want to pad the value or have spaces inbetween, etc.
-            write!(f, "{:02X}", byte)?;
+            write!(f, "{:02x}", byte)?;
         }
         Ok(())
     }
@@ -134,7 +132,7 @@ pub struct Hasher(cx_blake2b_s);
 impl Hasher {
     pub fn new() -> Hasher {
         let mut rv = cx_blake2b_s::default();
-        unsafe { cx_blake2b_init_no_throw(&mut rv, 512) };
+        unsafe { cx_blake2b_init_no_throw(&mut rv, 256) };
         Self(rv)
         // Self([0;255])
     }
@@ -150,20 +148,17 @@ impl Hasher {
 
     #[inline(never)]
     pub fn finalize(&mut self) -> Hash {
-        let mut rv = [0; 64];
+        let mut rv = [0; 32];
         unsafe { cx_hash_final(&mut self.0 as *mut cx_blake2b_s as *mut cx_hash_t, rv.as_mut_ptr()) };
         trace!("Hash value now: {:?}", rv);
         Hash(rv)
     }
 }
 
-pub struct Hash(pub [u8; 64]);
+pub struct Hash(pub [u8; 32]);
 
 impl fmt::Display for Hash {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        for byte in self.0 {
-            write!(f, "{:02X}", byte)?;
-        }
-        Ok(())
+        write!(f, "{}", base64::display::Base64Display::with_config(&self.0, base64::URL_SAFE_NO_PAD))
     }
 }
