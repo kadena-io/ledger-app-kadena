@@ -9,6 +9,7 @@
 	"bin": "run-tests.js",
 	"devDependencies": {
 		"@types/chai": "^4.2.22",
+		"@types/js-nacl": "^1.3.0",
 		"@types/mocha": "^9.0.0",
 		"chai": "^4.2.0",
 		"chai-bytes": "^0.1.2",
@@ -32,6 +33,8 @@
 		"node-fetch": "^3.0.0",
 		"openapi-typescript-codegen": "^0.9.3",
 		"typescript": "^4.4.3",
-		"hw-app-kda": "git+https://github.com/obsidiansystems/hw-app-kda"
+		"hw-app-kda": "git+https://github.com/obsidiansystems/hw-app-kda",
+    "js-nacl": "^1.3.2",
+    "blake2b": "^2.1.4"
 	}
 }
