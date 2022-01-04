@@ -139,7 +139,10 @@ pub static SIGN_IMPL: SignImplT = Action(
                             Some(())
                         })),
                         ),
-                    field_network_id: DropInterp,
+                    field_network_id: Action(JsonStringAccumulate::<32>, mkvfn(|net: &ArrayVec<u8, 32>, dest: &mut Option<()>| {
+                        *dest = Some(());
+                        write_scroller("On Network", |w| Ok(write!(w, "{}", from_utf8(net.as_slice())?)?))
+                    }))
                 }),
                 mkvfn(|cmd : &KadenaCmd<_,_,Option<CapabilityCoverage>,Option<Payload<Option<Command<_,Option<_>>>>>,_>, _| { 
                     match cmd.field_signers.as_ref() {
