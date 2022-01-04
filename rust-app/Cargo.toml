@@ -14,7 +14,7 @@ base64 = { version = "0.13.0", default-features = false }
 
 [features]
 default = [ ]
-speculos = [ "nanos_sdk/speculos", "ledger-log/speculos", "ledger-log/log_error" ]
+speculos = [ "nanos_sdk/speculos", "ledger-log/speculos", "ledger-log/log_error", "ledger-parser-combinators/logging" ]
 extra_debug = ["ledger-log/log_trace"]
 
 [target.thumbv6m-none-eabi.dependencies]

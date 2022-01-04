@@ -27,11 +27,20 @@ define_json_struct! { Signer 16 {
     clist: JsonArray<KadenaCapabilitySchema>
 }}
 
+define_json_struct! { Command 5 {
+    data: JsonAny,
+    code: JsonString
+}}
+
+define_json_struct! { Payload 5 {
+    exec: CommandSchema
+}}
+
 define_json_struct! { KadenaCmd 16 {
   nonce: JsonString,
   meta: MetaSchema,
   signers: JsonArray<SignerSchema>,
-  payload: JsonAny,
+  payload: PayloadSchema,
   networkId: JsonString
 }}
 

@@ -79,11 +79,12 @@ dependencies = [
 [[package]]
 name = "ledger-parser-combinators"
 version = "0.1.0"
-source = "git+https://github.com/obsidiansystems/ledger-parser-combinators?branch=jg-fix-more-excessive-memory-use#fb4df5bbe4651587c8baaf8354f0ed02ce554231"
+source = "git+https://github.com/obsidiansystems/ledger-parser-combinators?branch=jg-fix-more-excessive-memory-use#08ab03a118727e4a013b338dfe4f6bcb6097d114"
 dependencies = [
  "arrayvec",
  "bstringify",
  "generic-array",
+ "ledger-log",
  "log",
  "nanos_sdk",
  "paste",
