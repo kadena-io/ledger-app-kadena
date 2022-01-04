@@ -193,9 +193,9 @@ pub struct KadenaCapabilityArgsInterp;
 pub enum KadenaCapabilityArgsInterpState {
     Start,
     Begin,
-    FirstArgument(<Alt<JsonStringAccumulate<65>, DropInterp> as JsonInterp<Alt<JsonString, JsonAny>>>::State),
+    FirstArgument(<Alt<JsonStringAccumulate<128>, DropInterp> as JsonInterp<Alt<JsonString, JsonAny>>>::State),
     FirstValueSep,
-    SecondArgument(<Alt<JsonStringAccumulate<65>, DropInterp> as JsonInterp<Alt<JsonString, JsonAny>>>::State),
+    SecondArgument(<Alt<JsonStringAccumulate<128>, DropInterp> as JsonInterp<Alt<JsonString, JsonAny>>>::State),
     SecondValueSep,
     ThirdArgument(<Alt<JsonStringAccumulate<20>, DropInterp> as JsonInterp<Alt<JsonNumber, JsonAny>>>::State),
     ThirdValueSep,
@@ -205,13 +205,13 @@ pub enum KadenaCapabilityArgsInterpState {
 
 impl JsonInterp<JsonArray<JsonAny>> for KadenaCapabilityArgsInterp {
     type State = (KadenaCapabilityArgsInterpState, Option<<DropInterp as JsonInterp<JsonAny>>::Returning>);
-    type Returning = ( Option<AltResult<ArrayVec<u8, 65>, ()>>, Option<AltResult<ArrayVec<u8, 65>, ()>>, Option<AltResult<ArrayVec<u8, 20>, ()>> );
+    type Returning = ( Option<AltResult<ArrayVec<u8, 128>, ()>>, Option<AltResult<ArrayVec<u8, 128>, ()>>, Option<AltResult<ArrayVec<u8, 20>, ()>> );
     fn init(&self) -> Self::State {
         (KadenaCapabilityArgsInterpState::Start, None)
     }
     #[inline(never)]
     fn parse<'a, 'b>(&self, (ref mut state, ref mut scratch): &'b mut Self::State, token: JsonToken<'a>, destination: &mut Option<Self::Returning>) -> Result<(), Option<OOB>> {
-        let str_interp = Alt(JsonStringAccumulate::<65>, DropInterp);
+        let str_interp = Alt(JsonStringAccumulate::<128>, DropInterp);
         let dec_interp = Alt(JsonStringAccumulate::<20>, DropInterp);
         loop {
             use KadenaCapabilityArgsInterpState::*;
@@ -224,19 +224,19 @@ impl JsonInterp<JsonArray<JsonAny>> for KadenaCapabilityArgsInterp {
                     return Ok(());
                 }
                 Begin => {
-                    set_from_thunk(state, || FirstArgument(<Alt<JsonStringAccumulate<65>, DropInterp> as JsonInterp<Alt<JsonString, JsonAny>>>::init(&str_interp)));
+                    set_from_thunk(state, || FirstArgument(<Alt<JsonStringAccumulate<128>, DropInterp> as JsonInterp<Alt<JsonString, JsonAny>>>::init(&str_interp)));
                     continue;
                 }
                 FirstArgument(ref mut s) => {
-                    <Alt<JsonStringAccumulate<65>, DropInterp> as JsonInterp<Alt<JsonString, JsonAny>>>::parse(&str_interp, s, token, &mut destination.as_mut().ok_or(Some(OOB::Reject))?.0)?;
+                    <Alt<JsonStringAccumulate<128>, DropInterp> as JsonInterp<Alt<JsonString, JsonAny>>>::parse(&str_interp, s, token, &mut destination.as_mut().ok_or(Some(OOB::Reject))?.0)?;
                     set_from_thunk(state, || FirstValueSep);
                 }
                 FirstValueSep if token == JsonToken::ValueSeparator => {
-                    set_from_thunk(state, || SecondArgument(<Alt<JsonStringAccumulate<65>, DropInterp> as JsonInterp<Alt<JsonString, JsonAny>>>::init(&str_interp)));
+                    set_from_thunk(state, || SecondArgument(<Alt<JsonStringAccumulate<128>, DropInterp> as JsonInterp<Alt<JsonString, JsonAny>>>::init(&str_interp)));
                 }
                 FirstValueSep if token == JsonToken::EndArray => return Ok(()),
                 SecondArgument(ref mut s) => {
-                    <Alt<JsonStringAccumulate<65>, DropInterp> as JsonInterp<Alt<JsonString, JsonAny>>>::parse(&str_interp, s, token, &mut destination.as_mut().ok_or(Some(OOB::Reject))?.1)?;
+                    <Alt<JsonStringAccumulate<128>, DropInterp> as JsonInterp<Alt<JsonString, JsonAny>>>::parse(&str_interp, s, token, &mut destination.as_mut().ok_or(Some(OOB::Reject))?.1)?;
                     set_from_thunk(state, || SecondValueSep);
                 }
                 SecondValueSep if token == JsonToken::ValueSeparator => {
