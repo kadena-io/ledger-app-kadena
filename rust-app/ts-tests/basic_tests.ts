@@ -14,7 +14,7 @@ import { instantiate, Nacl } from "js-nacl";
 
 let nacl : Nacl =null;
 
-let ignoredScreens = [ "W e l c o m e", "Cancel", "Working...", "Exit", "Kadena 0.0.3"]
+let ignoredScreens = [ "W e l c o m e", "Cancel", "Working...", "Exit", "Kadena 0.0.4"]
 
 let setAcceptAutomationRules = async function() {
     await Axios.post("http://localhost:5000/automation", {
