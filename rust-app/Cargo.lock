@@ -79,7 +79,7 @@ dependencies = [
 [[package]]
 name = "ledger-parser-combinators"
 version = "0.1.0"
-source = "git+https://github.com/obsidiansystems/ledger-parser-combinators?branch=jg-fix-more-excessive-memory-use#08ab03a118727e4a013b338dfe4f6bcb6097d114"
+source = "git+https://github.com/obsidiansystems/ledger-parser-combinators?branch=jg-fix-more-excessive-memory-use#ac1e108cdb123d41d3ff23c243d98ae20cd3f471"
 dependencies = [
  "arrayvec",
  "bstringify",

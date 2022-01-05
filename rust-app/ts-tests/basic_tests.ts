@@ -370,7 +370,7 @@ describe("Signing tests", function() {
 
   it("Shows warning when no capabilities are set for a transaction.",
           testTransaction(
-            "44'/626'/0'", "{\"networkId\":\"testnet04\",\"payload\":{\"exec\":{\"data\":{\"ks\":{\"keys\":[\"ffd8cd79deb956fa3c7d9be0f836f20ac84b140168a087a842be4760e40e2b1c\"],\"pred\":\"keys-all\"}},\"code\":\"(coin.transfer-crosschain \\\"ffd8cd79deb956fa3c7d9be0f836f20ac84b140168a087a842be4760e40e2b1c\\\" \\\"ffd8cd79deb956fa3c7d9be0f836f20ac84b140168a087a842be4760e40e2b1c\\\" (read-keyset \\\"ks\\\") \\\"0\\\" 1.0)\"}},\"signers\":[{\"pubKey\":\"ffd8cd79deb956fa3c7d9be0f836f20ac84b140168a087a842be4760e40e2b1c\"}],\"meta\":{\"creationTime\":1640290267,\"ttl\":28800,\"gasLimit\":600,\"chainId\":\"1\",\"gasPrice\":0.00001,\"sender\":\"ffd8cd79deb956fa3c7d9be0f836f20ac84b140168a087a842be4760e40e2b1c\"},\"nonce\":\"\\\"\\\\\\\"2021-12-23T20:12:06.664Z\\\\\\\"\\\"\"}",
+            "44'/626'/0'", "{\"networkId\":\"testnet04\",\"payload\":{\"exec\":{\"data\":{\"ks\":{\"keys\":[\"ffd8cd79deb956fa3c7d9be0f836f20ac84b140168a087a842be4760e40e2b1c\"],\"pred\":\"keys-all\"}},\"code\":\"(not-coin.transfer-crosschain \\\"ffd8cd79deb956fa3c7d9be0f836f20ac84b140168a087a842be4760e40e2b1c\\\" \\\"ffd8cd79deb956fa3c7d9be0f836f20ac84b140168a087a842be4760e40e2b1c\\\" (read-keyset \\\"ks\\\") \\\"0\\\" 1.0)\"}},\"signers\":[{\"pubKey\":\"ffd8cd79deb956fa3c7d9be0f836f20ac84b140168a087a842be4760e40e2b1c\"}],\"meta\":{\"creationTime\":1640290267,\"ttl\":28800,\"gasLimit\":600,\"chainId\":\"1\",\"gasPrice\":0.00001,\"sender\":\"ffd8cd79deb956fa3c7d9be0f836f20ac84b140168a087a842be4760e40e2b1c\"},\"nonce\":\"\\\"\\\\\\\"2021-12-23T20:12:06.664Z\\\\\\\"\\\"\"}",
             [
               {
                 "header": "Signing",
@@ -391,7 +391,7 @@ describe("Signing tests", function() {
               },
               {
                 "header": "Transaction hash",
-                "prompt": "MM7O6sd6BVZgeXFFqjVXHnfZ_Q2QxCEexoGeNgTj4WM",
+                "prompt": "EsF-vcYfXYn8-NpYIvBcOMYCfUxiV6wxECU5FWNFz5g",
               },
               {
                 "header": "Sign for Address",
@@ -437,6 +437,47 @@ describe("Signing tests", function() {
               {
                 "header": "Transaction hash",
                 "prompt": "9VlNQ6wmY5UpfOcazQNGpBZDt9Cd_sl_DO0POpiBDvU",
+              },
+              {
+                "header": "Sign for Address",
+                "prompt": "8d5d63bb1071a8dfc5c09ac96cfa50341a74eb91b6ea9ee5724cde09ef758bf2",
+              },
+              {
+                "text": "Sign Transaction?",
+                "x": 19,
+                "y": 11,
+              },
+              {
+                "text": "Confirm",
+                "x": 43,
+                "y": 11,
+              }
+            ]
+          ));
+  it("Shows custom message for basic cross-chain transfers.",
+          testTransaction(
+            "44'/626'/0'", "{\"networkId\":\"testnet04\",\"payload\":{\"exec\":{\"data\":{\"ks\":{\"keys\":[\"ffd8cd79deb956fa3c7d9be0f836f20ac84b140168a087a842be4760e40e2b1c\"],\"pred\":\"keys-all\"}},\"code\":\"(coin.transfer-crosschain \\\"ffd8cd79deb956fa3c7d9be0f836f20ac84b140168a087a842be4760e40e2b1c\\\" \\\"ffd8cd79deb956fa3c7d9be0f836f20ac84b140168a087a842be4760e40e2b1c\\\" (read-keyset \\\"ks\\\") \\\"0\\\" 1.0)\"}},\"signers\":[{\"pubKey\":\"ffd8cd79deb956fa3c7d9be0f836f20ac84b140168a087a842be4760e40e2b1c\"}],\"meta\":{\"creationTime\":1640290267,\"ttl\":28800,\"gasLimit\":600,\"chainId\":\"1\",\"gasPrice\":0.00001,\"sender\":\"ffd8cd79deb956fa3c7d9be0f836f20ac84b140168a087a842be4760e40e2b1c\"},\"nonce\":\"\\\"\\\\\\\"2021-12-23T20:12:06.664Z\\\\\\\"\\\"\"}",
+            [
+              {
+                "header": "Signing",
+                "prompt": "Transaction",
+              },
+              { "header": "On Network", "prompt": "testnet04" },
+              {
+                "header": "Transfer",
+                "prompt": "Cross-chain 1.0 from ffd8cd79deb956fa3c7d9be0f836f20ac84b140168a087a842be4760e40e2b1c to ffd8cd79deb956fa3c7d9be0f836f20ac84b140168a087a842be4760e40e2b1c on chain 0",
+              },
+              {
+                "header": "Requiring",
+                "prompt": "Capabilities",
+              },
+              {
+                "header": "Of Key",
+                "prompt": "ffd8cd79deb956fa3c7d9be0f836f20ac84b140168a087a842be4760e40e2b1c",
+              },
+              {
+                "header": "Transaction hash",
+                "prompt": "MM7O6sd6BVZgeXFFqjVXHnfZ_Q2QxCEexoGeNgTj4WM",
               },
               {
                 "header": "Sign for Address",
