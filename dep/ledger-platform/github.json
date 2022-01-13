@@ -1,8 +1,8 @@
 {
   "owner": "obsidiansystems",
   "repo": "ledger-platform",
-  "branch": "jg-add-rust-libs",
+  "branch": "develop",
   "private": false,
-  "rev": "9d6ea2a3446f77fb035a6b30262b0494f1b1c407",
-  "sha256": "0c97fk3bs8gjj8q13jn475k6ffdyxva9m0n6sa4lb80aj8zml4v1"
+  "rev": "4b5553319a4c240e4be58a59a84e6715f6f60f09",
+  "sha256": "1ng6i8r7x2jn1d8vz5rhzfzm4mcpnnvvqbqcmj9llfv9k0yn4mrh"
 }
