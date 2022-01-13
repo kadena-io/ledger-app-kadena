@@ -43,8 +43,14 @@ rec {
       ledger-platform.ledgerRustPlatform.rust.cargo
     ];
   } (ledger-platform.cargoLedgerPreHook + ''
+
     cp ${./rust-app/Cargo.toml} ./Cargo.toml
+    # So cargo knows it's a binary
+    mkdir src
+    touch src/main.rs
+
     cargo-ledger --use-prebuilt ${rootCrate}/bin/kadena --hex-next-to-json
+
     mkdir -p $out/kadena
     cp app.json app.hex $out/kadena
     cp ${./tarball-default.nix} $out/kadena/default.nix
