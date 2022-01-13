@@ -70,7 +70,7 @@ dependencies = [
 [[package]]
 name = "ledger-log"
 version = "0.1.0"
-source = "git+https://github.com/obsidiansystems/ledger-platform?branch=jg-add-rust-libs#9d6ea2a3446f77fb035a6b30262b0494f1b1c407"
+source = "git+https://github.com/obsidiansystems/ledger-platform?branch=develop#4b5553319a4c240e4be58a59a84e6715f6f60f09"
 dependencies = [
  "arrayvec",
  "nanos_sdk",
@@ -79,7 +79,7 @@ dependencies = [
 [[package]]
 name = "ledger-parser-combinators"
 version = "0.1.0"
-source = "git+https://github.com/obsidiansystems/ledger-parser-combinators?branch=jg-fix-more-excessive-memory-use#ac1e108cdb123d41d3ff23c243d98ae20cd3f471"
+source = "git+https://github.com/obsidiansystems/ledger-parser-combinators#7f45c11b1705a98189d56787b83d8253320f33ed"
 dependencies = [
  "arrayvec",
  "bstringify",
@@ -102,7 +102,7 @@ dependencies = [
 [[package]]
 name = "nanos_sdk"
 version = "0.1.0"
-source = "git+https://github.com/ObsidianSystems/ledger-nanos-sdk.git?branch=use-ambient-compiler-and-target#1b0d1a688713ffbf3956ebe9971584a79aec5560"
+source = "git+https://github.com/obsidiansystems/ledger-nanos-sdk.git?branch=use-ambient-compiler-and-target#1b0d1a688713ffbf3956ebe9971584a79aec5560"
 dependencies = [
  "cc",
  "cty",

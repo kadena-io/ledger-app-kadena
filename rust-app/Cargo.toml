@@ -5,10 +5,17 @@ authors = ["jonored", "yhql"]
 edition = "2018"
 autobins = false
 
+[dependencies.ledger-parser-combinators]
+git = "https://github.com/obsidiansystems/ledger-parser-combinators"
+
+# Pass --features speculos,ledger-log/log_info (or log_trace, etc) to enable
+# speculos logging and change log level.
+[dependencies.ledger-log]
+git = "https://github.com/obsidiansystems/ledger-platform"
+branch = "develop"
+features = ["log_trace"]
+
 [dependencies]
-ledger-parser-combinators = {  git = "https://github.com/obsidiansystems/ledger-parser-combinators", branch = "jg-fix-more-excessive-memory-use" }
-# Pass --features speculos,ledger-log/log_info (or log_trace, etc) to enable speculos logging and change log level.
-ledger-log = { git = "https://github.com/obsidiansystems/ledger-platform", branch="jg-add-rust-libs", features=["log_trace"] }
 arrayvec = { version = "0.7.2", default-features = false }
 base64 = { version = "0.13.0", default-features = false }
 
@@ -21,11 +28,12 @@ extra_debug = ["ledger-log/log_trace"]
 nanos_sdk = { git = "https://github.com/LedgerHQ/ledger-nanos-sdk.git" } 
 nanos_ui = { git = "https://github.com/LedgerHQ/ledger-nanos-ui.git" } 
 
-[target.thumbv6m-none-eabi.dev-dependencies]
-nanos_sdk = { git = "https://github.com/LedgerHQ/ledger-nanos-sdk.git", features= [ "speculos" ] }
+[target.thumbv6m-none-eabi.dev-dependencies.nanos_sdk]
+git = "https://github.com/LedgerHQ/ledger-nanos-sdk.git"
+features = [ "speculos" ]
 
 [dev-dependencies]
-testmacro = { git = "https://github.com/yhql/testmacro"}
+testmacro = { git = "https://github.com/yhql/testmacro" }
 
 [[bin]]
 name = "kadena"

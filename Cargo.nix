@@ -259,8 +259,8 @@ rec {
         workspace_member = null;
         src = pkgs.fetchgit {
           url = "https://github.com/obsidiansystems/ledger-platform";
-          rev = "9d6ea2a3446f77fb035a6b30262b0494f1b1c407";
-          sha256 = "0c97fk3bs8gjj8q13jn475k6ffdyxva9m0n6sa4lb80aj8zml4v1";
+          rev = "4b5553319a4c240e4be58a59a84e6715f6f60f09";
+          sha256 = "1ng6i8r7x2jn1d8vz5rhzfzm4mcpnnvvqbqcmj9llfv9k0yn4mrh";
         };
         dependencies = [
           {
@@ -290,8 +290,8 @@ rec {
         workspace_member = null;
         src = pkgs.fetchgit {
           url = "https://github.com/obsidiansystems/ledger-parser-combinators";
-          rev = "ac1e108cdb123d41d3ff23c243d98ae20cd3f471";
-          sha256 = "0c90bxkki9m1qnrglbcdqld2ib61l9k1i69asayj1wd5cwmmkvnz";
+          rev = "7f45c11b1705a98189d56787b83d8253320f33ed";
+          sha256 = "02qvj1zlcvwxxsmwgr28hgdn72l17272fg80f6lyxxpn86brgfra";
         };
         authors = [
           "Jonathan D.K. Gibbons <jonored@gmail.com>"
