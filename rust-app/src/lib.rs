@@ -45,6 +45,6 @@ pub fn exiting_panic(_info: &PanicInfo) -> ! {
     nanos_sdk::exit_app(1)
 }
 
-// Custom type used to implement tests
+///// Custom type used to implement tests
 //#[cfg(all(target_os = "nanos", test))]
 //use nanos_sdk::TestType;

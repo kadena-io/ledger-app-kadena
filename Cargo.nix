@@ -133,10 +133,10 @@ rec {
       };
       "cc" = rec {
         crateName = "cc";
-        version = "1.0.70";
+        version = "1.0.72";
         edition = "2018";
         crateBin = [];
-        sha256 = "1h0dm9pr7l2g6228pzl5fawd43s3zjkfzxvhvczgm154nvj6qsnj";
+        sha256 = "1vl50h2qh0nh0iddzj6gd1pnxnxpvwmbfxc30578c1pajmxi7a92";
         authors = [
           "Alex Crichton <alex@alexcrichton.com>"
         ];
@@ -168,9 +168,9 @@ rec {
       };
       "generic-array" = rec {
         crateName = "generic-array";
-        version = "0.14.4";
+        version = "0.14.5";
         edition = "2015";
-        sha256 = "05qqwm9v5asbil9z28wjkmpfvs1c5c99n8n9gwxis3d3r3n6c52h";
+        sha256 = "00qqhls43bzvyb7s26iw6knvsz3mckbxl3rhaahvypzhqwzd6j7x";
         libName = "generic_array";
         authors = [
           "Bartłomiej Kamiński <fizyk20@gmail.com>"
@@ -259,8 +259,8 @@ rec {
         workspace_member = null;
         src = pkgs.fetchgit {
           url = "https://github.com/obsidiansystems/ledger-platform";
-          rev = "4b5553319a4c240e4be58a59a84e6715f6f60f09";
-          sha256 = "1ng6i8r7x2jn1d8vz5rhzfzm4mcpnnvvqbqcmj9llfv9k0yn4mrh";
+          rev = "b3bc1db9c8a793bd20e76a4a19666f09a80c4e95";
+          sha256 = "1g0vmjw2bnjgm439a3373hajvkjnfq536x857w5ngdnfvm0687vf";
         };
         dependencies = [
           {
@@ -444,12 +444,12 @@ rec {
       };
       "proc-macro2" = rec {
         crateName = "proc-macro2";
-        version = "1.0.29";
+        version = "1.0.36";
         edition = "2018";
-        sha256 = "0gfj25ksq90ifcssfnwv46v856sxd885wmm9bhrj1ays9xfi1xdr";
+        sha256 = "0adh6gvs31x6pfwmygypmzrv1jc7kjq568vsqcfaxk7vhdc2sd67";
         authors = [
-          "Alex Crichton <alex@alexcrichton.com>"
           "David Tolnay <dtolnay@gmail.com>"
+          "Alex Crichton <alex@alexcrichton.com>"
         ];
         dependencies = [
           {
@@ -464,9 +464,9 @@ rec {
       };
       "quote" = rec {
         crateName = "quote";
-        version = "1.0.9";
+        version = "1.0.14";
         edition = "2018";
-        sha256 = "19rjmfqzk26rxbgxy5j2ckqc2v12sw2xw8l4gi8bzpn2bmsbkl63";
+        sha256 = "0zf823y56wqwxkcp3rf3ik9zashpmx9700q0fmqz3np4gi281aj7";
         authors = [
           "David Tolnay <dtolnay@gmail.com>"
         ];
@@ -485,9 +485,9 @@ rec {
       };
       "syn" = rec {
         crateName = "syn";
-        version = "1.0.77";
+        version = "1.0.85";
         edition = "2018";
-        sha256 = "1870dx7d4h54w2qiczlx66d6snbmvkla9zhcj2ap9xgyw1lbqfaj";
+        sha256 = "1dszd62nvccsdiakqzhm4kgc2rpfhj1sc2fd31z844w9rlysr156";
         authors = [
           "David Tolnay <dtolnay@gmail.com>"
         ];
@@ -545,15 +545,16 @@ rec {
       };
       "typenum" = rec {
         crateName = "typenum";
-        version = "1.14.0";
+        version = "1.15.0";
         edition = "2018";
-        sha256 = "1v2r349b2dr0pknpjk3nkrbi3mhaa3wl7zi7bdbla4zmcni0hdxn";
+        sha256 = "11yrvz1vd43gqv738yw1v75rzngjbs7iwcgzjy3cq5ywkv2imy6w";
         build = "build/main.rs";
         authors = [
           "Paho Lurie-Gregg <paho@paholg.com>"
           "Andre Bogus <bogusandre@gmail.com>"
         ];
         features = {
+          "scale_info" = [ "scale-info/derive" ];
         };
       };
       "unicode-xid" = rec {
@@ -572,9 +573,9 @@ rec {
       };
       "version_check" = rec {
         crateName = "version_check";
-        version = "0.9.3";
+        version = "0.9.4";
         edition = "2015";
-        sha256 = "1zmkcgj2m0pq0l4wnhrp1wl1lygf7x2h5p7pvjwc4719lnlxrv2z";
+        sha256 = "0gs8grwdlgh0xq660d7wr80x14vxbizmd8dbp29p2pdncx8lp1s9";
         authors = [
           "Sergio Benitez <sb@sergio.bz>"
         ];
