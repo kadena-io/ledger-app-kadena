@@ -1,6 +1,6 @@
 use kadena::implementation::*;
 use kadena::interface::*;
-use kadena::ui::RootMenu;
+use prompts_ui::RootMenu;
 use ledger_parser_combinators::interp_parser::set_from_thunk;
 
 use nanos_sdk::io;

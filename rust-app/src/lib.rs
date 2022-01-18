@@ -6,6 +6,8 @@
 #![feature(min_type_alias_impl_trait)]
 #![feature(impl_trait_in_bindings)]
 #![feature(const_fn_fn_ptr_basics)]
+#![feature(const_fn_trait_bound)]
+#![feature(const_impl_trait)]
 #![feature(const_mut_refs)]
 #![cfg_attr(all(target_os = "nanos", test), no_main)]
 #![cfg_attr(target_os = "nanos", feature(custom_test_frameworks))]
@@ -25,8 +27,6 @@ extern "C" fn sample_main() {
 pub mod interface;
 pub mod utils;
 
-#[cfg(all(target_os = "nanos"))]
-pub mod ui;
 #[cfg(all(target_os = "nanos"))]
 pub mod crypto_helpers;
 #[cfg(all(target_os = "nanos"))]
