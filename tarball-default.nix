@@ -5,6 +5,8 @@ let
   this = ./.;
 in
 pkgs.writeScriptBin "load-app" ''
+  #!/usr/bin/env bash
+
   cd ${this}
   ${ledgerctl}/bin/ledgerctl install -f ${this}/app.json
 ''
