@@ -6,11 +6,13 @@ edition = "2018"
 autobins = false
 
 [dependencies]
-ledger-parser-combinators = { git = "https://github.com/obsidiansystems/ledger-parser-combinators" }
-ledger-log = { git = "https://github.com/obsidiansystems/ledger-platform" }
 arrayvec = { version = "0.7.2", default-features = false }
 base64 = { version = "0.13.0", default-features = false }
+ledger-parser-combinators = { git = "https://github.com/obsidiansystems/ledger-parser-combinators" }
+ledger-log = { git = "https://github.com/obsidiansystems/ledger-platform" }
 
+# Pass --features speculos,ledger-log/log_info (or log_trace, etc) to enable
+# speculos logging and change log level.
 [features]
 default = [ ]
 # Pass --features speculos,ledger-log/log_info (or log_trace, etc) to enable speculos logging and change log level.
@@ -22,8 +24,9 @@ nanos_sdk = { git = "https://github.com/LedgerHQ/ledger-nanos-sdk.git" }
 nanos_ui = { git = "https://github.com/LedgerHQ/ledger-nanos-ui.git" } 
 prompts-ui = { git = "https://github.com/obsidiansystems/ledger-platform" }
 
-[target.thumbv6m-none-eabi.dev-dependencies]
-nanos_sdk = { git = "https://github.com/LedgerHQ/ledger-nanos-sdk.git" }
+[target.thumbv6m-none-eabi.dev-dependencies.nanos_sdk]
+git = "https://github.com/LedgerHQ/ledger-nanos-sdk.git"
+features = [ "speculos" ]
 
 [dev-dependencies]
 testmacro = { git = "https://github.com/yhql/testmacro" }

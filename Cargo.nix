@@ -243,6 +243,7 @@ rec {
             name = "nanos_sdk";
             packageId = "nanos_sdk";
             target = {target, features}: ((let p = stdenv.hostPlatform; in p.rustc.config or p.config) == "thumbv6m-none-eabi");
+            features = [ "speculos" ];
           }
           {
             name = "testmacro";
