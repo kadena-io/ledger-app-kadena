@@ -9,7 +9,7 @@ use ledger_parser_combinators::interp_parser::{
 };
 use ledger_parser_combinators::json::Json;
 use ledger_parser_combinators::core_parsers::Alt;
-use crate::ui::{write_scroller, final_accept_prompt};
+use prompts_ui::{write_scroller, final_accept_prompt};
 
 use ledger_parser_combinators::define_json_struct_interp;
 use ledger_parser_combinators::json::*;
@@ -41,26 +41,6 @@ pub const GET_ADDRESS_IMPL: GetAddressImplT =
         destination.as_mut()?.try_extend_from_slice(&key.W[1..key.W_len as usize]).ok()?;
         Some(())
     }));
-
-pub struct Preaction<S>(fn() -> Option<()>, S);
-
-impl<A, S: JsonInterp<A>> JsonInterp<A> for Preaction<S> {
-    type State = Option<<S as JsonInterp<A>>::State>;
-    type Returning = <S as JsonInterp<A>>::Returning;
-
-    fn init(&self) -> Self::State { None }
-    #[inline(never)]
-    fn parse<'a>(&self, state: &mut Self::State, token: JsonToken<'a>, destination: &mut Option<Self::Returning>) -> Result<(), Option<OOB>> {
-        loop { break match state {
-            None => {
-                (self.0)().ok_or(Some(OOB::Reject))?;
-                set_from_thunk(state, || Some(<S as JsonInterp<A>>::init(&self.1)));
-                continue;
-            }
-            Some(ref mut s) => <S as JsonInterp<A>>::parse(&self.1, s, token, destination)
-        }}
-    }
-}
 
 pub type SignImplT = impl InterpParser<SignParameters, Returning = ArrayVec<u8, 128_usize>>;
 
