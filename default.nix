@@ -63,4 +63,28 @@ rec {
   tarball = pkgs.runCommandNoCC "app-tarball.tar.gz" { } ''
     tar -czvhf $out -C ${tarSrc} kadena
   '';
+
+  testPackage = (import ./ts-tests/override.nix { inherit pkgs; }).package;
+
+  runTests = { appExe ? rootCrate + "/bin/kadena" }: pkgs.runCommandNoCC "run-tests" { buildInputs = [pkgs.wget ledger-platform.speculos.speculos pkgs.coreutils testPackage pkgs.nodejs-12_x ]; } ''
+    RUST_APP=${rootCrate}/bin/*
+    echo RUST APP IS $RUST_APP
+    # speculos -k 2.0 $RUST_APP --display headless &
+    mkdir $out
+    (
+    speculos -k 2.0 ${appExe} --display headless &
+    SPECULOS=$!
+
+    until wget -O/dev/null -o/dev/null http://localhost:5000; do sleep 0.1; done;
+
+    pushd ${testPackage}/lib/node_modules/*/
+    NO_UPDATE_NOTIFIER=true npm --offline test
+    rv=$?
+    popd
+    kill $SPECULOS
+    exit $rv) | tee $out/short |& tee $out/full
+    rv=$?
+    cat $out/short
+    exit $rv
+  '';
 }
