@@ -18,7 +18,7 @@ rec {
             preHook = ledger-platform.gccLibsPreHook;
             extraRustcOpts = attrs.extraRustcOpts or [] ++ [
               "-C" "link-arg=-T${sdk.lib}/lib/nanos_sdk.out/script.ld"
-              "-C" "linker=${pkgs.stdenv.cc.targetPrefix}lld"
+              "-C" "linker=${pkgs.stdenv.cc.targetPrefix}clang"
             ];
           };
         };
@@ -29,6 +29,9 @@ rec {
         extraRustcOpts = [
           "-C" "relocation-model=ropi"
           "-C" "passes=ledger-ropi"
+          "-C" "opt-level=3"
+          "--emit=dep-info,link,llvm-ir"
+          "-C" "lto"
         ] ++ args.extraRustcOpts or [];
         dependencies = map (d: d // { stdlib = true; }) [
           ledger-platform.ledgerCore
