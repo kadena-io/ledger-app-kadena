@@ -16,7 +16,7 @@ rec {
             sdk = lib.findFirst (p: lib.hasPrefix "rust_nanos_sdk" p.name) (builtins.throw "no sdk!") attrs.dependencies;
           in {
             preHook = ledger-platform.gccLibsPreHook;
-            extraRustcOpts = [
+            extraRustcOpts = attrs.extraRustcOpts or [] ++ [
               "-C" "link-arg=-T${sdk.lib}/lib/nanos_sdk.out/script.ld"
               "-C" "linker=${pkgs.stdenv.cc.targetPrefix}lld"
             ];
