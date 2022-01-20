@@ -8,8 +8,8 @@ rustflags = [
   "-C", "link-arg=-Tscript.ld",
   "-C", "opt-level=3",
   "-C", "passes=ledger-ropi",
+  "-C", "codegen-units=1",
   "--cfg", "target_os=\"nanos\"",
-  "--emit=llvm-ir"
 ]
 linker = "armv6m-unknown-none-eabi-clang"
 runner = "./speculos-wrapper -k 2.0"
