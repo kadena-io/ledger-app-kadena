@@ -88,7 +88,16 @@ pub static SIGN_IMPL: SignImplT = Action(
                 Hasher::update,
                 Json(Action(Preaction( || -> Option<()> { write_scroller("Signing", |w| Ok(write!(w, "Transaction")?)) } , KadenaCmdInterp {
                     field_nonce: DropInterp,
-                    field_meta: DropInterp,
+                    field_meta: MetaInterp {
+                        field_chain_id: Action(JsonStringAccumulate::<32>, mkvfn(|chain: &ArrayVec<u8, 32>, _| -> Option<()> {
+                                write_scroller("On Chain", |w| Ok(write!(w, "{}", from_utf8(chain.as_slice()).ok()?)?))
+                        })),
+                        field_sender: DropInterp,
+                        field_gas_limit: DropInterp,
+                        field_gas_price: DropInterp,
+                        field_ttl: DropInterp,
+                        field_creation_time: DropInterp
+                    },
                     field_payload: PayloadInterp {
                         field_exec: CommandInterp {
                             field_code: Action(OrDrop(JsonStringAccumulate::<600>), mkfn(|cmd_opt: &Option<ArrayVec<u8, 600>>, dest: &mut Option<CommandData> | { 
