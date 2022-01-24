@@ -1147,17 +1147,17 @@ let
         sha512 = "EC2utToWl4RKfs5zd36Mxq7nzHHBuomZboI0yYL6Y0RmBgT7Sgkq4rQ0ezFTYoIsSs7Tm9SJe+o2FcAg6GBhGA==";
       };
     };
-    "hw-app-kda-git+https://github.com/obsidiansystems/hw-app-kda" = {
+    "hw-app-kda-git+https://github.com/obsidiansystems/hw-app-kda.git#7fc3202e112a160c3962237fcae52dccc22afed3" = {
       name = "hw-app-kda";
       packageName = "hw-app-kda";
       version = "0.0.0";
       src = fetchgit {
-        url = "https://github.com/obsidiansystems/hw-app-kda";
+        url = "https://github.com/obsidiansystems/hw-app-kda.git";
         rev = "7fc3202e112a160c3962237fcae52dccc22afed3";
         sha256 = "3a1bf0b9dbcbb2662f6103f37d5577c7d7b7c15a79778fce5a697cb08b231411";
       };
     };
-    "hw-app-obsidian-common-git+http://github.com/obsidiansystems/hw-app-obsidian-common" = {
+    "hw-app-obsidian-common-git+http://github.com/obsidiansystems/hw-app-obsidian-common#d221085eff93bce7efd731ec919e4c5c7a5f30ad" = {
       name = "hw-app-obsidian-common";
       packageName = "hw-app-obsidian-common";
       version = "0.0.1";
@@ -2636,7 +2636,7 @@ let
       sources."acorn-8.7.0"
       sources."acorn-walk-8.2.0"
       sources."ansi-colors-4.1.1"
-      sources."ansi-regex-5.0.1"
+      sources."ansi-regex-3.0.0"
       sources."ansi-styles-4.3.0"
       sources."anymatch-3.1.2"
       sources."arg-4.1.3"
@@ -2665,7 +2665,14 @@ let
       sources."child_process-1.0.2"
       sources."chokidar-3.5.1"
       sources."cipher-base-1.0.4"
-      sources."cliui-7.0.4"
+      (sources."cliui-7.0.4" // {
+        dependencies = [
+          sources."ansi-regex-5.0.1"
+          sources."is-fullwidth-code-point-3.0.0"
+          sources."string-width-4.2.3"
+          sources."strip-ansi-6.0.1"
+        ];
+      })
       (sources."color-3.2.1" // {
         dependencies = [
           sources."color-convert-1.9.3"
@@ -2677,7 +2684,7 @@ let
       sources."color-string-1.9.0"
       sources."colors-1.4.0"
       sources."colorspace-1.1.4"
-      sources."commander-2.20.3"
+      sources."commander-7.2.0"
       sources."concat-map-0.0.1"
       sources."create-hash-1.2.0"
       sources."create-require-1.1.1"
@@ -2734,8 +2741,8 @@ let
       sources."hash-base-3.1.0"
       sources."he-1.2.0"
       sources."http2-client-1.3.5"
-      sources."hw-app-kda-git+https://github.com/obsidiansystems/hw-app-kda"
-      sources."hw-app-obsidian-common-git+http://github.com/obsidiansystems/hw-app-obsidian-common"
+      sources."hw-app-kda-git+https://github.com/obsidiansystems/hw-app-kda.git#7fc3202e112a160c3962237fcae52dccc22afed3"
+      sources."hw-app-obsidian-common-git+http://github.com/obsidiansystems/hw-app-obsidian-common#d221085eff93bce7efd731ec919e4c5c7a5f30ad"
       sources."inflight-1.0.6"
       sources."inherits-2.0.4"
       sources."internal-slot-1.0.3"
@@ -2747,7 +2754,7 @@ let
       sources."is-callable-1.2.4"
       sources."is-date-object-1.0.5"
       sources."is-extglob-2.1.1"
-      sources."is-fullwidth-code-point-3.0.0"
+      sources."is-fullwidth-code-point-2.0.0"
       sources."is-glob-4.0.3"
       sources."is-map-2.0.2"
       sources."is-negative-zero-2.0.2"
@@ -2786,11 +2793,14 @@ let
       sources."mkdirp-1.0.4"
       (sources."mocha-8.4.0" // {
         dependencies = [
+          sources."ansi-regex-5.0.1"
           sources."glob-7.1.6"
+          sources."is-fullwidth-code-point-3.0.0"
           sources."js-yaml-4.0.0"
+          sources."string-width-4.2.3"
+          sources."strip-ansi-6.0.1"
           sources."supports-color-8.1.1"
           sources."yargs-16.2.0"
-          sources."yargs-parser-20.2.4"
         ];
       })
       sources."ms-2.1.3"
@@ -2813,11 +2823,7 @@ let
       sources."once-1.4.0"
       sources."one-time-1.0.0"
       sources."openapi-types-9.3.1"
-      (sources."openapi-typescript-codegen-0.9.3" // {
-        dependencies = [
-          sources."commander-7.2.0"
-        ];
-      })
+      sources."openapi-typescript-codegen-0.9.3"
       sources."p-limit-3.1.0"
       sources."p-locate-5.0.0"
       sources."path-exists-4.0.0"
@@ -2850,11 +2856,11 @@ let
       sources."simple-swizzle-0.2.2"
       sources."source-map-0.6.1"
       sources."stack-trace-0.0.10"
-      sources."string-width-4.2.3"
+      sources."string-width-2.1.1"
       sources."string.prototype.trimend-1.0.4"
       sources."string.prototype.trimstart-1.0.4"
       sources."string_decoder-1.3.0"
-      sources."strip-ansi-6.0.1"
+      sources."strip-ansi-4.0.0"
       sources."strip-json-comments-3.1.1"
       sources."supports-color-7.2.0"
       (sources."swagger2openapi-7.0.8" // {
@@ -2888,36 +2894,48 @@ let
       sources."whatwg-url-5.0.0"
       sources."which-2.0.2"
       sources."which-boxed-primitive-1.0.2"
-      (sources."wide-align-1.1.3" // {
-        dependencies = [
-          sources."ansi-regex-3.0.0"
-          sources."is-fullwidth-code-point-2.0.0"
-          sources."string-width-2.1.1"
-          sources."strip-ansi-4.0.0"
-        ];
-      })
+      sources."wide-align-1.1.3"
       sources."winston-3.4.0"
       sources."winston-transport-4.4.2"
       sources."wordwrap-1.0.0"
       sources."workerpool-6.1.0"
-      sources."wrap-ansi-7.0.0"
+      (sources."wrap-ansi-7.0.0" // {
+        dependencies = [
+          sources."ansi-regex-5.0.1"
+          sources."is-fullwidth-code-point-3.0.0"
+          sources."string-width-4.2.3"
+          sources."strip-ansi-6.0.1"
+        ];
+      })
       sources."wrappy-1.0.2"
       sources."y18n-5.0.8"
       sources."yallist-4.0.0"
       sources."yaml-1.10.2"
-      sources."yargs-17.3.1"
-      sources."yargs-parser-21.0.0"
+      (sources."yargs-17.3.1" // {
+        dependencies = [
+          sources."ansi-regex-5.0.1"
+          sources."is-fullwidth-code-point-3.0.0"
+          sources."string-width-4.2.3"
+          sources."strip-ansi-6.0.1"
+          sources."yargs-parser-21.0.0"
+        ];
+      })
+      sources."yargs-parser-20.2.4"
       sources."yargs-unparser-2.0.0"
       sources."yn-3.1.1"
       sources."yocto-queue-0.1.0"
-      sources."z-schema-5.0.2"
+      (sources."z-schema-5.0.2" // {
+        dependencies = [
+          sources."commander-2.20.3"
+        ];
+      })
     ];
     buildInputs = globalBuildInputs;
     meta = {
     };
     production = true;
     bypassCache = true;
-    reconstructLock = true;
+    reconstructLock = false;
   };
 in
 {
