@@ -220,13 +220,13 @@ let
         sha512 = "qcUXuemtEu+E5wZSJHNxUXeCZhAfXKQ41D+duX+VYPde7xyEVZci+/oXKJL13tnRs9lR2pr4fod59GT6/X1/yQ==";
       };
     };
-    "@types/mocha-9.0.0" = {
+    "@types/mocha-9.1.0" = {
       name = "_at_types_slash_mocha";
       packageName = "@types/mocha";
-      version = "9.0.0";
+      version = "9.1.0";
       src = fetchurl {
-        url = "https://registry.npmjs.org/@types/mocha/-/mocha-9.0.0.tgz";
-        sha512 = "scN0hAWyLVAvLR9AyW7HoFF5sJZglyBsbPuHO4fv7JRvfmPBMfp1ozWqOf/e4wwPNxezBZXRfWzMb6iFLgEVRA==";
+        url = "https://registry.npmjs.org/@types/mocha/-/mocha-9.1.0.tgz";
+        sha512 = "QCWHkbMv4Y5U9oW10Uxbr45qMMSzl4OzijsozynUAgx3kEHUdXB00udx2dWDQ7f2TU2a2uuiFaRZjCe3unPpeg==";
       };
     };
     "@types/node-16.11.21" = {
@@ -886,13 +886,13 @@ let
         sha512 = "MMMQ0ludy/nBs1/o0zVOiKTpG7qMbonKUzjJgQFEuvq6INZ1OraKPRAWkBq5vlKLOUMpmNYG1JoN3oDPUQ9m3Q==";
       };
     };
-    "fetch-blob-3.1.3" = {
+    "fetch-blob-3.1.4" = {
       name = "fetch-blob";
       packageName = "fetch-blob";
-      version = "3.1.3";
+      version = "3.1.4";
       src = fetchurl {
-        url = "https://registry.npmjs.org/fetch-blob/-/fetch-blob-3.1.3.tgz";
-        sha512 = "ax1Y5I9w+9+JiM+wdHkhBoxew+zG4AJ2SvAD1v1szpddUIiPERVGBxrMcB2ZqW0Y3PP8bOWYv2zqQq1Jp2kqUQ==";
+        url = "https://registry.npmjs.org/fetch-blob/-/fetch-blob-3.1.4.tgz";
+        sha512 = "Eq5Xv5+VlSrYWEqKrusxY1C3Hm/hjeAsCGVG3ft7pZahlUAChpGZT/Ms1WmSLnEAisEXszjzu/s+ce6HZB2VHA==";
       };
     };
     "fill-range-7.0.1" = {
@@ -1671,6 +1671,15 @@ let
         sha512 = "Yd3UES5mWCSqR+qNT93S3UoYUkqAZ9lLg8a7g9rimsWmYGK8cVToA4/sF3RrshdyV3sAGMXVUmpMYOw+dLpOuw==";
       };
     };
+    "node-domexception-1.0.0" = {
+      name = "node-domexception";
+      packageName = "node-domexception";
+      version = "1.0.0";
+      src = fetchurl {
+        url = "https://registry.npmjs.org/node-domexception/-/node-domexception-1.0.0.tgz";
+        sha512 = "/jKZoMpw0F8GRwl4/eLROPA3cfcXtLApP0QzLmUT/HuPCZWyB7IY9ZrMeKw2O/nFIqPQB3PVM9aYm0F312AXDQ==";
+      };
+    };
     "node-fetch-2.6.7" = {
       name = "node-fetch";
       packageName = "node-fetch";
@@ -1680,13 +1689,13 @@ let
         sha512 = "ZjMPFEfVx5j+y2yF35Kzx5sF7kDzxuDj6ziH4FFbOp87zKDZNx8yExJIb05OGF4Nlt9IHFIMBkRl41VdvcNdbQ==";
       };
     };
-    "node-fetch-3.1.1" = {
+    "node-fetch-3.2.0" = {
       name = "node-fetch";
       packageName = "node-fetch";
-      version = "3.1.1";
+      version = "3.2.0";
       src = fetchurl {
-        url = "https://registry.npmjs.org/node-fetch/-/node-fetch-3.1.1.tgz";
-        sha512 = "SMk+vKgU77PYotRdWzqZGTZeuFKlsJ0hu4KPviQKkfY+N3vn2MIzr0rvpnYpR8MtB3IEuhlEcuOLbGvLRlA+yg==";
+        url = "https://registry.npmjs.org/node-fetch/-/node-fetch-3.2.0.tgz";
+        sha512 = "8xeimMwMItMw8hRrOl3C9/xzU49HV/yE6ORew/l+dxWimO5A4Ra8ld2rerlJvc/O7et5Z1zrWsPX43v1QBjCxw==";
       };
     };
     "node-fetch-h2-2.3.0" = {
@@ -2292,13 +2301,13 @@ let
         sha512 = "DqQgihaQ9cUrskJo9kIyW/+g0Vxsk8cDtZ52a3NGh0YNTfpUSArXSohyUGnvbPazEPLu398C0UxmKSOrPumUzA==";
       };
     };
-    "typescript-4.5.4" = {
+    "typescript-4.5.5" = {
       name = "typescript";
       packageName = "typescript";
-      version = "4.5.4";
+      version = "4.5.5";
       src = fetchurl {
-        url = "https://registry.npmjs.org/typescript/-/typescript-4.5.4.tgz";
-        sha512 = "VgYs2A2QIRuGphtzFV7aQJduJ2gyfTljngLzjpfW9FoYZF6xuw1W0vW9ghCKLfcWrCFxK81CSGRAvS1pn4fIUg==";
+        url = "https://registry.npmjs.org/typescript/-/typescript-4.5.5.tgz";
+        sha512 = "TCTIul70LyWe6IJWT8QSYeA54WQe8EjQFU4wY52Fasj5UKx88LNYKCgBEHcOMOrFF1rKGbD8v/xcNWVUq9SymA==";
       };
     };
     "uglify-js-3.14.5" = {
@@ -2620,7 +2629,7 @@ let
       sources."@types/chai-4.3.0"
       sources."@types/js-nacl-1.3.0"
       sources."@types/json-schema-7.0.9"
-      sources."@types/mocha-9.0.0"
+      sources."@types/mocha-9.1.0"
       sources."@types/node-16.11.21"
       sources."@types/node-fetch-3.0.3"
       sources."@ungap/promise-all-settled-1.1.2"
@@ -2697,7 +2706,7 @@ let
       sources."fast-safe-stringify-2.1.1"
       sources."fastest-levenshtein-1.0.12"
       sources."fecha-4.2.1"
-      sources."fetch-blob-3.1.3"
+      sources."fetch-blob-3.1.4"
       sources."fill-range-7.0.1"
       sources."find-up-5.0.0"
       sources."flat-5.0.2"
@@ -2788,7 +2797,8 @@ let
       sources."nanoassert-2.0.0"
       sources."nanoid-3.1.20"
       sources."neo-async-2.6.2"
-      sources."node-fetch-3.1.1"
+      sources."node-domexception-1.0.0"
+      sources."node-fetch-3.2.0"
       sources."node-fetch-h2-2.3.0"
       sources."node-readfiles-0.2.0"
       sources."normalize-path-3.0.0"
@@ -2864,7 +2874,7 @@ let
       sources."tslib-1.14.1"
       sources."type-detect-4.0.8"
       sources."typedoc-0.22.11"
-      sources."typescript-4.5.4"
+      sources."typescript-4.5.5"
       sources."uglify-js-3.14.5"
       sources."unbox-primitive-1.0.1"
       sources."universalify-2.0.0"
@@ -2905,7 +2915,7 @@ let
     buildInputs = globalBuildInputs;
     meta = {
     };
-    production = false;
+    production = true;
     bypassCache = true;
     reconstructLock = true;
   };
