@@ -66,7 +66,11 @@ rec {
 
   testPackage = (import ./ts-tests/override.nix { inherit pkgs; }).package;
 
-  runTests = { appExe ? rootCrate + "/bin/kadena" }: pkgs.runCommandNoCC "run-tests" { buildInputs = [pkgs.wget ledger-platform.speculos.speculos pkgs.coreutils testPackage pkgs.nodejs-12_x ]; } ''
+  runTests = { appExe ? rootCrate + "/bin/kadena" }: pkgs.runCommandNoCC "run-tests" {
+    nativeBuildInputs = [
+      pkgs.wget ledger-platform.speculos.speculos pkgs.coreutils testPackage pkgs.nodejs-12_x
+    ];
+  } ''
     RUST_APP=${rootCrate}/bin/*
     echo RUST APP IS $RUST_APP
     # speculos -k 2.0 $RUST_APP --display headless &
