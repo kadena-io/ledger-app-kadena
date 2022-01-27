@@ -37,8 +37,10 @@ pub const GET_ADDRESS_IMPL: GetAddressImplT =
         final_accept_prompt(&[])?;
 
         *destination=Some(ArrayVec::new());
-        destination.as_mut()?.try_push(u8::try_from(key.W_len).ok()?).ok()?;
-        destination.as_mut()?.try_extend_from_slice(&key.W[1..key.W_len as usize]).ok()?;
+        // key without y parity
+        let key_x = &key.W[1..key.W_len as usize];
+        destination.as_mut()?.try_push(u8::try_from(key_x.len()).ok()?).ok()?;
+        destination.as_mut()?.try_extend_from_slice(key_x).ok()?;
         Some(())
     }));
 
