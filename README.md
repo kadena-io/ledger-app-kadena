@@ -6,9 +6,6 @@ A simple application that receives a message, displays it, and requests user app
 
 This application has been packaged up with [Nix](https://nixos.org/).
 If you are on Linux and have Nix installed, builds and development environments are one command away.
-```
-nix run --tarball-ttl 1 -f https://github.com/obsidiansystems/ledger-app-kadena/releases/download/<version>/release.tar.gz -c load-app
-```
 
 ### Prerequisites
 
