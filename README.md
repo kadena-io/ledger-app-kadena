@@ -37,6 +37,27 @@ It currently builds on stable.
 
 You can use [cargo-ledger](https://github.com/LedgerHQ/cargo-ledger.git) which builds, outputs a `hex` file and a manifest file for `ledgerctl`, and loads it on a device in a single `cargo ledger load` command in your app directory.
 
+Before installing, please ensure that your Ledger Nano S device is plugged, unlocked, and on the device home screen. 
+
+### Nix
+
+Using Nix, from the root level of this repo, run:
+```bash
+nix-shell -A ledger-platform.rustShell
+cd rust-app/
+cargo-ledger load
+````
+You do not need to install cargo-ledger locally with this method.
+
+### Other Linux Distros
+
+Using `Cargo-Ledger` on Ubuntu or other Linux, from the root level of this repo, run:
+```bash
+cd rust-app/
+cargo-ledger load
+``` 
+
+
 Some options of the manifest file can be configured directly in `Cargo.toml` under a custom section:
 
 ```yaml
