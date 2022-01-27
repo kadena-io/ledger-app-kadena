@@ -77,7 +77,7 @@ fn prompt_cross_chain_from_str(s: &str) -> Option<Option<()>> {
     if rest4 != "" || from_field.contains('"') || to_field.contains('"') || to_chain.contains('"') || amount.contains(|c: char| !c.is_ascii_digit() && c != '.') {
         None
     } else {
-        Some(write_scroller("Transfer", |w| Ok(write!(w, "Cross-chain {} from {} to {} on chain {}", amount, from_field, to_field, to_chain)?)))
+        Some(write_scroller("Transfer", |w| Ok(write!(w, "Cross-chain {} from {} to {} to chain {}", amount, from_field, to_field, to_chain)?)))
     }
 }
 

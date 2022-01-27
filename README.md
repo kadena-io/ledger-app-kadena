@@ -9,6 +9,7 @@ If you are on Linux and have Nix installed, builds and development environments 
 
 ### Prerequisites
 
+This project requires ledger firmware version: 2.1.0 or greater
 This project will try to build [nanos-secure-sdk](https://github.com/LedgerHQ/nanos-secure-sdk), so you will need:
 
 #### Linux
