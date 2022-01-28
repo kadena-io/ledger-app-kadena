@@ -14,7 +14,7 @@ import { instantiate, Nacl } from "js-nacl";
 
 let nacl : Nacl =null;
 
-let ignoredScreens = [ "W e l c o m e", "Cancel", "Working...", "Exit", "Kadena 0.0.5"]
+let ignoredScreens = [ "W e l c o m e", "Cancel", "Working...", "Exit", "Kadena 0.1.0"]
 
 let setAcceptAutomationRules = async function() {
     await Axios.post("http://localhost:5000/automation", {
@@ -472,7 +472,7 @@ describe("Signing tests", function() {
               { "header": "On Network", "prompt": "testnet04" },
               {
                 "header": "Transfer",
-                "prompt": "Cross-chain 1.0 from ffd8cd79deb956fa3c7d9be0f836f20ac84b140168a087a842be4760e40e2b1c to ffd8cd79deb956fa3c7d9be0f836f20ac84b140168a087a842be4760e40e2b1c on chain 0",
+                "prompt": "Cross-chain 1.0 from ffd8cd79deb956fa3c7d9be0f836f20ac84b140168a087a842be4760e40e2b1c to ffd8cd79deb956fa3c7d9be0f836f20ac84b140168a087a842be4760e40e2b1c to chain 0",
               },
               {
                 "header": "Requiring",
