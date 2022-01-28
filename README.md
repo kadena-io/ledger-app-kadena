@@ -59,6 +59,14 @@ flags = "0x40"
 icon = "btc.gif"
 ```
 
+### Using the pre-packaged tarball (any OS)
+Installing the app from a tarball can be done using `ledgerctl`. For more information on how to install and use that tool see the [instructions from LedgerHQ](https://github.com/LedgerHQ/ledgerctl).
+```bash
+tar xzf nano-s-release.tar.gz
+cd nano-s-release
+ledgerctl install -f app.json
+```
+
 ## Testing
 
 One can for example use [speculos](https://github.com/LedgerHQ/speculos)
