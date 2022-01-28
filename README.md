@@ -40,7 +40,7 @@ You can use [cargo-ledger](https://github.com/LedgerHQ/cargo-ledger.git) which b
 
 This application is compatible with Ledger Nano S devices running FW 2.1.0 and above. Before installing, please ensure that your device is plugged, unlocked, and on the device home screen. 
 
-### Nix
+### Nix/Linux
 
 Using Nix, from the root level of this repo, run:
 ```bash
@@ -48,16 +48,7 @@ nix-shell -A ledger-platform.rustShell
 cd rust-app/
 cargo-ledger load
 ````
-You do not need to install cargo-ledger locally with this method.
-
-### Other Linux Distros
-
-Using `Cargo-Ledger` on Ubuntu or other Linux, from the root level of this repo, run:
-```bash
-cd rust-app/
-cargo-ledger load
-``` 
-
+You do not need to install cargo-ledger outside of the nix-shell.
 
 Some options of the manifest file can be configured directly in `Cargo.toml` under a custom section:
 
