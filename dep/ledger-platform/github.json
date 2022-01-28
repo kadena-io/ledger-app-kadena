@@ -3,6 +3,6 @@
   "repo": "ledger-platform",
   "branch": "jg-trying-to-fix-crash-in-nix-not-cargo",
   "private": false,
-  "rev": "04b060bd9a15b84267b4cd80a431b1ea3d365ca3",
-  "sha256": "0m0w9z36digz54xdpfk1v9wrd7v0l78y1g4l5mf9yw01cnh76j7d"
+  "rev": "076f341907b2ec627cd3dac613ab51368a7949ea",
+  "sha256": "0644rf38l7svd7297bgsizfxs5r74s1y7zdr85jm48layrlk8vdg"
 }
