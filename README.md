@@ -2,6 +2,9 @@
 
 A simple application that receives a message, displays it, and requests user approval to sign. Can also display an example menu.
 
+**Note**: the latest release is branch `main`, but the default branch in the git repo is `develop`, so PRs go to the right place.
+If you just want to try out the ledger app, you first make sure you have the right branch checked out!
+
 ## Building
 
 This application has been packaged up with [Nix](https://nixos.org/).
