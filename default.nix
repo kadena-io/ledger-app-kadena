@@ -90,4 +90,6 @@ rec {
     cat $out/short
     exit $rv
   '';
+
+  inherit (pkgs.nodePackages) node2nix;
 }

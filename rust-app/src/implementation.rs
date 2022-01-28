@@ -37,8 +37,10 @@ pub const GET_ADDRESS_IMPL: GetAddressImplT =
         final_accept_prompt(&[])?;
 
         *destination=Some(ArrayVec::new());
-        destination.as_mut()?.try_push(u8::try_from(key.W_len).ok()?).ok()?;
-        destination.as_mut()?.try_extend_from_slice(&key.W[1..key.W_len as usize]).ok()?;
+        // key without y parity
+        let key_x = &key.W[1..key.W_len as usize];
+        destination.as_mut()?.try_push(u8::try_from(key_x.len()).ok()?).ok()?;
+        destination.as_mut()?.try_extend_from_slice(key_x).ok()?;
         Some(())
     }));
 
@@ -75,7 +77,7 @@ fn prompt_cross_chain_from_str(s: &str) -> Option<Option<()>> {
     if rest4 != "" || from_field.contains('"') || to_field.contains('"') || to_chain.contains('"') || amount.contains(|c: char| !c.is_ascii_digit() && c != '.') {
         None
     } else {
-        Some(write_scroller("Transfer", |w| Ok(write!(w, "Cross-chain {} from {} to {} on chain {}", amount, from_field, to_field, to_chain)?)))
+        Some(write_scroller("Transfer", |w| Ok(write!(w, "Cross-chain {} from {} to {} to chain {}", amount, from_field, to_field, to_chain)?)))
     }
 }
 
