@@ -18,10 +18,10 @@ use core::convert::TryFrom;
 use core::str::from_utf8;
 
 // A couple type ascription functions to help the compiler along.
-const fn mkfn<A,B,C>(q: fn(&A,&mut B)->C) -> fn(&A,&mut B)->C {
+const fn mkfn<A,B>(q: fn(&A,&mut B)->Option<()>) -> fn(&A,&mut B)->Option<()> {
   q
 }
-const fn mkvfn<A,C>(q: fn(&A,&mut Option<()>)->C) -> fn(&A,&mut Option<()>)->C {
+const fn mkvfn<A>(q: fn(&A,&mut Option<()>)->Option<()>) -> fn(&A,&mut Option<()>)->Option<()> {
   q
 }
 
@@ -90,16 +90,18 @@ pub static SIGN_IMPL: SignImplT = Action(
                 Hasher::update,
                 Json(Action(Preaction( || -> Option<()> { write_scroller("Signing", |w| Ok(write!(w, "Transaction")?)) } , KadenaCmdInterp {
                     field_nonce: DropInterp,
-                    field_meta: MetaInterp {
+                    field_meta: Action(MetaInterp {
                         field_chain_id: Action(JsonStringAccumulate::<32>, mkvfn(|chain: &ArrayVec<u8, 32>, _| -> Option<()> {
                                 write_scroller("On Chain", |w| Ok(write!(w, "{}", from_utf8(chain.as_slice()).ok()?)?))
                         })),
                         field_sender: DropInterp,
-                        field_gas_limit: DropInterp,
-                        field_gas_price: DropInterp,
+                        field_gas_limit: JsonStringAccumulate::<100>,
+                        field_gas_price: JsonStringAccumulate::<100>,
                         field_ttl: DropInterp,
                         field_creation_time: DropInterp
-                    },
+                    }, mkvfn(|Meta { ref field_gas_limit, ref field_gas_price, .. } : &Meta<_,_,Option<ArrayVec<u8,100>>,Option<ArrayVec<u8,100>>,_,_>, _| {
+                        write_scroller("Using Gas", |w| Ok(write!(w, "at most {} at price {}", from_utf8(field_gas_limit.as_ref()?.as_slice()).ok()?, from_utf8(field_gas_price.as_ref()?.as_slice()).ok()?)?))
+                    })),
                     field_payload: PayloadInterp {
                         field_exec: CommandInterp {
                             field_code: Action(OrDrop(JsonStringAccumulate::<600>), mkfn(|cmd_opt: &Option<ArrayVec<u8, 600>>, dest: &mut Option<CommandData> | { 
