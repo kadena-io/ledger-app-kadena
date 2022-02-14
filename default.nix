@@ -65,9 +65,15 @@ rec {
 
   testPackage = (import ./ts-tests/override.nix { inherit pkgs; }).package;
 
+  testScript = pkgs.writeShellScriptBin "mocha-wrapper" ''
+    cd ${testPackage}/lib/node_modules/*/
+    export NO_UPDATE_NOTIFIER=true
+    exec ${pkgs.nodejs-14_x}/bin/npm --offline test
+  '';
+
   runTests = { appExe ? rootCrate + "/bin/kadena" }: pkgs.runCommandNoCC "run-tests" {
     nativeBuildInputs = [
-      pkgs.wget ledger-platform.speculos.speculos pkgs.coreutils testPackage pkgs.nodejs-12_x
+      pkgs.wget ledger-platform.speculos.speculos testScript
     ];
   } ''
     RUST_APP=${rootCrate}/bin/*
@@ -80,8 +86,7 @@ rec {
 
     until wget -O/dev/null -o/dev/null http://localhost:5000; do sleep 0.1; done;
 
-    pushd ${testPackage}/lib/node_modules/*/
-    NO_UPDATE_NOTIFIER=true npm --offline test
+    ${testScript}/bin/mocha-wrapper
     rv=$?
     popd
     kill $SPECULOS
