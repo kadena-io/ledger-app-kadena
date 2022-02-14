@@ -2,6 +2,9 @@
 
 A simple application that receives a message, displays it, and requests user approval to sign. Can also display an example menu.
 
+**Note**: the latest release is branch `main`, but the default branch in the git repo is `develop`, so PRs go to the right place.
+If you just want to try out the ledger app, you first make sure you have the right branch checked out!
+
 ## Building
 
 This application has been packaged up with [Nix](https://nixos.org/).
@@ -40,7 +43,7 @@ You can use [cargo-ledger](https://github.com/LedgerHQ/cargo-ledger.git) which b
 
 This application is compatible with Ledger Nano S devices running FW 2.1.0 and above. Before installing, please ensure that your device is plugged, unlocked, and on the device home screen. 
 
-### Nix
+### Nix/Linux
 
 Using Nix, from the root level of this repo, run:
 ```bash
@@ -48,16 +51,7 @@ nix-shell -A ledger-platform.rustShell
 cd rust-app/
 cargo-ledger load
 ````
-You do not need to install cargo-ledger locally with this method.
-
-### Other Linux Distros
-
-Using `Cargo-Ledger` on Ubuntu or other Linux, from the root level of this repo, run:
-```bash
-cd rust-app/
-cargo-ledger load
-``` 
-
+You do not need to install cargo-ledger outside of the nix-shell.
 
 Some options of the manifest file can be configured directly in `Cargo.toml` under a custom section:
 
@@ -66,6 +60,14 @@ Some options of the manifest file can be configured directly in `Cargo.toml` und
 curve = "secp256k1"
 flags = "0x40"
 icon = "btc.gif"
+```
+
+### Using the pre-packaged tarball (any OS)
+Installing the app from a tarball can be done using `ledgerctl`. For more information on how to install and use that tool see the [instructions from LedgerHQ](https://github.com/LedgerHQ/ledgerctl).
+```bash
+tar xzf nano-s-release.tar.gz
+cd nano-s-release
+ledgerctl install -f app.json
 ```
 
 ## Testing
