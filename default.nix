@@ -9,7 +9,8 @@ rec {
     buildRustCrateForPkgsWrapper
     ;
 
-  app = import ./Cargo.nix {
+  makeApp = { rootFeatures ? [ "default" ], release ? true }: import ./Cargo.nix {
+    inherit rootFeatures release;
     pkgs = ledgerPkgs;
     buildRustCrateForPkgs = pkgs: let
       fun = buildRustCrateForPkgsWrapper
@@ -36,8 +37,15 @@ rec {
       });
   };
 
+  app = makeApp {};
+  app-with-logging = makeApp {
+    release = false;
+    rootFeatures = [ "default" "speculos" "extra_debug" ];
+  };
+
   # For CI
   rootCrate = app.rootCrate.build;
+  rootCrate-with-logging = app-with-logging.rootCrate.build;
 
   tarSrc = ledgerPkgs.runCommandCC "tarSrc" {
     nativeBuildInputs = [
@@ -68,7 +76,7 @@ rec {
   testScript = pkgs.writeShellScriptBin "mocha-wrapper" ''
     cd ${testPackage}/lib/node_modules/*/
     export NO_UPDATE_NOTIFIER=true
-    exec ${pkgs.nodejs-14_x}/bin/npm --offline test
+    exec ${pkgs.nodejs-14_x}/bin/npm --offline test -- "$@"
   '';
 
   runTests = { appExe ? rootCrate + "/bin/kadena" }: pkgs.runCommandNoCC "run-tests" {

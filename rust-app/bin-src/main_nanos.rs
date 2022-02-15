@@ -45,7 +45,10 @@ extern "C" fn sample_main() {
                     Some(1) => { info!("Resetting at user direction via busy menu"); set_from_thunk(&mut states, || ParsersState::NoState); }
                     _ => (),
                 } }
-            }
+            },
+            io::Event::Ticker => {
+                trace!("Ignoring ticker event");
+            },
         }
 
         // info!("Event handled.");
