@@ -96,13 +96,19 @@ rec {
 
     ${testScript}/bin/mocha-wrapper
     rv=$?
-    popd
-    kill $SPECULOS
+    kill -9 $SPECULOS
     exit $rv) | tee $out/short |& tee $out/full
     rv=$?
     cat $out/short
     exit $rv
   '';
+
+  # test-with-loging = runTests {
+  #   appExe = rootCrate-with-logging + "/bin/kadena";
+  # };
+  test = runTests {
+    appExe = rootCrate + "/bin/kadena";
+  };
 
   inherit (pkgs.nodePackages) node2nix;
 }
