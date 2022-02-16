@@ -9,6 +9,8 @@ rustflags = [
   "-C", "opt-level=3",
   "-C", "passes=ledger-ropi",
   "-C", "codegen-units=1",
+  "-C", "lto",
+  "-C", "embed-bitcode",
   "--cfg", "target_os=\"nanos\"",
 ]
 linker = "armv6m-unknown-none-eabi-clang"
