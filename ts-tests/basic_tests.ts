@@ -201,6 +201,7 @@ describe("Signing tests", function() {
          { "header": "Paying Gas", "prompt": " " },
          { "header": "Transfer", "prompt": "11 from 83934c0f9b005f378ba3520f9dea952fb0a90e5aa36f1b5ff837d9b30c471790 to 9790d119589a26114e1a42d92598b3f632551c566819ec48e0e8c54dae6ebb42" },
          { "header": "On Chain", "prompt": "0" },
+         { "header": "Using Gas", "prompt": "at most 600 at price 1.0e-5" },
          { "header": "Transaction hash", "prompt": "fPSCfMUaoK1N31qwhwBFUPwG-YR_guPP894uixsNZgk" },
          { "header": "Sign for Address", "prompt": "ffd8cd79deb956fa3c7d9be0f836f20ac84b140168a087a842be4760e40e2b1c" },
          {
@@ -233,6 +234,7 @@ describe("Signing tests", function() {
               "prompt": " ",
             },
             { "header": "On Chain", "prompt": "0" },
+            { "header": "Using Gas", "prompt": "at most 600 at price 1.0e-6" },
             {
               "header": "Transaction hash",
               "prompt": "zPntpx9VQ7vumUoWSvvi8s_h8L1s6GOOLu8-Jgjh9dE",
@@ -270,6 +272,7 @@ describe("Signing tests", function() {
            "prompt": "4.98340488 from e4a1b2980c086c4551ab7d2148cf56e9774c64eb86f795d5fd83e39ccfd2ec66 to 875e4493e19c8721583bfb46f0768f10266ebcca33c4a0e04bc099a7044a90f7",
          },
          { "header": "On Chain", "prompt": "0" },
+         { "header": "Using Gas", "prompt": "at most 60000 at price 1.0e-6" },
          {
            "header": "Transaction hash",
            "prompt": "SrjHkjfzLHLiOS-5_lcZvLOhiU42NynfAfezMzbeXsw",
@@ -315,6 +318,7 @@ describe("Signing tests", function() {
            "prompt": "4.89093455 from 73580ffb3e5ca9859442395d4c1cb0bf3aa4e7246564ce943b7ae508b3ee7c03 to 875e4493e19c8721583bfb46f0768f10266ebcca33c4a0e04bc099a7044a90f7",
          },
          { "header": "On Chain", "prompt": "0" },
+         { "header": "Using Gas", "prompt": "at most 60000 at price 1.0e-6" },
          {
            "header": "Transaction hash",
            "prompt": "pJsk0-vgbqfzOBFc4zHtFMSMa0aCZpXBZ_QQFxox1-k",
@@ -353,6 +357,7 @@ describe("Signing tests", function() {
            "prompt": "d3300d284f4bcfbc91555184ef026a356e57ff0fa97b5e6c9830750892cd3093",
          },
          { "header": "On Chain", "prompt": "0" },
+         { "header": "Using Gas", "prompt": "at most 1500 at price 1.0e-5" },
          {
            "header": "Transaction hash",
            "prompt": "WQImvdxCaI7U5Qy2U_3Mxoa3i-Lp-PyNu9aZNtXclHo",
@@ -391,6 +396,7 @@ describe("Signing tests", function() {
                 "prompt": "ffd8cd79deb956fa3c7d9be0f836f20ac84b140168a087a842be4760e40e2b1c",
               },
               { "header": "On Chain", "prompt": "1" },
+              { "header": "Using Gas", "prompt": "at most 600 at price 0.00001" },
               {
                 "header": "WARNING",
                 "prompt": "UNSAFE TRANSACTION. This transaction's code was not recognized and does not limit capabilities for all signers. Signing this transaction may make arbitrary actions on the chain including loss of all funds.",
@@ -441,6 +447,7 @@ describe("Signing tests", function() {
                 "prompt": "b9ac3ca5559cc6f394ea0e31c11be16efd6c6ff6804b98ce7cee496bcca96164",
               },
               { "header": "On Chain", "prompt": "1" },
+              { "header": "Using Gas", "prompt": "at most 600 at price 0.00001" },
               {
                 "header": "Transaction hash",
                 "prompt": "9VlNQ6wmY5UpfOcazQNGpBZDt9Cd_sl_DO0POpiBDvU",
@@ -483,6 +490,7 @@ describe("Signing tests", function() {
                 "prompt": "ffd8cd79deb956fa3c7d9be0f836f20ac84b140168a087a842be4760e40e2b1c",
               },
               { "header": "On Chain", "prompt": "1" },
+              { "header": "Using Gas", "prompt": "at most 600 at price 0.00001" },
               {
                 "header": "Transaction hash",
                 "prompt": "MM7O6sd6BVZgeXFFqjVXHnfZ_Q2QxCEexoGeNgTj4WM",
