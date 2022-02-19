@@ -6,13 +6,13 @@ configurable-env = true
 rustflags = [ 
   "-C", "relocation-model=ropi",
   "-C", "link-arg=-Tscript.ld",
-  "-Z", "emit-stack-sizes",
-  "--cfg", "target_os=\"nanos\"",
   "-C", "opt-level=3",
-  "-C", "link-arg=--target=thumbv6m-none-eabi",
   "-C", "passes=ledger-ropi",
+  "-C", "codegen-units=1",
+  "-C", "lto",
+  "-C", "embed-bitcode",
+  "--emit=obj",
   "--cfg", "target_os=\"nanos\"",
-  "--emit=llvm-ir"
 ]
 linker = "armv6m-unknown-none-eabi-clang"
 runner = "./speculos-wrapper -k 2.0"

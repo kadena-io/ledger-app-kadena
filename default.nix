@@ -5,31 +5,31 @@ rec {
     lib
     pkgs ledgerPkgs
     crate2nix
-    buildRustCrateForPkgsLedger;
+    buildRustCrateForPkgsLedger
+    buildRustCrateForPkgsWrapper
+    ;
 
-  app = import ./Cargo.nix {
+  makeApp = { rootFeatures ? [ "default" ], release ? true }: import ./Cargo.nix {
+    inherit rootFeatures release;
     pkgs = ledgerPkgs;
     buildRustCrateForPkgs = pkgs: let
-      fun = (buildRustCrateForPkgsLedger pkgs).override {
-        defaultCrateOverrides = pkgs.defaultCrateOverrides // {
-          kadena = attrs: let
-            sdk = lib.findFirst (p: lib.hasPrefix "rust_nanos_sdk" p.name) (builtins.throw "no sdk!") attrs.dependencies;
-          in {
-            preHook = ledger-platform.gccLibsPreHook;
-            extraRustcOpts = attrs.extraRustcOpts or [] ++ [
-              "-C" "link-arg=-T${sdk.lib}/lib/nanos_sdk.out/script.ld"
-              "-C" "linker=${pkgs.stdenv.cc.targetPrefix}lld"
-            ];
+      fun = buildRustCrateForPkgsWrapper
+        pkgs
+        ((buildRustCrateForPkgsLedger pkgs).override {
+          defaultCrateOverrides = pkgs.defaultCrateOverrides // {
+            kadena = attrs: let
+              sdk = lib.findFirst (p: lib.hasPrefix "rust_nanos_sdk" p.name) (builtins.throw "no sdk!") attrs.dependencies;
+            in {
+              preHook = ledger-platform.gccLibsPreHook;
+              extraRustcOpts = attrs.extraRustcOpts or [] ++ [
+                "-C" "link-arg=-T${sdk.lib}/lib/nanos_sdk.out/script.ld"
+                "-C" "linker=${pkgs.stdenv.cc.targetPrefix}clang"
+              ];
+            };
           };
-        };
-      };
+        });
     in
       args: fun (args // lib.optionalAttrs pkgs.stdenv.hostPlatform.isAarch32 {
-        RUSTC_BOOTSTRAP = true;
-        extraRustcOpts = [
-          "-C" "relocation-model=ropi"
-          "-C" "passes=ledger-ropi"
-        ] ++ args.extraRustcOpts or [];
         dependencies = map (d: d // { stdlib = true; }) [
           ledger-platform.ledgerCore
           ledger-platform.ledgerCompilerBuiltins
@@ -37,8 +37,15 @@ rec {
       });
   };
 
+  app = makeApp {};
+  app-with-logging = makeApp {
+    release = false;
+    rootFeatures = [ "default" "speculos" "extra_debug" ];
+  };
+
   # For CI
   rootCrate = app.rootCrate.build;
+  rootCrate-with-logging = app-with-logging.rootCrate.build;
 
   tarSrc = ledgerPkgs.runCommandCC "tarSrc" {
     nativeBuildInputs = [
@@ -69,7 +76,7 @@ rec {
   testScript = pkgs.writeShellScriptBin "mocha-wrapper" ''
     cd ${testPackage}/lib/node_modules/*/
     export NO_UPDATE_NOTIFIER=true
-    exec ${pkgs.nodejs-14_x}/bin/npm --offline test
+    exec ${pkgs.nodejs-14_x}/bin/npm --offline test -- "$@"
   '';
 
   runTests = { appExe ? rootCrate + "/bin/kadena" }: pkgs.runCommandNoCC "run-tests" {
@@ -89,13 +96,19 @@ rec {
 
     ${testScript}/bin/mocha-wrapper
     rv=$?
-    popd
-    kill $SPECULOS
+    kill -9 $SPECULOS
     exit $rv) | tee $out/short |& tee $out/full
     rv=$?
     cat $out/short
     exit $rv
   '';
+
+  # test-with-loging = runTests {
+  #   appExe = rootCrate-with-logging + "/bin/kadena";
+  # };
+  test = runTests {
+    appExe = rootCrate + "/bin/kadena";
+  };
 
   inherit (pkgs.nodePackages) node2nix;
 }

@@ -40,18 +40,6 @@ path = "bin-src/main.rs"
 git = "https://github.com/obsidiansystems/ledger-nanos-sdk.git"
 branch = "use-ambient-compiler-and-target"
 
-[profile.dev]
-# panic = "abort"
-lto = true
-
-[profile.release]
-# panic = "abort"
-opt-level = 'z' 
-lto = true
-
-[profile.test]
-
-
 [package.metadata.nanos]
 name = "Kadena"
 path = "44'/626'"
