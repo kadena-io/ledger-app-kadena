@@ -11,26 +11,46 @@ nanos_sdk::set_panic!(nanos_sdk::exiting_panic);
 use ledger_parser_combinators::interp_parser::OOB;
 use kadena::*;
 
+// Pulling this out of sample_main to global const saves 24 bytes
+// But the SingleMessage::new fails to work with global const, therefore doing fill_idle_menu
+const IDLE_MENU: [&str; 3] = [ concat!("Kadena ", env!("CARGO_PKG_VERSION")), "Exit", "Settings" ];
+fn fill_idle_menu(arr: &mut [&str; 3]) {
+    for (i, s) in IDLE_MENU.iter().enumerate() {
+        arr[i] = s;
+    }
+}
+
 #[cfg(not(test))]
 #[no_mangle]
 extern "C" fn sample_main() {
     let mut comm = io::Comm::new();
     let mut states = ParsersState::NoState;
-    let idle_menu: [&str; 3] = [ concat!("Kadena ", env!("CARGO_PKG_VERSION")), "Exit", "Settings" ];
-    let busy_menu: [&str; 2] = [ "Working...", "Cancel" ];
-    let settings_menu_1: [&str; 2] = [ "Enable Hash Signing", "Back" ];
-    let settings_menu_2: [&str; 2] = [ "Disable Hash Signing", "Back" ];
-    let mut menu = Menu::new(&idle_menu);
+    let mut menu = Menu::new(&IDLE_MENU);
 
     info!("Kadena app {}", env!("CARGO_PKG_VERSION"));
 
     loop {
         // Draw some 'welcome' screen
         match states {
-            ParsersState::NoState => menu.show(&idle_menu),
-            ParsersState::SettingsState(0) => menu.show(&settings_menu_1),
-            ParsersState::SettingsState(1) => menu.show(&settings_menu_2),
-            _ => menu.show(&busy_menu),
+            ParsersState::NoState => {
+                // Using IDLE_MENU here does not work, therefore using this to avoid duplication
+                let mut arr: [&str; 3] = ["", "", ""];
+                fill_idle_menu(&mut arr);
+                menu.show(&arr);
+            },
+            ParsersState::SettingsState(0) => {
+                // Using arr is important here. `menu.show(&[ ... ])` doesn't work
+                let arr = [ "Enable Hash Signing", "Back" ];
+                menu.show(&arr);
+            },
+            ParsersState::SettingsState(1) => {
+                let arr = [ "Disable Hash Signing", "Back" ];
+                menu.show(&arr);
+            },
+            _ => {
+                let arr = [ "Working...", "Cancel" ];
+                menu.show(&arr);
+            },
         }
 
         info!("Fetching next event.");
@@ -178,15 +198,15 @@ fn handle_apdu(comm: &mut io::Comm, ins: Ins, parser: &mut ParsersState) -> Resu
 }
 
 
-pub struct Menu<'a> {
-    screens: &'a[&'a str],
+pub struct Menu {
+    screens_len: usize,
     state: usize,
 }
 
-impl<'a> Menu<'a> {
-    pub fn new(init_screens: &'a[&'a str]) -> Menu<'a> {
+impl Menu {
+    pub fn new(init_screens: &[& str]) -> Menu {
         Menu {
-            screens: init_screens,
+            screens_len: init_screens.len(),
             state: 0,
         }
     }
@@ -196,17 +216,17 @@ impl<'a> Menu<'a> {
     }
 
     #[inline(never)]
-    pub fn show(&mut self, screens: &'a[&'a str]) {
-        self.screens = screens;
-        self.state = core::cmp::min(self.state, (self.screens.len())-1);
-        SingleMessage::new(self.screens[self.state]).show();
+    pub fn show(&mut self, screens: &[& str]) {
+        self.screens_len = screens.len();
+        self.state = core::cmp::min(self.state, (self.screens_len)-1);
+        SingleMessage::new(screens[self.state]).show();
     }
 
     #[inline(never)]
     pub fn update(&mut self, btn: ButtonEvent) -> Option<usize> {
         match btn {
             ButtonEvent::LeftButtonRelease => self.state = if self.state > 0 { self.state - 1 } else {0},
-            ButtonEvent::RightButtonRelease => self.state = core::cmp::min(self.state+1, (self.screens.len())-1),
+            ButtonEvent::RightButtonRelease => self.state = core::cmp::min(self.state+1, (self.screens_len)-1),
             ButtonEvent::BothButtonsRelease => return Some(self.state),
             _ => (),
         }
