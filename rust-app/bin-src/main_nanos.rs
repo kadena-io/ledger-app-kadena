@@ -64,26 +64,18 @@ extern "C" fn sample_main() {
                     Err(sw) => comm.reply(sw),
                 }
             } ,
-            io::Event::Button(btn) => match states {
-                ParsersState::NoState => {match menu.update(btn) {
-                    Some(1) => { info!("Exiting app at user direction via root menu"); nanos_sdk::exit_app(0) },
-                    Some(2) => { menu.reset(); states = ParsersState::SettingsState(0); },
+            io::Event::Button(btn) => match menu.update(btn) {
+                Some(0) => match states {
+                    ParsersState::SettingsState(v) => { let new = match v { 0 => 1, _ => 0}; states = ParsersState::SettingsState(new); },
                     _ => (),
-                } }
-                ParsersState::SettingsState(0) => {match menu.update(btn) {
-                    Some(0) => { states = ParsersState::SettingsState(1); },
-                    Some(1) => { menu.reset(); states = ParsersState::NoState; },
-                    _ => (),
-                } }
-                ParsersState::SettingsState(1) => {match menu.update(btn) {
-                    Some(0) => { states = ParsersState::SettingsState(0); },
-                    Some(1) => { menu.reset(); states = ParsersState::NoState; },
-                    _ => (),
-                } }
-                _ => { match menu.update(btn) {
-                    Some(1) => { info!("Resetting at user direction via busy menu"); menu.reset(); set_from_thunk(&mut states, || ParsersState::NoState); }
-                    _ => (),
-                } }
+                }
+                Some(1) => match states {
+                    ParsersState::SettingsState(_) => { menu.reset(); states = ParsersState::NoState; },
+                    ParsersState::NoState => { info!("Exiting app at user direction via root menu"); nanos_sdk::exit_app(0) },
+                    _ => { info!("Resetting at user direction via busy menu"); menu.reset(); set_from_thunk(&mut states, || ParsersState::NoState); }
+                }
+                Some(2) => { menu.reset(); states = ParsersState::SettingsState(0); },
+                _ => (),
             },
             io::Event::Ticker => {
                 trace!("Ignoring ticker event");
