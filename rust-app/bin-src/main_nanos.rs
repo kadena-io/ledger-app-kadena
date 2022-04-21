@@ -1,9 +1,10 @@
 use kadena::implementation::*;
 use kadena::interface::*;
-use prompts_ui::RootMenu;
 use ledger_parser_combinators::interp_parser::set_from_thunk;
 
 use nanos_sdk::io;
+use nanos_sdk::buttons::{ButtonEvent};
+use nanos_ui::ui::{SingleMessage};
 
 nanos_sdk::set_panic!(nanos_sdk::exiting_panic);
 
@@ -15,34 +16,52 @@ use kadena::*;
 extern "C" fn sample_main() {
     let mut comm = io::Comm::new();
     let mut states = ParsersState::NoState;
-
-    let mut idle_menu = RootMenu::new([ concat!("Kadena ", env!("CARGO_PKG_VERSION")), "Exit" ]);
-    let mut busy_menu = RootMenu::new([ "Working...", "Cancel" ]);
+    let idle_menu: [&str; 3] = [ concat!("Kadena ", env!("CARGO_PKG_VERSION")), "Exit", "Settings" ];
+    let busy_menu: [&str; 2] = [ "Working...", "Cancel" ];
+    let settings_menu_1: [&str; 2] = [ "Enable Hash Signing", "Back" ];
+    let settings_menu_2: [&str; 2] = [ "Disable Hash Signing", "Back" ];
+    let mut menu = Menu::new(&idle_menu);
 
     info!("Kadena app {}", env!("CARGO_PKG_VERSION"));
 
     loop {
         // Draw some 'welcome' screen
         match states {
-            ParsersState::NoState => idle_menu.show(),
-            _ => busy_menu.show(),
+            ParsersState::NoState => menu.show(&idle_menu),
+            ParsersState::SettingsState(0) => menu.show(&settings_menu_1),
+            ParsersState::SettingsState(1) => menu.show(&settings_menu_2),
+            _ => menu.show(&busy_menu),
         }
 
         info!("Fetching next event.");
         // Wait for either a specific button push to exit the app
         // or an APDU command
         match comm.next_event() {
-            io::Event::Command(ins) => match handle_apdu(&mut comm, ins, &mut states) {
-                Ok(()) => comm.reply_ok(),
-                Err(sw) => comm.reply(sw),
-            },
+            io::Event::Command(ins) => {
+                menu.reset();
+                match handle_apdu(&mut comm, ins, &mut states) {
+                    Ok(()) => comm.reply_ok(),
+                    Err(sw) => comm.reply(sw),
+                }
+            } ,
             io::Event::Button(btn) => match states {
-                ParsersState::NoState => {match idle_menu.update(btn) {
+                ParsersState::NoState => {match menu.update(btn) {
                     Some(1) => { info!("Exiting app at user direction via root menu"); nanos_sdk::exit_app(0) },
+                    Some(2) => { menu.reset(); states = ParsersState::SettingsState(0); },
                     _ => (),
                 } }
-                _ => { match busy_menu.update(btn) {
-                    Some(1) => { info!("Resetting at user direction via busy menu"); set_from_thunk(&mut states, || ParsersState::NoState); }
+                ParsersState::SettingsState(0) => {match menu.update(btn) {
+                    Some(0) => { states = ParsersState::SettingsState(1); },
+                    Some(1) => { menu.reset(); states = ParsersState::NoState; },
+                    _ => (),
+                } }
+                ParsersState::SettingsState(1) => {match menu.update(btn) {
+                    Some(0) => { states = ParsersState::SettingsState(0); },
+                    Some(1) => { menu.reset(); states = ParsersState::NoState; },
+                    _ => (),
+                } }
+                _ => { match menu.update(btn) {
+                    Some(1) => { info!("Resetting at user direction via busy menu"); menu.reset(); set_from_thunk(&mut states, || ParsersState::NoState); }
                     _ => (),
                 } }
             },
@@ -158,3 +177,39 @@ fn handle_apdu(comm: &mut io::Comm, ins: Ins, parser: &mut ParsersState) -> Resu
     Ok(())
 }
 
+
+pub struct Menu<'a> {
+    screens: &'a[&'a str],
+    state: usize,
+}
+
+impl<'a> Menu<'a> {
+    pub fn new(init_screens: &'a[&'a str]) -> Menu<'a> {
+        Menu {
+            screens: init_screens,
+            state: 0,
+        }
+    }
+
+    pub fn reset(&mut self) {
+        self.state = 0;
+    }
+
+    #[inline(never)]
+    pub fn show(&mut self, screens: &'a[&'a str]) {
+        self.screens = screens;
+        self.state = core::cmp::min(self.state, (self.screens.len())-1);
+        SingleMessage::new(self.screens[self.state]).show();
+    }
+
+    #[inline(never)]
+    pub fn update(&mut self, btn: ButtonEvent) -> Option<usize> {
+        match btn {
+            ButtonEvent::LeftButtonRelease => self.state = if self.state > 0 { self.state - 1 } else {0},
+            ButtonEvent::RightButtonRelease => self.state = core::cmp::min(self.state+1, (self.screens.len())-1),
+            ButtonEvent::BothButtonsRelease => return Some(self.state),
+            _ => (),
+        }
+        None
+    }
+}
