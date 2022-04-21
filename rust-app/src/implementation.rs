@@ -313,6 +313,7 @@ impl JsonInterp<JsonArray<JsonAny>> for KadenaCapabilityArgsInterp {
 
 pub enum ParsersState {
     NoState,
+    SettingsState(u8),
     GetAddressState(<GetAddressImplT as InterpParser<Bip32Key>>::State),
     SignState(<SignImplT as InterpParser<SignParameters>>::State),
 }

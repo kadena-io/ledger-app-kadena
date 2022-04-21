@@ -16,8 +16,10 @@ extern "C" fn sample_main() {
     let mut comm = io::Comm::new();
     let mut states = ParsersState::NoState;
 
-    let mut idle_menu = RootMenu::new([ concat!("Kadena ", env!("CARGO_PKG_VERSION")), "Exit" ]);
+    let mut idle_menu = RootMenu::new([ concat!("Kadena ", env!("CARGO_PKG_VERSION")), "Exit", "Settings" ]);
     let mut busy_menu = RootMenu::new([ "Working...", "Cancel" ]);
+    let mut settings_menu_1 = RootMenu::new([ "Enable Hash Signing", "Back" ]);
+    let mut settings_menu_2 = RootMenu::new([ "Disable Hash Signing", "Back" ]);
 
     info!("Kadena app {}", env!("CARGO_PKG_VERSION"));
 
@@ -25,6 +27,8 @@ extern "C" fn sample_main() {
         // Draw some 'welcome' screen
         match states {
             ParsersState::NoState => idle_menu.show(),
+            ParsersState::SettingsState(0) => settings_menu_1.show(),
+            ParsersState::SettingsState(1) => settings_menu_2.show(),
             _ => busy_menu.show(),
         }
 
@@ -39,6 +43,17 @@ extern "C" fn sample_main() {
             io::Event::Button(btn) => match states {
                 ParsersState::NoState => {match idle_menu.update(btn) {
                     Some(1) => { info!("Exiting app at user direction via root menu"); nanos_sdk::exit_app(0) },
+                    Some(2) => { states = ParsersState::SettingsState(0); },
+                    _ => (),
+                } }
+                ParsersState::SettingsState(0) => {match settings_menu_1.update(btn) {
+                    Some(0) => { states = ParsersState::SettingsState(1); },
+                    Some(1) => { states = ParsersState::NoState; },
+                    _ => (),
+                } }
+                ParsersState::SettingsState(1) => {match settings_menu_2.update(btn) {
+                    Some(0) => { states = ParsersState::SettingsState(0); },
+                    Some(1) => { states = ParsersState::NoState; },
                     _ => (),
                 } }
                 _ => { match busy_menu.update(btn) {
