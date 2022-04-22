@@ -1,5 +1,6 @@
 use kadena::implementation::*;
 use kadena::interface::*;
+use kadena::settings::*;
 use ledger_parser_combinators::interp_parser::set_from_thunk;
 
 use nanos_sdk::io;
@@ -66,7 +67,7 @@ extern "C" fn sample_main() {
             } ,
             io::Event::Button(btn) => match menu.update(btn) {
                 Some(0) => match states {
-                    ParsersState::SettingsState(v) => { let new = match v { 0 => 1, _ => 0}; states = ParsersState::SettingsState(new); },
+                    ParsersState::SettingsState(v) => { let new = match v { 0 => 1, _ => 0}; set_settings(&new); states = ParsersState::SettingsState(new); },
                     _ => (),
                 }
                 Some(1) => match states {
@@ -74,7 +75,7 @@ extern "C" fn sample_main() {
                     ParsersState::NoState => { info!("Exiting app at user direction via root menu"); nanos_sdk::exit_app(0) },
                     _ => { info!("Resetting at user direction via busy menu"); menu.reset(); set_from_thunk(&mut states, || ParsersState::NoState); }
                 }
-                Some(2) => { menu.reset(); states = ParsersState::SettingsState(0); },
+                Some(2) => { menu.reset(); states = ParsersState::SettingsState(get_current_settings()); },
                 _ => (),
             },
             io::Event::Ticker => {
