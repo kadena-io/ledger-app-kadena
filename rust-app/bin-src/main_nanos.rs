@@ -185,7 +185,11 @@ fn handle_apdu(comm: &mut io::Comm, ins: Ins, parser: &mut ParsersState) -> Resu
             run_parser_apdu::<_, SignParameters>(parser, get_sign_state, &SIGN_IMPL, comm)?
         }
         Ins::SignHash => {
-            run_parser_apdu::<_, SignHashParameters>(parser, get_sign_hash_state, &SIGN_HASH_IMPL, comm)?
+            if get_current_settings() != 1 {
+                return Err(io::SyscallError::NotSupported.into());
+            } else {
+                run_parser_apdu::<_, SignHashParameters>(parser, get_sign_hash_state, &SIGN_HASH_IMPL, comm)?
+            }
         }
         Ins::GetVersionStr => {
             comm.append(concat!("Kadena ", env!("CARGO_PKG_VERSION")).as_ref());
