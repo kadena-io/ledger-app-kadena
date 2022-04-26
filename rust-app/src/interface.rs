@@ -49,3 +49,8 @@ pub type SignParameters = (
     LengthFallback<U32<{ Endianness::Little }>, Json<KadenaCmdSchema>>,
     Bip32Key,
 );
+
+pub type SignHashParameters = (
+    Array<Byte, 32>,
+    Bip32Key,
+);

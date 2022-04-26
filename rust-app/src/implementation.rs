@@ -1,4 +1,4 @@
-use crate::crypto_helpers::{eddsa_sign, get_pkh, get_private_key, get_pubkey, get_pubkey_from_privkey, Hasher};
+use crate::crypto_helpers::{eddsa_sign, get_pkh, get_private_key, get_pubkey, get_pubkey_from_privkey, Hasher, Hash};
 use crate::interface::*;
 use crate::*;
 use arrayvec::ArrayVec;
@@ -14,6 +14,7 @@ use prompts_ui::{write_scroller, final_accept_prompt};
 use ledger_parser_combinators::define_json_struct_interp;
 use ledger_parser_combinators::json::*;
 use ledger_parser_combinators::json_interp::*;
+use ledger_parser_combinators::interp_parser::*;
 use core::convert::TryFrom;
 use core::str::from_utf8;
 
@@ -224,6 +225,48 @@ pub static SIGN_IMPL: SignImplT = Action(
     }),
 );
 
+pub type SignHashImplT = impl InterpParser<SignHashParameters, Returning = ArrayVec<u8, 128_usize>>;
+
+pub static SIGN_HASH_IMPL: SignHashImplT = Action(
+    Preaction( || -> Option<()> { write_scroller("Signing", |w| Ok(write!(w, "Transaction Hash")?)) } ,
+    (
+        Action(
+            SubInterp(DefaultInterp),
+            // Ask the user if they accept the transaction body's hash
+            mkfn(|hash_val: &[u8; 32], destination: &mut Option<[u8; 32]>| {
+                let the_hash = Hash ( *hash_val );
+                write_scroller("Transaction hash", |w| Ok(write!(w, "{}", the_hash)?))?;
+                *destination=Some(the_hash.0.into());
+                Some(())
+            }),
+        ),
+        Action(
+            SubInterp(DefaultInterp),
+            // And ask the user if this is the key the meant to sign with:
+            mkfn(|path: &ArrayVec<u32, 10>, destination: &mut _| {
+                // Mutable because of some awkwardness with the C api.
+                let mut privkey = get_private_key(&path).ok()?;
+                let pubkey = get_pubkey_from_privkey(&mut privkey).ok()?;
+                let pkh = get_pkh(pubkey);
+
+                write_scroller("Sign for Address", |w| Ok(write!(w, "{}", pkh)?))?;
+                *destination = Some(privkey);
+                Some(())
+            }),
+        ),
+    )),
+    mkfn(|(hash, key): &(Option<[u8; 32]>, Option<_>), destination: &mut _| {
+        final_accept_prompt(&[&"Sign Transaction Hash?"])?;
+
+        // By the time we get here, we've approved and just need to do the signature.
+        let sig = eddsa_sign(&hash.as_ref()?[..], key.as_ref()?)?;
+        let mut rv = ArrayVec::<u8, 128>::new();
+        rv.try_extend_from_slice(&sig.0[..]).ok()?;
+        *destination = Some(rv);
+        Some(())
+    }),
+);
+
 pub struct KadenaCapabilityArgsInterp;
 
 #[derive(Debug)]
@@ -316,6 +359,7 @@ pub enum ParsersState {
     SettingsState(u8),
     GetAddressState(<GetAddressImplT as InterpParser<Bip32Key>>::State),
     SignState(<SignImplT as InterpParser<SignParameters>>::State),
+    SignHashState(<SignHashImplT as InterpParser<SignHashParameters>>::State),
 }
 
 pub fn reset_parsers_state(state: &mut ParsersState) {
@@ -365,6 +409,27 @@ pub fn get_sign_state(
     }
     match s {
         ParsersState::SignState(ref mut a) => a,
+        _ => {
+            panic!("")
+        }
+    }
+}
+
+#[inline(never)]
+pub fn get_sign_hash_state(
+    s: &mut ParsersState,
+) -> &mut <SignHashImplT as InterpParser<SignHashParameters>>::State {
+    match s {
+        ParsersState::SignHashState(_) => {}
+        _ => {
+            info!("Non-same state found; initializing state.");
+            *s = ParsersState::SignHashState(<SignHashImplT as InterpParser<SignHashParameters>>::init(
+                &SIGN_HASH_IMPL,
+            ));
+        }
+    }
+    match s {
+        ParsersState::SignHashState(ref mut a) => a,
         _ => {
             panic!("")
         }

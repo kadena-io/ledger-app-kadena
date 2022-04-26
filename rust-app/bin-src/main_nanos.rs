@@ -93,6 +93,7 @@ enum Ins {
     GetVersion,
     GetPubkey,
     Sign,
+    SignHash,
     GetVersionStr,
     Exit
 }
@@ -103,6 +104,7 @@ impl From<u8> for Ins {
             0 => Ins::GetVersion,
             2 => Ins::GetPubkey,
             3 => Ins::Sign,
+            4 => Ins::SignHash,
             0xfe => Ins::GetVersionStr,
             0xff => Ins::Exit,
             _ => panic!(),
@@ -181,6 +183,9 @@ fn handle_apdu(comm: &mut io::Comm, ins: Ins, parser: &mut ParsersState) -> Resu
         }
         Ins::Sign => {
             run_parser_apdu::<_, SignParameters>(parser, get_sign_state, &SIGN_IMPL, comm)?
+        }
+        Ins::SignHash => {
+            run_parser_apdu::<_, SignHashParameters>(parser, get_sign_hash_state, &SIGN_HASH_IMPL, comm)?
         }
         Ins::GetVersionStr => {
             comm.append(concat!("Kadena ", env!("CARGO_PKG_VERSION")).as_ref());
