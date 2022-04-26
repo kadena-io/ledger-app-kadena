@@ -14,7 +14,7 @@ import { instantiate, Nacl } from "js-nacl";
 
 let nacl : Nacl =null;
 
-let ignoredScreens = [ "W e l c o m e", "Cancel", "Working...", "Exit", "Kadena 0.1.0"]
+let ignoredScreens = [ "W e l c o m e", "Cancel", "Working...", "Exit", "Kadena 0.1.0", "Back", "Settings", "Enable Hash Signing", "Disable Hash Signing"]
 
 let setAcceptAutomationRules = async function() {
     await Axios.post("http://localhost:5000/automation", {
@@ -512,3 +512,99 @@ describe("Signing tests", function() {
             ]
           ));
 });
+
+
+
+function testSignHash(path: string, hash: string, prompts: any[]) {
+     return async () => {
+       await sendCommandAndAccept(
+         async (kda : Kda) => {
+           let pubkey = (await kda.getPublicKey(path)).publicKey;
+           await Axios.delete("http://localhost:5000/events");
+
+           await toggleHashSettings();
+           let rv = await kda.signHash(path, hash);
+           expect(rv.signature.length).to.equal(128);
+           let pass = nacl.crypto_sign_verify_detached(Buffer.from(rv.signature, 'hex'), Buffer.from(hash, 'hex'), Buffer.from(pubkey, 'hex'));
+           expect(pass).to.equal(true);
+         }, prompts);
+     }
+}
+
+function testSignHashFail(path: string, hash: string) {
+  return async () => {
+    await setAcceptAutomationRules();
+    await Axios.delete("http://localhost:5000/events");
+
+    let transport = await Transport.open("http://localhost:5000/apdu");
+    let kda = new Kda(transport);
+    try {
+      await kda.signHash(path, hash);
+    } catch (e) {
+      return;
+    }
+    expect.fail("Test should have failed");
+  }
+}
+
+function testSignHashFail2(path: string, hash: string) {
+  return async () => {
+    await setAcceptAutomationRules();
+    await Axios.delete("http://localhost:5000/events");
+
+    let transport = await Transport.open("http://localhost:5000/apdu");
+    let kda = new Kda(transport);
+    try {
+      // Enable and then disable
+      await toggleHashSettings();
+      await toggleHashSettings();
+      await kda.signHash(path, hash);
+    } catch (e) {
+      return;
+    }
+    expect.fail("Test should have failed");
+  }
+}
+
+let toggleHashSettings = async function() {
+  await Axios.post("http://localhost:5000/button/right", {"action":"press-and-release"});
+  await Axios.post("http://localhost:5000/button/right", {"action":"press-and-release"});
+  await Axios.post("http://localhost:5000/button/both", {"action":"press-and-release"});
+  await Axios.post("http://localhost:5000/button/both", {"action":"press-and-release"});
+  await Axios.post("http://localhost:5000/button/right", {"action":"press-and-release"});
+  await Axios.post("http://localhost:5000/button/both", {"action":"press-and-release"});
+  await Axios.delete("http://localhost:5000/events");
+}
+
+describe('Hash Signing Tests', function() {
+  it("cannot sign a hash without settings enabled",
+     testSignHashFail(
+       "0/0",
+       'ffd8cd79deb956fa3c7d9be0f836f20ac84b140168a087a842be4760e40e2b1c'
+     ));
+  it("cannot sign a hash without settings enabled 2",
+     testSignHashFail2(
+       "0/0",
+       'ffd8cd79deb956fa3c7d9be0f836f20ac84b140168a087a842be4760e40e2b1c'
+     ));
+  it("can sign a hash after enabling settings",
+     testSignHash(
+       "0/0",
+       'ffd8cd79deb956fa3c7d9be0f836f20ac84b140168a087a842be4760e40e2b1c',
+       [
+         { "header": "Signing", "prompt": "Transaction Hash" },
+         { "header": "Transaction hash", "prompt": "_9jNed65Vvo8fZvg-DbyCshLFAFooIeoQr5HYOQOKxw" },
+         { "header": "Sign for Address", "prompt": "ffd8cd79deb956fa3c7d9be0f836f20ac84b140168a087a842be4760e40e2b1c" },
+         {
+           "text": "Sign Transaction Hash?",
+           "x": 4,
+           "y": 11,
+         },
+         {
+           "text": "Confirm",
+           "x": 43,
+           "y": 11,
+         }
+       ]
+     ));
+})
