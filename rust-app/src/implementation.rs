@@ -135,9 +135,9 @@ pub static SIGN_IMPL: SignImplT = Action(
                         field_clist: SubInterpM::<_, Count>::new(Action(
                                 KadenaCapabilityInterp {
                                     field_args: KadenaCapabilityArgsInterp,
-                                    field_name: JsonStringAccumulate::<14>
+                                    field_name: JsonStringAccumulate::<64>
                                 },
-                            mkvfn(|cap : &KadenaCapability<Option<<KadenaCapabilityArgsInterp as JsonInterp<JsonArray<JsonAny>>>::Returning>, Option<ArrayVec<u8, 14>>>, destination| {
+                            mkvfn(|cap : &KadenaCapability<Option<<KadenaCapabilityArgsInterp as JsonInterp<JsonArray<JsonAny>>>::Returning>, Option<ArrayVec<u8, 64>>>, destination| {
                                 let name = cap.field_name.as_ref()?.as_slice();
                                 trace!("Prompting for capability");
                                 *destination = Some(());
