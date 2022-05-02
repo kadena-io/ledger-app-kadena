@@ -155,6 +155,10 @@ pub static SIGN_IMPL: SignImplT = Action(
                                         write_scroller("Transfer", |w| Ok(write!(w, "{} from {} to {}", from_utf8(amount.as_slice())?, from_utf8(sender.as_slice())?, from_utf8(receiver.as_slice())?)?))?;
                                     }
                                     _ if name == b"coin.TRANSFER" => { return None; }
+                                    (Some(Some(sender)), Some(Some(receiver)), Some(Some(amount)), Some(Some(target_chain))) if name == b"coin.TRANSFER_XCHAIN" => {
+                                        write_scroller("Transfer", |w| Ok(write!(w, "Cross-chain {} from {} to {} to chain {}", from_utf8(amount.as_slice())?, from_utf8(sender.as_slice())?, from_utf8(receiver.as_slice())?, from_utf8(target_chain.as_slice())?)?))?;
+                                    }
+                                    _ if name == b"coin.TRANSFER_XCHAIN" => { return None; }
                                     _ => { return None; } // Change this to allow unknown capabilities.
                                 }
                                 Some(())
