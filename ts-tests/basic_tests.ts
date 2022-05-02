@@ -482,7 +482,7 @@ describe("Signing tests", function() {
           ));
   it("Shows custom message for basic cross-chain transfers.",
           testTransaction(
-            "44'/626'/0'", "{\"networkId\":\"testnet04\",\"payload\":{\"exec\":{\"data\":{\"ks\":{\"keys\":[\"ffd8cd79deb956fa3c7d9be0f836f20ac84b140168a087a842be4760e40e2b1c\"],\"pred\":\"keys-all\"}},\"code\":\"(coin.transfer-crosschain \\\"ffd8cd79deb956fa3c7d9be0f836f20ac84b140168a087a842be4760e40e2b1c\\\" \\\"ffd8cd79deb956fa3c7d9be0f836f20ac84b140168a087a842be4760e40e2b1c\\\" (read-keyset \\\"ks\\\") \\\"0\\\" 1.0)\"}},\"signers\":[{\"pubKey\":\"ffd8cd79deb956fa3c7d9be0f836f20ac84b140168a087a842be4760e40e2b1c\"}],\"meta\":{\"creationTime\":1640290267,\"ttl\":28800,\"gasLimit\":600,\"chainId\":\"1\",\"gasPrice\":0.00001,\"sender\":\"ffd8cd79deb956fa3c7d9be0f836f20ac84b140168a087a842be4760e40e2b1c\"},\"nonce\":\"\\\"\\\\\\\"2021-12-23T20:12:06.664Z\\\\\\\"\\\"\"}",
+            "44'/626'/0'", "{\"networkId\":\"testnet04\",\"payload\":{\"exec\":{\"data\":{\"ks\":{\"keys\":[\"ffd8cd79deb956fa3c7d9be0f836f20ac84b140168a087a842be4760e40e2b1c\"],\"pred\":\"keys-all\"}},\"code\":\"(coin.transfer-crosschain \\\"ffd8cd79deb956fa3c7d9be0f836f20ac84b140168a087a842be4760e40e2b1c\\\" \\\"ffd8cd79deb956fa3c7d9be0f836f20ac84b140168a087a842be4760e40e2b1c\\\" (read-keyset \\\"ks\\\") \\\"0\\\" 1.0)\"}},\"signers\":[{\"pubKey\":\"ffd8cd79deb956fa3c7d9be0f836f20ac84b140168a087a842be4760e40e2b1c\",\"clist\":[{\"name\":\"coin.GAS\",\"args\":[]},{\"name\":\"coin.TRANSFER_XCHAIN\",\"args\":[\"k:ffd8cd79deb956fa3c7d9be0f836f20ac84b140168a087a842be4760e40e2b1c\",\"k:ffd8cd79deb956fa3c7d9be0f836f20ac84b140168a087a842be4760e40e2b1c\",1.0,0]}]}],\"meta\":{\"creationTime\":1640290267,\"ttl\":28800,\"gasLimit\":600,\"chainId\":\"1\",\"gasPrice\":0.00001,\"sender\":\"ffd8cd79deb956fa3c7d9be0f836f20ac84b140168a087a842be4760e40e2b1c\"},\"nonce\":\"\\\"\\\\\\\"2021-12-23T20:12:06.664Z\\\\\\\"\\\"\"}",
             [
               {
                 "header": "Signing",
@@ -501,11 +501,19 @@ describe("Signing tests", function() {
                 "header": "Of Key",
                 "prompt": "ffd8cd79deb956fa3c7d9be0f836f20ac84b140168a087a842be4760e40e2b1c",
               },
+              {
+                "header": "Paying Gas",
+                "prompt": " ",
+              },
+              {
+                "header": "Transfer",
+                "prompt": "Cross-chain 1.0 from k:ffd8cd79deb956fa3c7d9be0f836f20ac84b140168a087a842be4760e40e2b1c to k:ffd8cd79deb956fa3c7d9be0f836f20ac84b140168a087a842be4760e40e2b1c to chain 0",
+              },
               { "header": "On Chain", "prompt": "1" },
               { "header": "Using Gas", "prompt": "at most 600 at price 0.00001" },
               {
                 "header": "Transaction hash",
-                "prompt": "MM7O6sd6BVZgeXFFqjVXHnfZ_Q2QxCEexoGeNgTj4WM",
+                "prompt": "nxtQoEc7INLomBYSYENvF11JsCqcS6xHJPJDn0d3DdI",
               },
               {
                 "header": "Sign for Address",
