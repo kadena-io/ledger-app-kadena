@@ -526,6 +526,22 @@ describe("Signing tests", function() {
 });
 
 
+function testTransactionFail(path: string, txn: string) {
+  return async () => {
+    await sendCommandExpectFail(
+      async (kda : Kda) => {
+        await kda.signTransaction(path, Buffer.from(txn, "utf-8").toString("hex"));
+      });
+  }
+}
+
+describe("Negative Signing tests", function() {
+     it("can detect a wrong arg in simple transfer",
+        testTransactionFail(
+          "0/0",
+          '{"networkId":"mainnet01","payload":{"exec":{"data":{},"code":"(coin.transfer \\"aab7d3e457f3f78480832d6ac4ace7387f460620a63a5b68c8c799d6bff1566a\\" \\"4c310df6224d674d80463a29cde00cb0ecfb71e0cfdce494243a61b8ea572dfd\\" 2.0)"}},"signers":[{"pubKey":"aab7d3e457f3f78480832d6ac4ace7387f460620a63a5b68c8c799d6bff1566a","clist":[{"args":["aab7d3e457f3f78480832d6ac4ace7387f460620a63a5b68c8c799d6bff1566a","4c310df6224d674d80463a29cde00cb0ecfb71e0cfdce494243a61b8ea572dfd",2,"arbitrary-arg"],"name":"coin.TRANSFER"},{"args":[],"name":"coin.GAS"}]}],"meta":{"creationTime":1634009195,"ttl":900,"gasLimit":600,"chainId":"0","gasPrice":1.0e-6,"sender":"aab7d3e457f3f78480832d6ac4ace7387f460620a63a5b68c8c799d6bff1566a"},"nonce":"\\"2021-10-12T03:27:35.231Z\\""}'
+          ));
+});
 
 function testSignHash(path: string, hash: string, prompts: any[]) {
      return async () => {
