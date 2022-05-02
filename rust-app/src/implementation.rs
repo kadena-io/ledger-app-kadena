@@ -142,16 +142,16 @@ pub static SIGN_IMPL: SignImplT = Action(
                                 trace!("Prompting for capability");
                                 *destination = Some(());
                                 match cap.field_args.as_ref()? {
-                                    (None, None, None) if name == b"coin.GAS" => {
+                                    (None, None, None, None) if name == b"coin.GAS" => {
                                         write_scroller("Paying Gas", |w| Ok(write!(w, " ")?))?;
                                         trace!("Accepted gas");
                                     }
                                     _ if name == b"coin.GAS" => { return None; }
-                                    (Some(Some(acct)), None, None) if name == b"coin.ROTATE" => {
+                                    (Some(Some(acct)), None, None, None) if name == b"coin.ROTATE" => {
                                         write_scroller("Rotate for account", |w| Ok(write!(w, "{}", from_utf8(acct.as_slice())?)?))?;
                                     }
                                     _ if name == b"coin.ROTATE" => { return None; }
-                                    (Some(Some(sender)), Some(Some(receiver)), Some(Some(amount))) if name == b"coin.TRANSFER" => {
+                                    (Some(Some(sender)), Some(Some(receiver)), Some(Some(amount)), None) if name == b"coin.TRANSFER" => {
                                         write_scroller("Transfer", |w| Ok(write!(w, "{} from {} to {}", from_utf8(amount.as_slice())?, from_utf8(sender.as_slice())?, from_utf8(receiver.as_slice())?)?))?;
                                     }
                                     _ if name == b"coin.TRANSFER" => { return None; }
@@ -279,13 +279,15 @@ pub enum KadenaCapabilityArgsInterpState {
     SecondValueSep,
     ThirdArgument(<OrDropAny<JsonStringAccumulate<20>> as JsonInterp<Alt<JsonNumber, JsonAny>>>::State),
     ThirdValueSep,
+    FourthArgument(<OrDropAny<JsonStringAccumulate<20>> as JsonInterp<Alt<JsonNumber, JsonAny>>>::State),
+    FourthValueSep,
     FallbackValue(<DropInterp as JsonInterp<JsonAny>>::State),
     FallbackValueSep
 }
 
 impl JsonInterp<JsonArray<JsonAny>> for KadenaCapabilityArgsInterp {
     type State = (KadenaCapabilityArgsInterpState, Option<<DropInterp as JsonInterp<JsonAny>>::Returning>);
-    type Returning = ( Option<Option<ArrayVec<u8, 128>>>, Option<Option<ArrayVec<u8, 128>>>, Option<Option<ArrayVec<u8, 20>>> );
+    type Returning = ( Option<Option<ArrayVec<u8, 128>>>, Option<Option<ArrayVec<u8, 128>>>, Option<Option<ArrayVec<u8, 20>>>, Option<Option<ArrayVec<u8, 20>>> );
     fn init(&self) -> Self::State {
         (KadenaCapabilityArgsInterpState::Start, None)
     }
@@ -297,7 +299,7 @@ impl JsonInterp<JsonArray<JsonAny>> for KadenaCapabilityArgsInterp {
             use KadenaCapabilityArgsInterpState::*;
             match state {
                 Start if token == JsonToken::BeginArray => {
-                    set_from_thunk(destination, || Some((None, None, None)));
+                    set_from_thunk(destination, || Some((None, None, None, None)));
                     set_from_thunk(state, || Begin);
                 }
                 Begin if token == JsonToken::EndArray => {
@@ -327,10 +329,16 @@ impl JsonInterp<JsonArray<JsonAny>> for KadenaCapabilityArgsInterp {
                     <OrDropAny<JsonStringAccumulate<20>> as JsonInterp<Alt<JsonNumber, JsonAny>>>::parse(&dec_interp, s, token, &mut destination.as_mut().ok_or(Some(OOB::Reject))?.2)?;
                     set_from_thunk(state, || ThirdValueSep);
                 }
-                ThirdValueSep if token == JsonToken::EndArray => {
-                    return Ok(());
-                }
                 ThirdValueSep if token == JsonToken::ValueSeparator => {
+                    set_from_thunk(state, || FourthArgument(<OrDropAny<JsonStringAccumulate<20>> as JsonInterp<Alt<JsonNumber, JsonAny>>>::init(&dec_interp)));
+                }
+                ThirdValueSep if token == JsonToken::EndArray => return Ok(()),
+                FourthArgument(ref mut s) => {
+                    <OrDropAny<JsonStringAccumulate<20>> as JsonInterp<Alt<JsonNumber, JsonAny>>>::parse(&dec_interp, s, token, &mut destination.as_mut().ok_or(Some(OOB::Reject))?.3)?;
+                    set_from_thunk(state, || FourthValueSep);
+                }
+                FourthValueSep if token == JsonToken::EndArray => return Ok(()),
+                FourthValueSep if token == JsonToken::ValueSeparator => {
                     set_from_thunk(destination, || None);
                     set_from_thunk(state, || FallbackValue(<DropInterp as JsonInterp<JsonAny>>::init(&DropInterp)));
                 }
