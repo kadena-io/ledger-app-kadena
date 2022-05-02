@@ -78,6 +78,18 @@ let sendCommandAndAccept = async function(command : any, prompts : any) {
     if(err) throw(err);
 }
 
+let sendCommandExpectFail = async function(command : any) {
+  await setAcceptAutomationRules();
+  await Axios.delete("http://localhost:5000/events");
+
+  let transport = await Transport.open("http://localhost:5000/apdu");
+  let kda = new Kda(transport);
+  try { await command(kda); } catch(e) {
+    return;
+  }
+  expect.fail("Test should have failed");
+}
+
 instantiate(n => { nacl=n; });
 describe('basic tests', async function() {
 
@@ -533,36 +545,22 @@ function testSignHash(path: string, hash: string, prompts: any[]) {
 
 function testSignHashFail(path: string, hash: string) {
   return async () => {
-    await setAcceptAutomationRules();
-    await Axios.delete("http://localhost:5000/events");
-
-    let transport = await Transport.open("http://localhost:5000/apdu");
-    let kda = new Kda(transport);
-    try {
-      await kda.signHash(path, hash);
-    } catch (e) {
-      return;
-    }
-    expect.fail("Test should have failed");
+    await sendCommandExpectFail(
+      async (kda : Kda) => {
+        await kda.signHash(path, hash);
+      });
   }
 }
 
 function testSignHashFail2(path: string, hash: string) {
   return async () => {
-    await setAcceptAutomationRules();
-    await Axios.delete("http://localhost:5000/events");
-
-    let transport = await Transport.open("http://localhost:5000/apdu");
-    let kda = new Kda(transport);
-    try {
-      // Enable and then disable
-      await toggleHashSettings();
-      await toggleHashSettings();
-      await kda.signHash(path, hash);
-    } catch (e) {
-      return;
-    }
-    expect.fail("Test should have failed");
+    await sendCommandExpectFail(
+      async (kda : Kda) => {
+        // Enable and then disable
+        await toggleHashSettings();
+        await toggleHashSettings();
+        await kda.signHash(path, hash);
+      });
   }
 }
 
