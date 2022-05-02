@@ -325,7 +325,7 @@ impl JsonInterp<JsonArray<JsonAny>> for KadenaCapabilityArgsInterp {
                 SecondValueSep if token == JsonToken::EndArray => return Ok(()),
                 ThirdArgument(ref mut s) => {
                     <OrDropAny<JsonStringAccumulate<20>> as JsonInterp<Alt<JsonNumber, JsonAny>>>::parse(&dec_interp, s, token, &mut destination.as_mut().ok_or(Some(OOB::Reject))?.2)?;
-                    set_from_thunk(state, || FirstValueSep);
+                    set_from_thunk(state, || ThirdValueSep);
                 }
                 ThirdValueSep if token == JsonToken::EndArray => {
                     return Ok(());
