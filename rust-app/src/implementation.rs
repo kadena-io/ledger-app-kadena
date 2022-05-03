@@ -132,15 +132,15 @@ pub static SIGN_IMPL: SignImplT = Action(
                             write_scroller("Of Key", |w| Ok(write!(w, "{}", from_utf8(key.as_slice())?)?))
                         })),
                         field_addr: DropInterp,
-                        field_clist: SubInterpM::<_, Count>::new(Action(
+                        field_clist: SubInterpM::<_, (Count, All)>::new(Action(
                                 KadenaCapabilityInterp {
                                     field_args: KadenaCapabilityArgsInterp,
                                     field_name: JsonStringAccumulate::<64>
                                 },
-                            mkvfn(|cap : &KadenaCapability<Option<<KadenaCapabilityArgsInterp as JsonInterp<JsonArray<JsonAny>>>::Returning>, Option<ArrayVec<u8, 64>>>, destination| {
+                            mkfn(|cap : &KadenaCapability<Option<<KadenaCapabilityArgsInterp as JsonInterp<JsonArray<JsonAny>>>::Returning>, Option<ArrayVec<u8, 64>>>, destination: &mut Option<((), bool)>| {
                                 let name = cap.field_name.as_ref()?.as_slice();
                                 trace!("Prompting for capability");
-                                *destination = Some(());
+                                *destination = Some(((), true));
                                 match cap.field_args.as_ref()? {
                                     (None, None, None, None) if name == b"coin.GAS" => {
                                         write_scroller("Paying Gas", |w| Ok(write!(w, " ")?))?;
@@ -165,9 +165,9 @@ pub static SIGN_IMPL: SignImplT = Action(
                             }),
                         )),
                     }),
-                        mkfn(|signer: &Signer<_,_,_, Option<Count>>, dest: &mut Option<CapabilityCoverage> | {
+                        mkfn(|signer: &Signer<_,_,_, Option<(Count, All)>>, dest: &mut Option<CapabilityCoverage> | {
                             *dest = Some(match signer.field_clist {
-                                Some(Count(n)) if n > 0 => CapabilityCoverage::Full,
+                                Some((Count(n), All(a))) if n > 0 => CapabilityCoverage::Full,
                                 _ => CapabilityCoverage::NotFull,
                             });
                             Some(())
