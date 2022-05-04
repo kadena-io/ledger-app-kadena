@@ -56,7 +56,8 @@ enum CommandData {
 #[derive(PartialEq, Debug)]
 enum CapabilityCoverage {
     Full,
-    NotFull
+    HasFallback,
+    NoCaps
 }
 
 impl Summable<CapabilityCoverage> for CapabilityCoverage {
@@ -64,7 +65,8 @@ impl Summable<CapabilityCoverage> for CapabilityCoverage {
     fn add_and_set(&mut self, other: &CapabilityCoverage) {
         match other {
             CapabilityCoverage::Full => { }
-            CapabilityCoverage::NotFull => { *self = CapabilityCoverage::NotFull }
+            CapabilityCoverage::HasFallback => { if *self == CapabilityCoverage::Full { *self = CapabilityCoverage::HasFallback } }
+            CapabilityCoverage::NoCaps => { *self = CapabilityCoverage::NoCaps }
         }
     }
 }
@@ -139,27 +141,46 @@ pub static SIGN_IMPL: SignImplT = Action(
                                 },
                             mkfn(|cap : &KadenaCapability<Option<<KadenaCapabilityArgsInterp as JsonInterp<JsonArray<JsonAny>>>::Returning>, Option<ArrayVec<u8, 64>>>, destination: &mut Option<((), bool)>| {
                                 let name = cap.field_name.as_ref()?.as_slice();
+                                let name_utf8 = from_utf8(name).ok()?;
+                                let unknown_cap_header = "Unknown Capability";
                                 trace!("Prompting for capability");
                                 *destination = Some(((), true));
-                                match cap.field_args.as_ref()? {
-                                    (None, None, None, None) if name == b"coin.GAS" => {
+                                match cap.field_args.as_ref() {
+                                    Some((None, None, None, None)) if name == b"coin.GAS" => {
                                         write_scroller("Paying Gas", |w| Ok(write!(w, " ")?))?;
                                         trace!("Accepted gas");
                                     }
                                     _ if name == b"coin.GAS" => { return None; }
-                                    (Some(Some(acct)), None, None, None) if name == b"coin.ROTATE" => {
+                                    Some((Some(Some(acct)), None, None, None)) if name == b"coin.ROTATE" => {
                                         write_scroller("Rotate for account", |w| Ok(write!(w, "{}", from_utf8(acct.as_slice())?)?))?;
                                     }
                                     _ if name == b"coin.ROTATE" => { return None; }
-                                    (Some(Some(sender)), Some(Some(receiver)), Some(Some(amount)), None) if name == b"coin.TRANSFER" => {
+                                    Some((Some(Some(sender)), Some(Some(receiver)), Some(Some(amount)), None)) if name == b"coin.TRANSFER" => {
                                         write_scroller("Transfer", |w| Ok(write!(w, "{} from {} to {}", from_utf8(amount.as_slice())?, from_utf8(sender.as_slice())?, from_utf8(receiver.as_slice())?)?))?;
                                     }
                                     _ if name == b"coin.TRANSFER" => { return None; }
-                                    (Some(Some(sender)), Some(Some(receiver)), Some(Some(amount)), Some(Some(target_chain))) if name == b"coin.TRANSFER_XCHAIN" => {
+                                    Some((Some(Some(sender)), Some(Some(receiver)), Some(Some(amount)), Some(Some(target_chain)))) if name == b"coin.TRANSFER_XCHAIN" => {
                                         write_scroller("Transfer", |w| Ok(write!(w, "Cross-chain {} from {} to {} to chain {}", from_utf8(amount.as_slice())?, from_utf8(sender.as_slice())?, from_utf8(receiver.as_slice())?, from_utf8(target_chain.as_slice())?)?))?;
                                     }
                                     _ if name == b"coin.TRANSFER_XCHAIN" => { return None; }
-                                    _ => { return None; } // Change this to allow unknown capabilities.
+                                    Some((None, None, None, None)) => {
+                                        write_scroller(unknown_cap_header, |w| Ok(write!(w, "name: {}, no args", name_utf8)?))?;
+                                    }
+                                    Some((Some(Some(arg1)), None, None, None)) => {
+                                        write_scroller(unknown_cap_header, |w| Ok(write!(w, "name: {}, arg 1: {}", name_utf8, from_utf8(arg1.as_slice())?)?))?;
+                                    }
+                                    Some((Some(Some(arg1)), Some(Some(arg2)), None, None)) => {
+                                        write_scroller(unknown_cap_header, |w| Ok(write!(w, "name: {}, arg 1: {}, arg 2: {}", name_utf8, from_utf8(arg1.as_slice())?, from_utf8(arg2.as_slice())?)?))?;
+                                    }
+                                    Some((Some(Some(arg1)), Some(Some(arg2)), Some(Some(arg3)), None)) => {
+                                        write_scroller(unknown_cap_header, |w| Ok(write!(w, "name: {}, arg 1: {}, arg 2: {}, arg 3: {}", name_utf8, from_utf8(arg1.as_slice())?, from_utf8(arg2.as_slice())?, from_utf8(arg3.as_slice())?)?))?;
+                                    }
+                                    Some((Some(Some(arg1)), Some(Some(arg2)), Some(Some(arg3)), Some(Some(arg4)))) => {
+                                        write_scroller(unknown_cap_header, |w| Ok(write!(w, "name: {}, arg 1: {}, arg 2: {}, arg 3: {}, arg 4: {}", name_utf8, from_utf8(arg1.as_slice())?, from_utf8(arg2.as_slice())?, from_utf8(arg3.as_slice())?, from_utf8(arg4.as_slice())?)?))?;
+                                    }
+                                    _ => {
+                                        set_from_thunk(destination, || Some(((), false))); // Fallback case
+                                    }
                                 }
                                 Some(())
                             }),
@@ -167,8 +188,8 @@ pub static SIGN_IMPL: SignImplT = Action(
                     }),
                         mkfn(|signer: &Signer<_,_,_, Option<(Count, All)>>, dest: &mut Option<CapabilityCoverage> | {
                             *dest = Some(match signer.field_clist {
-                                Some((Count(n), All(a))) if n > 0 => CapabilityCoverage::Full,
-                                _ => CapabilityCoverage::NotFull,
+                                Some((Count(n), All(a))) if n > 0 => if a {CapabilityCoverage::Full} else {CapabilityCoverage::HasFallback},
+                                _ => CapabilityCoverage::NoCaps,
                             });
                             Some(())
                         })),
@@ -184,6 +205,9 @@ pub static SIGN_IMPL: SignImplT = Action(
                         _ => {
                             match cmd.field_signers.as_ref() {
                                 Some(CapabilityCoverage::Full) => { }
+                                Some(CapabilityCoverage::HasFallback) => {
+                                    write_scroller("WARNING", |w| Ok(write!(w, "Transaction too large for Ledger to display.  PROCEED WITH GREAT CAUTION.  Do you want to continue?")?))?;
+                                }
                                 _ => {
                                     write_scroller("WARNING", |w| Ok(write!(w, "UNSAFE TRANSACTION. This transaction's code was not recognized and does not limit capabilities for all signers. Signing this transaction may make arbitrary actions on the chain including loss of all funds.")?))?;
                                 }
