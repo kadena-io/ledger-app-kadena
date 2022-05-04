@@ -490,10 +490,6 @@ describe("Signing tests", function() {
               },
               { "header": "On Network", "prompt": "testnet04" },
               {
-                "header": "Transfer",
-                "prompt": "Cross-chain 1.0 from ffd8cd79deb956fa3c7d9be0f836f20ac84b140168a087a842be4760e40e2b1c to ffd8cd79deb956fa3c7d9be0f836f20ac84b140168a087a842be4760e40e2b1c to chain 0",
-              },
-              {
                 "header": "Requiring",
                 "prompt": "Capabilities",
               },

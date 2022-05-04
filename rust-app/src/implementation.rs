@@ -47,12 +47,6 @@ pub const GET_ADDRESS_IMPL: GetAddressImplT =
 
 pub type SignImplT = impl InterpParser<SignParameters, Returning = ArrayVec<u8, 128_usize>>;
 
-#[derive(Debug)]
-enum CommandData {
-    Known,
-    Unknown
-}
-
 #[derive(PartialEq, Debug)]
 enum CapabilityCoverage {
     Full,
@@ -68,19 +62,6 @@ impl Summable<CapabilityCoverage> for CapabilityCoverage {
             CapabilityCoverage::HasFallback => { if *self == CapabilityCoverage::Full { *self = CapabilityCoverage::HasFallback } }
             CapabilityCoverage::NoCaps => { *self = CapabilityCoverage::NoCaps }
         }
-    }
-}
-
-fn prompt_cross_chain_from_str(s: &str) -> Option<Option<()>> {
-    let (from_field, rest1) = s.strip_prefix("(coin.transfer-crosschain \"")?.split_once("\" \"")?;
-    let (to_field, rest2) = rest1.split_once("\" (read-keyset \"ks\") \"")?;
-    let (to_chain, rest3) = rest2.split_once("\" ")?;
-    let (amount, rest4) = rest3.split_once(")")?;
-    
-    if rest4 != "" || from_field.contains('"') || to_field.contains('"') || to_chain.contains('"') || amount.contains(|c: char| !c.is_ascii_digit() && c != '.') {
-        None
-    } else {
-        Some(write_scroller("Transfer", |w| Ok(write!(w, "Cross-chain {} from {} to {} to chain {}", amount, from_field, to_field, to_chain)?)))
     }
 }
 
@@ -107,21 +88,7 @@ pub static SIGN_IMPL: SignImplT = Action(
                     })),
                     field_payload: PayloadInterp {
                         field_exec: CommandInterp {
-                            field_code: Action(OrDrop(JsonStringAccumulate::<600>), mkfn(|cmd_opt: &Option<ArrayVec<u8, 600>>, dest: &mut Option<CommandData> | { 
-                                // The length of 600 above is somewhat arbitrary, but should cover
-                                // two k:-addresses and a reasonable number of digits for the
-                                // amount.
-                                match cmd_opt {
-                                    Some(cmd) => {
-                                        match prompt_cross_chain_from_str(from_utf8(cmd.as_slice()).ok()?) {
-                                            Some(rv) => { rv?; *dest=Some(CommandData::Known); }
-                                            None => { *dest = Some(CommandData::Unknown); }
-                                        }
-                                    }
-                                    None => { *dest = Some(CommandData::Unknown); }
-                                }
-                                Some(())
-                            })),
+                            field_code: DropInterp,
                             field_data: DropInterp
                         }},
                     field_signers: SubInterpM::<_, CapabilityCoverage>::new(Action(Preaction(
@@ -199,19 +166,14 @@ pub static SIGN_IMPL: SignImplT = Action(
                         write_scroller("On Network", |w| Ok(write!(w, "{}", from_utf8(net.as_slice())?)?))
                     }))
                 }),
-                mkvfn(|cmd : &KadenaCmd<_,_,Option<CapabilityCoverage>,Option<Payload<Option<Command<_,Option<_>>>>>,_>, _| { 
-                    match (|| cmd.field_payload.as_ref()?.field_exec.as_ref()?.field_code.as_ref() )() {
-                        Some(CommandData::Known) => { }
+                mkvfn(|cmd : &KadenaCmd<_,_,Option<CapabilityCoverage>,_,_>, _| { 
+                    match cmd.field_signers.as_ref() {
+                        Some(CapabilityCoverage::Full) => { }
+                        Some(CapabilityCoverage::HasFallback) => {
+                            write_scroller("WARNING", |w| Ok(write!(w, "Transaction too large for Ledger to display.  PROCEED WITH GREAT CAUTION.  Do you want to continue?")?))?;
+                        }
                         _ => {
-                            match cmd.field_signers.as_ref() {
-                                Some(CapabilityCoverage::Full) => { }
-                                Some(CapabilityCoverage::HasFallback) => {
-                                    write_scroller("WARNING", |w| Ok(write!(w, "Transaction too large for Ledger to display.  PROCEED WITH GREAT CAUTION.  Do you want to continue?")?))?;
-                                }
-                                _ => {
-                                    write_scroller("WARNING", |w| Ok(write!(w, "UNSAFE TRANSACTION. This transaction's code was not recognized and does not limit capabilities for all signers. Signing this transaction may make arbitrary actions on the chain including loss of all funds.")?))?;
-                                }
-                            }
+                            write_scroller("WARNING", |w| Ok(write!(w, "UNSAFE TRANSACTION. This transaction's code was not recognized and does not limit capabilities for all signers. Signing this transaction may make arbitrary actions on the chain including loss of all funds.")?))?;
                         }
                     }
                     Some(())
