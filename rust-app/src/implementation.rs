@@ -104,9 +104,9 @@ pub static SIGN_IMPL: SignImplT = Action(
                         field_clist: SubInterpM::<_, (Count, All)>::new(Action(
                                 KadenaCapabilityInterp {
                                     field_args: KadenaCapabilityArgsInterp,
-                                    field_name: JsonStringAccumulate::<64>
+                                    field_name: JsonStringAccumulate::<128>
                                 },
-                            mkfn(|cap : &KadenaCapability<Option<<KadenaCapabilityArgsInterp as JsonInterp<JsonArray<JsonAny>>>::Returning>, Option<ArrayVec<u8, 64>>>, destination: &mut Option<((), bool)>| {
+                            mkfn(|cap : &KadenaCapability<Option<<KadenaCapabilityArgsInterp as JsonInterp<JsonArray<JsonAny>>>::Returning>, Option<ArrayVec<u8, 128>>>, destination: &mut Option<((), bool)>| {
                                 let name = cap.field_name.as_ref()?.as_slice();
                                 let name_utf8 = from_utf8(name).ok()?;
                                 let unknown_cap_header = "Unknown Capability";
