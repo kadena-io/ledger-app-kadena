@@ -269,7 +269,7 @@ pub enum KadenaCapabilityArgsInterpState {
     SecondValueSep,
     ThirdArgument(<OrDropAny<JsonStringAccumulate<20>> as JsonInterp<Alt<JsonNumber, JsonAny>>>::State),
     ThirdValueSep,
-    FourthArgument(<OrDropAny<JsonStringAccumulate<20>> as JsonInterp<Alt<JsonNumber, JsonAny>>>::State),
+    FourthArgument(<OrDropAny<JsonStringAccumulate<20>> as JsonInterp<Alt<JsonString, JsonAny>>>::State),
     FourthValueSep,
     FallbackValue(<DropInterp as JsonInterp<JsonAny>>::State),
     FallbackValueSep
@@ -320,11 +320,11 @@ impl JsonInterp<JsonArray<JsonAny>> for KadenaCapabilityArgsInterp {
                     set_from_thunk(state, || ThirdValueSep);
                 }
                 ThirdValueSep if token == JsonToken::ValueSeparator => {
-                    set_from_thunk(state, || FourthArgument(<OrDropAny<JsonStringAccumulate<20>> as JsonInterp<Alt<JsonNumber, JsonAny>>>::init(&dec_interp)));
+                    set_from_thunk(state, || FourthArgument(<OrDropAny<JsonStringAccumulate<20>> as JsonInterp<Alt<JsonString, JsonAny>>>::init(&dec_interp)));
                 }
                 ThirdValueSep if token == JsonToken::EndArray => return Ok(()),
                 FourthArgument(ref mut s) => {
-                    <OrDropAny<JsonStringAccumulate<20>> as JsonInterp<Alt<JsonNumber, JsonAny>>>::parse(&dec_interp, s, token, &mut destination.as_mut().ok_or(Some(OOB::Reject))?.3)?;
+                    <OrDropAny<JsonStringAccumulate<20>> as JsonInterp<Alt<JsonString, JsonAny>>>::parse(&dec_interp, s, token, &mut destination.as_mut().ok_or(Some(OOB::Reject))?.3)?;
                     set_from_thunk(state, || FourthValueSep);
                 }
                 FourthValueSep if token == JsonToken::EndArray => return Ok(()),
