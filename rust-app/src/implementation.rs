@@ -162,6 +162,7 @@ pub static SIGN_IMPL: SignImplT = Action(
                                         write_scroller(unknown_cap_header, |w| Ok(write!(w, "name: {}, arg 1: {}, arg 2: {}, arg 3: {}, arg 4: {}", name_utf8, from_utf8(arg1.as_slice())?, from_utf8(arg2.as_slice())?, from_utf8(arg3.as_slice())?, from_utf8(arg4.as_slice())?)?))?;
                                     }
                                     _ => {
+                                        write_scroller(unknown_cap_header, |w| Ok(write!(w, "name: {}, args cannot be displayed on Ledger", name_utf8)?))?;
                                         set_from_thunk(destination, || Some(((), false))); // Fallback case
                                     }
                                 }
