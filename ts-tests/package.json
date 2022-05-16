@@ -20,7 +20,7 @@
     "node-fetch": "^3.0.0",
     "openapi-typescript-codegen": "^0.9.3",
     "typescript": "^4.4.3",
-    "hw-app-kda": "git+https://github.com/obsidiansystems/hw-app-kda",
+    "hw-app-kda": "git+https://github.com/obsidiansystems/hw-app-kda#dn-hash-signing",
     "js-nacl": "^1.3.2",
     "blake2b": "^2.1.4",
     "@types/chai": "^4.2.22",

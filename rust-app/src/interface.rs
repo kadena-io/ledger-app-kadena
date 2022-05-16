@@ -15,6 +15,10 @@ define_json_struct! { Meta 16 {
     creationTime: JsonNumber
 }}
 
+define_json_struct! { Decimal 7 {
+    decimal: JsonString
+}}
+
 define_json_struct! { KadenaCapability 4 {
     args: JsonArray<JsonAny>,
     name: JsonString
