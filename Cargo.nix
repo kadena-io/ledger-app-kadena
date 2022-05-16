@@ -294,7 +294,7 @@ rec {
         workspace_member = null;
         src = pkgs.fetchgit {
           url = "https://github.com/obsidiansystems/ledger-parser-combinators";
-          rev = "69edb580e3a3d9b27fe33bac63999d078ff35803";
+          rev = "6479c805fd0fdb220b58f271a9ec9e0375fc5150";
           sha256 = "0cmb7didga8pr8mldkgc8821cimlrxz272fklxa1760qk5zhbqys";
         };
         authors = [

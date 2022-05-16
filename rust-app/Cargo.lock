@@ -80,7 +80,7 @@ dependencies = [
 [[package]]
 name = "ledger-parser-combinators"
 version = "0.1.0"
-source = "git+https://github.com/obsidiansystems/ledger-parser-combinators?branch=dn-combined-changes#69edb580e3a3d9b27fe33bac63999d078ff35803"
+source = "git+https://github.com/obsidiansystems/ledger-parser-combinators#6479c805fd0fdb220b58f271a9ec9e0375fc5150"
 dependencies = [
  "arrayvec",
  "bstringify",

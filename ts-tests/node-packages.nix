@@ -1147,13 +1147,13 @@ let
         sha512 = "EC2utToWl4RKfs5zd36Mxq7nzHHBuomZboI0yYL6Y0RmBgT7Sgkq4rQ0ezFTYoIsSs7Tm9SJe+o2FcAg6GBhGA==";
       };
     };
-    "hw-app-kda-git+ssh://git@github.com/obsidiansystems/hw-app-kda.git#3b7683cb22249d7eda751edc0d791e69af54eeac" = {
+    "hw-app-kda-git+ssh://git@github.com/obsidiansystems/hw-app-kda.git#816ce8e15005520c74f75560feb3b795c1e16ed5" = {
       name = "hw-app-kda";
       packageName = "hw-app-kda";
       version = "0.1.0";
       src = fetchgit {
         url = "ssh://git@github.com/obsidiansystems/hw-app-kda.git";
-        rev = "3b7683cb22249d7eda751edc0d791e69af54eeac";
+        rev = "816ce8e15005520c74f75560feb3b795c1e16ed5";
         sha256 = "086bfcbd984b6fb0f3f71ada3e179a77d46141ccca0769a8b84e02b8c1690c84";
       };
     };
@@ -2741,7 +2741,7 @@ let
       sources."hash-base-3.1.0"
       sources."he-1.2.0"
       sources."http2-client-1.3.5"
-      sources."hw-app-kda-git+ssh://git@github.com/obsidiansystems/hw-app-kda.git#3b7683cb22249d7eda751edc0d791e69af54eeac"
+      sources."hw-app-kda-git+ssh://git@github.com/obsidiansystems/hw-app-kda.git#816ce8e15005520c74f75560feb3b795c1e16ed5"
       sources."hw-app-obsidian-common-git+http://github.com/obsidiansystems/hw-app-obsidian-common#9fd33f6218f34c0e3a7da96b63656a2b3ae76e95"
       sources."inflight-1.0.6"
       sources."inherits-2.0.4"

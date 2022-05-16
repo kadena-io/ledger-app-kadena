@@ -1,6 +1,6 @@
 {
   "ledger-log 0.1.0 (git+https://github.com/obsidiansystems/ledger-platform#e028b6fdb01754240352dc4877dcb4862bdc42e7)": "09xz3w0808y9lqsswi0j8q4n4wa9js946kpsca54i3hdw74km91k",
-  "ledger-parser-combinators 0.1.0 (git+https://github.com/obsidiansystems/ledger-parser-combinators?branch=dn-combined-changes#69edb580e3a3d9b27fe33bac63999d078ff35803)": "0cmb7didga8pr8mldkgc8821cimlrxz272fklxa1760qk5zhbqys",
+  "ledger-parser-combinators 0.1.0 (git+https://github.com/obsidiansystems/ledger-parser-combinators#6479c805fd0fdb220b58f271a9ec9e0375fc5150)": "0cmb7didga8pr8mldkgc8821cimlrxz272fklxa1760qk5zhbqys",
   "nanos_sdk 0.1.0 (git+https://github.com/obsidiansystems/ledger-nanos-sdk.git?branch=use-ambient-compiler-and-target#5a497619322d8ae03f9cf034bf67ecaf855e1655)": "1z8599dn67sayl17c27qk97y94z323pm738548k9zmnmhlmkh0wx",
   "nanos_ui 0.1.0 (git+https://github.com/LedgerHQ/ledger-nanos-ui.git#bab7dc5a40d2988f682e0ca9c04eb631d50934ca)": "0qq5s7ayc38fjfciyj5svd9zsq2qz1gf91nl4k7q1zyslvn0q8f9",
   "prompts-ui 0.1.0 (git+https://github.com/obsidiansystems/ledger-platform#e028b6fdb01754240352dc4877dcb4862bdc42e7)": "09xz3w0808y9lqsswi0j8q4n4wa9js946kpsca54i3hdw74km91k",
