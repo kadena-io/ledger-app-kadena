@@ -193,7 +193,7 @@ rec {
       };
       "kadena" = rec {
         crateName = "kadena";
-        version = "0.1.0";
+        version = "0.1.1";
         edition = "2018";
         crateBin = [
           { name = "kadena"; path = "bin-src/main.rs"; }
@@ -263,8 +263,8 @@ rec {
         workspace_member = null;
         src = pkgs.fetchgit {
           url = "https://github.com/obsidiansystems/ledger-platform";
-          rev = "7fbbc41e6c5d1883f3b00932cef628e320757045";
-          sha256 = "0ngk5y3pk0p3hm978nr6p5mvilp0mz90r6c3g0pb3flvfcxgjrxj";
+          rev = "e028b6fdb01754240352dc4877dcb4862bdc42e7";
+          sha256 = "09xz3w0808y9lqsswi0j8q4n4wa9js946kpsca54i3hdw74km91k";
         };
         dependencies = [
           {
@@ -294,7 +294,7 @@ rec {
         workspace_member = null;
         src = pkgs.fetchgit {
           url = "https://github.com/obsidiansystems/ledger-parser-combinators";
-          rev = "69edb580e3a3d9b27fe33bac63999d078ff35803";
+          rev = "6479c805fd0fdb220b58f271a9ec9e0375fc5150";
           sha256 = "0cmb7didga8pr8mldkgc8821cimlrxz272fklxa1760qk5zhbqys";
         };
         authors = [
@@ -473,8 +473,8 @@ rec {
         workspace_member = null;
         src = pkgs.fetchgit {
           url = "https://github.com/obsidiansystems/ledger-platform";
-          rev = "7fbbc41e6c5d1883f3b00932cef628e320757045";
-          sha256 = "0ngk5y3pk0p3hm978nr6p5mvilp0mz90r6c3g0pb3flvfcxgjrxj";
+          rev = "e028b6fdb01754240352dc4877dcb4862bdc42e7";
+          sha256 = "09xz3w0808y9lqsswi0j8q4n4wa9js946kpsca54i3hdw74km91k";
         };
         dependencies = [
           {
