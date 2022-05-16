@@ -1,4 +1,4 @@
-use crate::crypto_helpers::{eddsa_sign, get_pkh, get_private_key, get_pubkey, get_pubkey_from_privkey, Hasher};
+use crate::crypto_helpers::{eddsa_sign, get_pkh, get_private_key, get_pubkey, get_pubkey_from_privkey, Hasher, Hash};
 use crate::interface::*;
 use crate::*;
 use arrayvec::ArrayVec;
@@ -12,8 +12,10 @@ use ledger_parser_combinators::core_parsers::Alt;
 use prompts_ui::{write_scroller, final_accept_prompt};
 
 use ledger_parser_combinators::define_json_struct_interp;
+use ledger_parser_combinators::json_interp::AltResult::*;
 use ledger_parser_combinators::json::*;
 use ledger_parser_combinators::json_interp::*;
+use ledger_parser_combinators::interp_parser::*;
 use core::convert::TryFrom;
 use core::str::from_utf8;
 
@@ -46,16 +48,11 @@ pub const GET_ADDRESS_IMPL: GetAddressImplT =
 
 pub type SignImplT = impl InterpParser<SignParameters, Returning = ArrayVec<u8, 128_usize>>;
 
-#[derive(Debug)]
-enum CommandData {
-    Known,
-    Unknown
-}
-
 #[derive(PartialEq, Debug)]
 enum CapabilityCoverage {
     Full,
-    NotFull
+    HasFallback,
+    NoCaps
 }
 
 impl Summable<CapabilityCoverage> for CapabilityCoverage {
@@ -63,21 +60,9 @@ impl Summable<CapabilityCoverage> for CapabilityCoverage {
     fn add_and_set(&mut self, other: &CapabilityCoverage) {
         match other {
             CapabilityCoverage::Full => { }
-            CapabilityCoverage::NotFull => { *self = CapabilityCoverage::NotFull }
+            CapabilityCoverage::HasFallback => { if *self == CapabilityCoverage::Full { *self = CapabilityCoverage::HasFallback } }
+            CapabilityCoverage::NoCaps => { *self = CapabilityCoverage::NoCaps }
         }
-    }
-}
-
-fn prompt_cross_chain_from_str(s: &str) -> Option<Option<()>> {
-    let (from_field, rest1) = s.strip_prefix("(coin.transfer-crosschain \"")?.split_once("\" \"")?;
-    let (to_field, rest2) = rest1.split_once("\" (read-keyset \"ks\") \"")?;
-    let (to_chain, rest3) = rest2.split_once("\" ")?;
-    let (amount, rest4) = rest3.split_once(")")?;
-    
-    if rest4 != "" || from_field.contains('"') || to_field.contains('"') || to_chain.contains('"') || amount.contains(|c: char| !c.is_ascii_digit() && c != '.') {
-        None
-    } else {
-        Some(write_scroller("Transfer", |w| Ok(write!(w, "Cross-chain {} from {} to {} to chain {}", amount, from_field, to_field, to_chain)?)))
     }
 }
 
@@ -104,21 +89,7 @@ pub static SIGN_IMPL: SignImplT = Action(
                     })),
                     field_payload: PayloadInterp {
                         field_exec: CommandInterp {
-                            field_code: Action(OrDrop(JsonStringAccumulate::<600>), mkfn(|cmd_opt: &Option<ArrayVec<u8, 600>>, dest: &mut Option<CommandData> | { 
-                                // The length of 600 above is somewhat arbitrary, but should cover
-                                // two k:-addresses and a reasonable number of digits for the
-                                // amount.
-                                match cmd_opt {
-                                    Some(cmd) => {
-                                        match prompt_cross_chain_from_str(from_utf8(cmd.as_slice()).ok()?) {
-                                            Some(rv) => { rv?; *dest=Some(CommandData::Known); }
-                                            None => { *dest = Some(CommandData::Unknown); }
-                                        }
-                                    }
-                                    None => { *dest = Some(CommandData::Unknown); }
-                                }
-                                Some(())
-                            })),
+                            field_code: DropInterp,
                             field_data: DropInterp
                         }},
                     field_signers: SubInterpM::<_, CapabilityCoverage>::new(Action(Preaction(
@@ -131,39 +102,78 @@ pub static SIGN_IMPL: SignImplT = Action(
                             write_scroller("Of Key", |w| Ok(write!(w, "{}", from_utf8(key.as_slice())?)?))
                         })),
                         field_addr: DropInterp,
-                        field_clist: SubInterpM::<_, Count>::new(Action(
+                        field_clist: SubInterpM::<_, (Count, All)>::new(Action(
                                 KadenaCapabilityInterp {
                                     field_args: KadenaCapabilityArgsInterp,
-                                    field_name: JsonStringAccumulate::<14>
+                                    field_name: JsonStringAccumulate::<128>
                                 },
-                            mkvfn(|cap : &KadenaCapability<Option<<KadenaCapabilityArgsInterp as JsonInterp<JsonArray<JsonAny>>>::Returning>, Option<ArrayVec<u8, 14>>>, destination| {
+                            mkfn(|cap : &KadenaCapability<Option<<KadenaCapabilityArgsInterp as JsonInterp<JsonArray<JsonAny>>>::Returning>, Option<ArrayVec<u8, 128>>>, destination: &mut Option<((), bool)>| {
                                 let name = cap.field_name.as_ref()?.as_slice();
+                                let name_utf8 = from_utf8(name).ok()?;
+                                let unknown_cap_header = "Unknown Capability";
+                                let transfer_prompt = |(sender, receiver, amount):(&ArrayVec<u8, 128>, &ArrayVec<u8, 128>, &ArrayVec<u8, 20>)| -> Option<()> {
+                                    write_scroller("Transfer", |w| Ok(write!(w, "{} from {} to {}", from_utf8(amount.as_slice())?, from_utf8(sender.as_slice())?, from_utf8(receiver.as_slice())?)?))?;
+                                    Some(())
+                                };
+                                let cross_transfer_prompt = |(sender, receiver, amount, target_chain):(&ArrayVec<u8, 128>, &ArrayVec<u8, 128>, &ArrayVec<u8, 20>, &ArrayVec<u8, 20>)| -> Option<()> {
+                                    write_scroller("Transfer", |w| Ok(write!(w, "Cross-chain {} from {} to {} to chain {}", from_utf8(amount.as_slice())?, from_utf8(sender.as_slice())?, from_utf8(receiver.as_slice())?, from_utf8(target_chain.as_slice())?)?))?;
+                                    Some(())
+                                };
+
                                 trace!("Prompting for capability");
-                                *destination = Some(());
-                                match cap.field_args.as_ref()? {
-                                    (None, None, None) if name == b"coin.GAS" => {
+                                *destination = Some(((), true));
+                                match cap.field_args.as_ref() {
+                                    Some((None, None, None, None)) if name == b"coin.GAS" => {
                                         write_scroller("Paying Gas", |w| Ok(write!(w, " ")?))?;
                                         trace!("Accepted gas");
                                     }
                                     _ if name == b"coin.GAS" => { return None; }
-                                    (Some(Some(acct)), None, None) if name == b"coin.ROTATE" => {
+                                    Some((Some(Some(acct)), None, None, None)) if name == b"coin.ROTATE" => {
                                         write_scroller("Rotate for account", |w| Ok(write!(w, "{}", from_utf8(acct.as_slice())?)?))?;
                                     }
                                     _ if name == b"coin.ROTATE" => { return None; }
-                                    (Some(Some(sender)), Some(Some(receiver)), Some(Some(amount))) if name == b"coin.TRANSFER" => {
-                                        write_scroller("Transfer", |w| Ok(write!(w, "{} from {} to {}", from_utf8(amount.as_slice())?, from_utf8(sender.as_slice())?, from_utf8(receiver.as_slice())?)?))?;
+                                    Some((Some(Some(sender)), Some(Some(receiver)), Some(First(amount)), None)) if name == b"coin.TRANSFER" => {
+                                        transfer_prompt((sender, receiver, amount));
+                                    }
+                                    Some((Some(Some(sender)), Some(Some(receiver)), Some(Second(Some(Decimal{field_decimal:Some (amount)}))), None)) if name == b"coin.TRANSFER" => {
+                                        transfer_prompt((sender, receiver, amount));
                                     }
                                     _ if name == b"coin.TRANSFER" => { return None; }
-                                    _ => { return None; } // Change this to allow unknown capabilities.
+                                    Some((Some(Some(sender)), Some(Some(receiver)), Some(First(amount)), Some(Some(target_chain)))) if name == b"coin.TRANSFER_XCHAIN" => {
+                                        cross_transfer_prompt((sender, receiver, amount, target_chain));
+                                    }
+                                    Some((Some(Some(sender)), Some(Some(receiver)), Some(Second(Some(Decimal{field_decimal:Some (amount)}))), Some(Some(target_chain)))) if name == b"coin.TRANSFER_XCHAIN" => {
+                                        cross_transfer_prompt((sender, receiver, amount, target_chain));
+                                    }
+                                    _ if name == b"coin.TRANSFER_XCHAIN" => { return None; }
+                                    Some((None, None, None, None)) => {
+                                        write_scroller(unknown_cap_header, |w| Ok(write!(w, "name: {}, no args", name_utf8)?))?;
+                                    }
+                                    Some((Some(Some(arg1)), None, None, None)) => {
+                                        write_scroller(unknown_cap_header, |w| Ok(write!(w, "name: {}, arg 1: '{}'", name_utf8, from_utf8(arg1.as_slice())?)?))?;
+                                    }
+                                    Some((Some(Some(arg1)), Some(Some(arg2)), None, None)) => {
+                                        write_scroller(unknown_cap_header, |w| Ok(write!(w, "name: {}, arg 1: '{}', arg 2: '{}'", name_utf8, from_utf8(arg1.as_slice())?, from_utf8(arg2.as_slice())?)?))?;
+                                    }
+                                    Some((Some(Some(arg1)), Some(Some(arg2)), Some(First(arg3)), None)) => {
+                                        write_scroller(unknown_cap_header, |w| Ok(write!(w, "name: {}, arg 1: '{}', arg 2: '{}', arg 3: {}", name_utf8, from_utf8(arg1.as_slice())?, from_utf8(arg2.as_slice())?, from_utf8(arg3.as_slice())?)?))?;
+                                    }
+                                    Some((Some(Some(arg1)), Some(Some(arg2)), Some(First(arg3)), Some(Some(arg4)))) => {
+                                        write_scroller(unknown_cap_header, |w| Ok(write!(w, "name: {}, arg 1: '{}', arg 2: '{}', arg 3: {}, arg 4: '{}'", name_utf8, from_utf8(arg1.as_slice())?, from_utf8(arg2.as_slice())?, from_utf8(arg3.as_slice())?, from_utf8(arg4.as_slice())?)?))?;
+                                    }
+                                    _ => {
+                                        write_scroller(unknown_cap_header, |w| Ok(write!(w, "name: {}, args cannot be displayed on Ledger", name_utf8)?))?;
+                                        set_from_thunk(destination, || Some(((), false))); // Fallback case
+                                    }
                                 }
                                 Some(())
                             }),
                         )),
                     }),
-                        mkfn(|signer: &Signer<_,_,_, Option<Count>>, dest: &mut Option<CapabilityCoverage> | {
+                        mkfn(|signer: &Signer<_,_,_, Option<(Count, All)>>, dest: &mut Option<CapabilityCoverage> | {
                             *dest = Some(match signer.field_clist {
-                                Some(Count(n)) if n > 0 => CapabilityCoverage::Full,
-                                _ => CapabilityCoverage::NotFull,
+                                Some((Count(n), All(a))) if n > 0 => if a {CapabilityCoverage::Full} else {CapabilityCoverage::HasFallback},
+                                _ => CapabilityCoverage::NoCaps,
                             });
                             Some(())
                         })),
@@ -173,16 +183,14 @@ pub static SIGN_IMPL: SignImplT = Action(
                         write_scroller("On Network", |w| Ok(write!(w, "{}", from_utf8(net.as_slice())?)?))
                     }))
                 }),
-                mkvfn(|cmd : &KadenaCmd<_,_,Option<CapabilityCoverage>,Option<Payload<Option<Command<_,Option<_>>>>>,_>, _| { 
-                    match (|| cmd.field_payload.as_ref()?.field_exec.as_ref()?.field_code.as_ref() )() {
-                        Some(CommandData::Known) => { }
+                mkvfn(|cmd : &KadenaCmd<_,_,Option<CapabilityCoverage>,_,_>, _| { 
+                    match cmd.field_signers.as_ref() {
+                        Some(CapabilityCoverage::Full) => { }
+                        Some(CapabilityCoverage::HasFallback) => {
+                            write_scroller("WARNING", |w| Ok(write!(w, "Transaction too large for Ledger to display.  PROCEED WITH GREAT CAUTION.  Do you want to continue?")?))?;
+                        }
                         _ => {
-                            match cmd.field_signers.as_ref() {
-                                Some(CapabilityCoverage::Full) => { }
-                                _ => {
-                                    write_scroller("WARNING", |w| Ok(write!(w, "UNSAFE TRANSACTION. This transaction's code was not recognized and does not limit capabilities for all signers. Signing this transaction may make arbitrary actions on the chain including loss of all funds.")?))?;
-                                }
-                            }
+                            write_scroller("WARNING", |w| Ok(write!(w, "UNSAFE TRANSACTION. This transaction's code was not recognized and does not limit capabilities for all signers. Signing this transaction may make arbitrary actions on the chain including loss of all funds.")?))?;
                         }
                     }
                     Some(())
@@ -224,7 +232,51 @@ pub static SIGN_IMPL: SignImplT = Action(
     }),
 );
 
+pub type SignHashImplT = impl InterpParser<SignHashParameters, Returning = ArrayVec<u8, 128_usize>>;
+
+pub static SIGN_HASH_IMPL: SignHashImplT = Action(
+    Preaction( || -> Option<()> { write_scroller("Signing", |w| Ok(write!(w, "Transaction Hash")?)) } ,
+    (
+        Action(
+            SubInterp(DefaultInterp),
+            // Ask the user if they accept the transaction body's hash
+            mkfn(|hash_val: &[u8; 32], destination: &mut Option<[u8; 32]>| {
+                let the_hash = Hash ( *hash_val );
+                write_scroller("Transaction hash", |w| Ok(write!(w, "{}", the_hash)?))?;
+                *destination=Some(the_hash.0.into());
+                Some(())
+            }),
+        ),
+        Action(
+            SubInterp(DefaultInterp),
+            // And ask the user if this is the key the meant to sign with:
+            mkfn(|path: &ArrayVec<u32, 10>, destination: &mut _| {
+                // Mutable because of some awkwardness with the C api.
+                let mut privkey = get_private_key(&path).ok()?;
+                let pubkey = get_pubkey_from_privkey(&mut privkey).ok()?;
+                let pkh = get_pkh(pubkey);
+
+                write_scroller("Sign for Address", |w| Ok(write!(w, "{}", pkh)?))?;
+                *destination = Some(privkey);
+                Some(())
+            }),
+        ),
+    )),
+    mkfn(|(hash, key): &(Option<[u8; 32]>, Option<_>), destination: &mut _| {
+        final_accept_prompt(&[&"Sign Transaction Hash?"])?;
+
+        // By the time we get here, we've approved and just need to do the signature.
+        let sig = eddsa_sign(&hash.as_ref()?[..], key.as_ref()?)?;
+        let mut rv = ArrayVec::<u8, 128>::new();
+        rv.try_extend_from_slice(&sig.0[..]).ok()?;
+        *destination = Some(rv);
+        Some(())
+    }),
+);
+
 pub struct KadenaCapabilityArgsInterp;
+type ThirdArgT = Alt<JsonNumber, Alt<DecimalSchema, JsonAny>>;
+type ThirdArgInterpT = Alt<JsonStringAccumulate<20>, OrDropAny<DecimalInterp<JsonStringAccumulate<20>>>>;
 
 #[derive(Debug)]
 pub enum KadenaCapabilityArgsInterpState {
@@ -234,27 +286,30 @@ pub enum KadenaCapabilityArgsInterpState {
     FirstValueSep,
     SecondArgument(<OrDropAny<JsonStringAccumulate<128>> as JsonInterp<Alt<JsonString, JsonAny>>>::State),
     SecondValueSep,
-    ThirdArgument(<OrDropAny<JsonStringAccumulate<20>> as JsonInterp<Alt<JsonNumber, JsonAny>>>::State),
+    ThirdArgument(<ThirdArgInterpT as JsonInterp<ThirdArgT>>::State),
     ThirdValueSep,
+    FourthArgument(<OrDropAny<JsonStringAccumulate<20>> as JsonInterp<Alt<JsonString, JsonAny>>>::State),
+    FourthValueSep,
     FallbackValue(<DropInterp as JsonInterp<JsonAny>>::State),
     FallbackValueSep
 }
 
 impl JsonInterp<JsonArray<JsonAny>> for KadenaCapabilityArgsInterp {
     type State = (KadenaCapabilityArgsInterpState, Option<<DropInterp as JsonInterp<JsonAny>>::Returning>);
-    type Returning = ( Option<Option<ArrayVec<u8, 128>>>, Option<Option<ArrayVec<u8, 128>>>, Option<Option<ArrayVec<u8, 20>>> );
+    type Returning = ( Option<Option<ArrayVec<u8, 128>>>, Option<Option<ArrayVec<u8, 128>>>, Option<AltResult<ArrayVec<u8, 20_usize>, Option<Decimal<Option<ArrayVec<u8, 20_usize>>>>>>, Option<Option<ArrayVec<u8, 20>>> );
     fn init(&self) -> Self::State {
         (KadenaCapabilityArgsInterpState::Start, None)
     }
     #[inline(never)]
     fn parse<'a, 'b>(&self, (ref mut state, ref mut scratch): &'b mut Self::State, token: JsonToken<'a>, destination: &mut Option<Self::Returning>) -> Result<(), Option<OOB>> {
         let str_interp = OrDropAny(JsonStringAccumulate::<128>);
-        let dec_interp = OrDropAny(JsonStringAccumulate::<20>);
+        let dec_interp = Alt(JsonStringAccumulate::<20>, OrDropAny(DecimalInterp { field_decimal: JsonStringAccumulate::<20>}));
+        let f_interp = OrDropAny(JsonStringAccumulate::<20>);
         loop {
             use KadenaCapabilityArgsInterpState::*;
             match state {
                 Start if token == JsonToken::BeginArray => {
-                    set_from_thunk(destination, || Some((None, None, None)));
+                    set_from_thunk(destination, || Some((None, None, None, None)));
                     set_from_thunk(state, || Begin);
                 }
                 Begin if token == JsonToken::EndArray => {
@@ -277,17 +332,23 @@ impl JsonInterp<JsonArray<JsonAny>> for KadenaCapabilityArgsInterp {
                     set_from_thunk(state, || SecondValueSep);
                 }
                 SecondValueSep if token == JsonToken::ValueSeparator => {
-                    set_from_thunk(state, || ThirdArgument(<OrDropAny<JsonStringAccumulate<20>> as JsonInterp<Alt<JsonNumber, JsonAny>>>::init(&dec_interp)));
+                    set_from_thunk(state, || ThirdArgument(<ThirdArgInterpT as JsonInterp<ThirdArgT>>::init(&dec_interp)));
                 }
                 SecondValueSep if token == JsonToken::EndArray => return Ok(()),
                 ThirdArgument(ref mut s) => {
-                    <OrDropAny<JsonStringAccumulate<20>> as JsonInterp<Alt<JsonNumber, JsonAny>>>::parse(&dec_interp, s, token, &mut destination.as_mut().ok_or(Some(OOB::Reject))?.2)?;
-                    set_from_thunk(state, || FirstValueSep);
-                }
-                ThirdValueSep if token == JsonToken::EndArray => {
-                    return Ok(());
+                    <ThirdArgInterpT as JsonInterp<ThirdArgT>>::parse(&dec_interp, s, token, &mut destination.as_mut().ok_or(Some(OOB::Reject))?.2)?;
+                    set_from_thunk(state, || ThirdValueSep);
                 }
                 ThirdValueSep if token == JsonToken::ValueSeparator => {
+                    set_from_thunk(state, || FourthArgument(<OrDropAny<JsonStringAccumulate<20>> as JsonInterp<Alt<JsonString, JsonAny>>>::init(&f_interp)));
+                }
+                ThirdValueSep if token == JsonToken::EndArray => return Ok(()),
+                FourthArgument(ref mut s) => {
+                    <OrDropAny<JsonStringAccumulate<20>> as JsonInterp<Alt<JsonString, JsonAny>>>::parse(&f_interp, s, token, &mut destination.as_mut().ok_or(Some(OOB::Reject))?.3)?;
+                    set_from_thunk(state, || FourthValueSep);
+                }
+                FourthValueSep if token == JsonToken::EndArray => return Ok(()),
+                FourthValueSep if token == JsonToken::ValueSeparator => {
                     set_from_thunk(destination, || None);
                     set_from_thunk(state, || FallbackValue(<DropInterp as JsonInterp<JsonAny>>::init(&DropInterp)));
                 }
@@ -313,8 +374,10 @@ impl JsonInterp<JsonArray<JsonAny>> for KadenaCapabilityArgsInterp {
 
 pub enum ParsersState {
     NoState,
+    SettingsState(u8),
     GetAddressState(<GetAddressImplT as InterpParser<Bip32Key>>::State),
     SignState(<SignImplT as InterpParser<SignParameters>>::State),
+    SignHashState(<SignHashImplT as InterpParser<SignHashParameters>>::State),
 }
 
 pub fn reset_parsers_state(state: &mut ParsersState) {
@@ -322,6 +385,7 @@ pub fn reset_parsers_state(state: &mut ParsersState) {
 }
 
 meta_definition!{}
+decimal_definition!{}
 kadena_capability_definition!{}
 signer_definition!{}
 payload_definition!{}
@@ -364,6 +428,27 @@ pub fn get_sign_state(
     }
     match s {
         ParsersState::SignState(ref mut a) => a,
+        _ => {
+            panic!("")
+        }
+    }
+}
+
+#[inline(never)]
+pub fn get_sign_hash_state(
+    s: &mut ParsersState,
+) -> &mut <SignHashImplT as InterpParser<SignHashParameters>>::State {
+    match s {
+        ParsersState::SignHashState(_) => {}
+        _ => {
+            info!("Non-same state found; initializing state.");
+            *s = ParsersState::SignHashState(<SignHashImplT as InterpParser<SignHashParameters>>::init(
+                &SIGN_HASH_IMPL,
+            ));
+        }
+    }
+    match s {
+        ParsersState::SignHashState(ref mut a) => a,
         _ => {
             panic!("")
         }

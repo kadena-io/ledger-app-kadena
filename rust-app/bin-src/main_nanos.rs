@@ -1,50 +1,82 @@
 use kadena::implementation::*;
 use kadena::interface::*;
-use prompts_ui::RootMenu;
+use kadena::settings::*;
 use ledger_parser_combinators::interp_parser::set_from_thunk;
 
 use nanos_sdk::io;
+use nanos_sdk::buttons::{ButtonEvent};
+use nanos_ui::ui::{SingleMessage};
 
 nanos_sdk::set_panic!(nanos_sdk::exiting_panic);
 
 use ledger_parser_combinators::interp_parser::OOB;
 use kadena::*;
 
+// Pulling this out of sample_main to global const saves 24 bytes
+// But the SingleMessage::new fails to work with global const, therefore doing fill_idle_menu
+const IDLE_MENU: [&str; 3] = [ concat!("Kadena ", env!("CARGO_PKG_VERSION")), "Exit", "Settings" ];
+fn fill_idle_menu(arr: &mut [&str; 3]) {
+    for (i, s) in IDLE_MENU.iter().enumerate() {
+        arr[i] = s;
+    }
+}
+
 #[cfg(not(test))]
 #[no_mangle]
 extern "C" fn sample_main() {
     let mut comm = io::Comm::new();
     let mut states = ParsersState::NoState;
-
-    let mut idle_menu = RootMenu::new([ concat!("Kadena ", env!("CARGO_PKG_VERSION")), "Exit" ]);
-    let mut busy_menu = RootMenu::new([ "Working...", "Cancel" ]);
+    let mut menu = Menu::new(&IDLE_MENU);
 
     info!("Kadena app {}", env!("CARGO_PKG_VERSION"));
 
     loop {
         // Draw some 'welcome' screen
         match states {
-            ParsersState::NoState => idle_menu.show(),
-            _ => busy_menu.show(),
+            ParsersState::NoState => {
+                // Using IDLE_MENU here does not work, therefore using this to avoid duplication
+                let mut arr: [&str; 3] = ["", "", ""];
+                fill_idle_menu(&mut arr);
+                menu.show(&arr);
+            },
+            ParsersState::SettingsState(0) => {
+                // Using arr is important here. `menu.show(&[ ... ])` doesn't work
+                let arr = [ "Enable Hash Signing", "Back" ];
+                menu.show(&arr);
+            },
+            ParsersState::SettingsState(1) => {
+                let arr = [ "Disable Hash Signing", "Back" ];
+                menu.show(&arr);
+            },
+            _ => {
+                let arr = [ "Working...", "Cancel" ];
+                menu.show(&arr);
+            },
         }
 
         info!("Fetching next event.");
         // Wait for either a specific button push to exit the app
         // or an APDU command
         match comm.next_event() {
-            io::Event::Command(ins) => match handle_apdu(&mut comm, ins, &mut states) {
-                Ok(()) => comm.reply_ok(),
-                Err(sw) => comm.reply(sw),
-            },
-            io::Event::Button(btn) => match states {
-                ParsersState::NoState => {match idle_menu.update(btn) {
-                    Some(1) => { info!("Exiting app at user direction via root menu"); nanos_sdk::exit_app(0) },
+            io::Event::Command(ins) => {
+                menu.reset();
+                match handle_apdu(&mut comm, ins, &mut states) {
+                    Ok(()) => comm.reply_ok(),
+                    Err(sw) => comm.reply(sw),
+                }
+            } ,
+            io::Event::Button(btn) => match menu.update(btn) {
+                Some(0) => match states {
+                    ParsersState::SettingsState(v) => { let new = match v { 0 => 1, _ => 0}; set_settings(&new); states = ParsersState::SettingsState(new); },
                     _ => (),
-                } }
-                _ => { match busy_menu.update(btn) {
-                    Some(1) => { info!("Resetting at user direction via busy menu"); set_from_thunk(&mut states, || ParsersState::NoState); }
-                    _ => (),
-                } }
+                }
+                Some(1) => match states {
+                    ParsersState::SettingsState(_) => { menu.reset(); states = ParsersState::NoState; },
+                    ParsersState::NoState => { info!("Exiting app at user direction via root menu"); nanos_sdk::exit_app(0) },
+                    _ => { info!("Resetting at user direction via busy menu"); menu.reset(); set_from_thunk(&mut states, || ParsersState::NoState); }
+                }
+                Some(2) => { menu.reset(); states = ParsersState::SettingsState(get_current_settings()); },
+                _ => (),
             },
             io::Event::Ticker => {
                 trace!("Ignoring ticker event");
@@ -61,6 +93,7 @@ enum Ins {
     GetVersion,
     GetPubkey,
     Sign,
+    SignHash,
     GetVersionStr,
     Exit
 }
@@ -71,6 +104,7 @@ impl From<u8> for Ins {
             0 => Ins::GetVersion,
             2 => Ins::GetPubkey,
             3 => Ins::Sign,
+            4 => Ins::SignHash,
             0xfe => Ins::GetVersionStr,
             0xff => Ins::Exit,
             _ => panic!(),
@@ -150,6 +184,13 @@ fn handle_apdu(comm: &mut io::Comm, ins: Ins, parser: &mut ParsersState) -> Resu
         Ins::Sign => {
             run_parser_apdu::<_, SignParameters>(parser, get_sign_state, &SIGN_IMPL, comm)?
         }
+        Ins::SignHash => {
+            if get_current_settings() != 1 {
+                return Err(io::SyscallError::NotSupported.into());
+            } else {
+                run_parser_apdu::<_, SignHashParameters>(parser, get_sign_hash_state, &SIGN_HASH_IMPL, comm)?
+            }
+        }
         Ins::GetVersionStr => {
             comm.append(concat!("Kadena ", env!("CARGO_PKG_VERSION")).as_ref());
         }
@@ -158,3 +199,39 @@ fn handle_apdu(comm: &mut io::Comm, ins: Ins, parser: &mut ParsersState) -> Resu
     Ok(())
 }
 
+
+pub struct Menu {
+    screens_len: usize,
+    state: usize,
+}
+
+impl Menu {
+    pub fn new(init_screens: &[& str]) -> Menu {
+        Menu {
+            screens_len: init_screens.len(),
+            state: 0,
+        }
+    }
+
+    pub fn reset(&mut self) {
+        self.state = 0;
+    }
+
+    #[inline(never)]
+    pub fn show(&mut self, screens: &[& str]) {
+        self.screens_len = screens.len();
+        self.state = core::cmp::min(self.state, (self.screens_len)-1);
+        SingleMessage::new(screens[self.state]).show();
+    }
+
+    #[inline(never)]
+    pub fn update(&mut self, btn: ButtonEvent) -> Option<usize> {
+        match btn {
+            ButtonEvent::LeftButtonRelease => self.state = if self.state > 0 { self.state - 1 } else {0},
+            ButtonEvent::RightButtonRelease => self.state = core::cmp::min(self.state+1, (self.screens_len)-1),
+            ButtonEvent::BothButtonsRelease => return Some(self.state),
+            _ => (),
+        }
+        None
+    }
+}

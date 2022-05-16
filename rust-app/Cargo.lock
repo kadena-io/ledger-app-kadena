@@ -56,7 +56,7 @@ dependencies = [
 
 [[package]]
 name = "kadena"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "arrayvec",
  "base64",
@@ -80,7 +80,7 @@ dependencies = [
 [[package]]
 name = "ledger-parser-combinators"
 version = "0.1.0"
-source = "git+https://github.com/obsidiansystems/ledger-parser-combinators#b1d270cfd010ddd087d423c12ebc54258c8c7ff6"
+source = "git+https://github.com/obsidiansystems/ledger-parser-combinators?branch=dn-combined-changes#69edb580e3a3d9b27fe33bac63999d078ff35803"
 dependencies = [
  "arrayvec",
  "bstringify",

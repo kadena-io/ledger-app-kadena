@@ -15,6 +15,10 @@ define_json_struct! { Meta 16 {
     creationTime: JsonNumber
 }}
 
+define_json_struct! { Decimal 7 {
+    decimal: JsonString
+}}
+
 define_json_struct! { KadenaCapability 4 {
     args: JsonArray<JsonAny>,
     name: JsonString
@@ -47,5 +51,10 @@ define_json_struct! { KadenaCmd 16 {
 // Payload for a signature request, content-agnostic.
 pub type SignParameters = (
     LengthFallback<U32<{ Endianness::Little }>, Json<KadenaCmdSchema>>,
+    Bip32Key,
+);
+
+pub type SignHashParameters = (
+    Array<Byte, 32>,
     Bip32Key,
 );

@@ -294,8 +294,8 @@ rec {
         workspace_member = null;
         src = pkgs.fetchgit {
           url = "https://github.com/obsidiansystems/ledger-parser-combinators";
-          rev = "b1d270cfd010ddd087d423c12ebc54258c8c7ff6";
-          sha256 = "0dj24ssi167ab7023pdk2gzklidgwp0pkwncsgvcmhrc9bsvwvyj";
+          rev = "69edb580e3a3d9b27fe33bac63999d078ff35803";
+          sha256 = "0cmb7didga8pr8mldkgc8821cimlrxz272fklxa1760qk5zhbqys";
         };
         authors = [
           "Jonathan D.K. Gibbons <jonored@gmail.com>"
