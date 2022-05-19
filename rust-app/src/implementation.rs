@@ -102,73 +102,7 @@ pub static SIGN_IMPL: SignImplT = Action(
                             write_scroller("Of Key", |w| Ok(write!(w, "{}", from_utf8(key.as_slice())?)?))
                         })),
                         field_addr: DropInterp,
-                        field_clist: SubInterpM::<_, (Count, All)>::new(Action(
-                                KadenaCapabilityInterp {
-                                    field_args: KadenaCapabilityArgsInterp,
-                                    field_name: JsonStringAccumulate::<128>
-                                },
-                            mkfn(|cap : &KadenaCapability<Option<<KadenaCapabilityArgsInterp as ParserCommon<JsonArray<JsonAny>>>::Returning>, Option<ArrayVec<u8, 128>>>, destination: &mut Option<((), bool)>| {
-                                let name = cap.field_name.as_ref()?.as_slice();
-                                let name_utf8 = from_utf8(name).ok()?;
-                                let unknown_cap_header = "Unknown Capability";
-                                let transfer_prompt = |(sender, receiver, amount):(&ArrayVec<u8, 128>, &ArrayVec<u8, 128>, &ArrayVec<u8, 20>)| -> Option<()> {
-                                    write_scroller("Transfer", |w| Ok(write!(w, "{} from {} to {}", from_utf8(amount.as_slice())?, from_utf8(sender.as_slice())?, from_utf8(receiver.as_slice())?)?))?;
-                                    Some(())
-                                };
-                                let cross_transfer_prompt = |(sender, receiver, amount, target_chain):(&ArrayVec<u8, 128>, &ArrayVec<u8, 128>, &ArrayVec<u8, 20>, &ArrayVec<u8, 20>)| -> Option<()> {
-                                    write_scroller("Transfer", |w| Ok(write!(w, "Cross-chain {} from {} to {} to chain {}", from_utf8(amount.as_slice())?, from_utf8(sender.as_slice())?, from_utf8(receiver.as_slice())?, from_utf8(target_chain.as_slice())?)?))?;
-                                    Some(())
-                                };
-
-                                trace!("Prompting for capability");
-                                *destination = Some(((), true));
-                                match cap.field_args.as_ref() {
-                                    Some((None, None, None, None)) if name == b"coin.GAS" => {
-                                        write_scroller("Paying Gas", |w| Ok(write!(w, " ")?))?;
-                                        trace!("Accepted gas");
-                                    }
-                                    _ if name == b"coin.GAS" => { return None; }
-                                    Some((Some(Some(acct)), None, None, None)) if name == b"coin.ROTATE" => {
-                                        write_scroller("Rotate for account", |w| Ok(write!(w, "{}", from_utf8(acct.as_slice())?)?))?;
-                                    }
-                                    _ if name == b"coin.ROTATE" => { return None; }
-                                    Some((Some(Some(sender)), Some(Some(receiver)), Some(First(amount)), None)) if name == b"coin.TRANSFER" => {
-                                        transfer_prompt((sender, receiver, amount));
-                                    }
-                                    Some((Some(Some(sender)), Some(Some(receiver)), Some(Second(Some(Decimal{field_decimal:Some (amount)}))), None)) if name == b"coin.TRANSFER" => {
-                                        transfer_prompt((sender, receiver, amount));
-                                    }
-                                    _ if name == b"coin.TRANSFER" => { return None; }
-                                    Some((Some(Some(sender)), Some(Some(receiver)), Some(First(amount)), Some(Some(target_chain)))) if name == b"coin.TRANSFER_XCHAIN" => {
-                                        cross_transfer_prompt((sender, receiver, amount, target_chain));
-                                    }
-                                    Some((Some(Some(sender)), Some(Some(receiver)), Some(Second(Some(Decimal{field_decimal:Some (amount)}))), Some(Some(target_chain)))) if name == b"coin.TRANSFER_XCHAIN" => {
-                                        cross_transfer_prompt((sender, receiver, amount, target_chain));
-                                    }
-                                    _ if name == b"coin.TRANSFER_XCHAIN" => { return None; }
-                                    Some((None, None, None, None)) => {
-                                        write_scroller(unknown_cap_header, |w| Ok(write!(w, "name: {}, no args", name_utf8)?))?;
-                                    }
-                                    Some((Some(Some(arg1)), None, None, None)) => {
-                                        write_scroller(unknown_cap_header, |w| Ok(write!(w, "name: {}, arg 1: '{}'", name_utf8, from_utf8(arg1.as_slice())?)?))?;
-                                    }
-                                    Some((Some(Some(arg1)), Some(Some(arg2)), None, None)) => {
-                                        write_scroller(unknown_cap_header, |w| Ok(write!(w, "name: {}, arg 1: '{}', arg 2: '{}'", name_utf8, from_utf8(arg1.as_slice())?, from_utf8(arg2.as_slice())?)?))?;
-                                    }
-                                    Some((Some(Some(arg1)), Some(Some(arg2)), Some(First(arg3)), None)) => {
-                                        write_scroller(unknown_cap_header, |w| Ok(write!(w, "name: {}, arg 1: '{}', arg 2: '{}', arg 3: {}", name_utf8, from_utf8(arg1.as_slice())?, from_utf8(arg2.as_slice())?, from_utf8(arg3.as_slice())?)?))?;
-                                    }
-                                    Some((Some(Some(arg1)), Some(Some(arg2)), Some(First(arg3)), Some(Some(arg4)))) => {
-                                        write_scroller(unknown_cap_header, |w| Ok(write!(w, "name: {}, arg 1: '{}', arg 2: '{}', arg 3: {}, arg 4: '{}'", name_utf8, from_utf8(arg1.as_slice())?, from_utf8(arg2.as_slice())?, from_utf8(arg3.as_slice())?, from_utf8(arg4.as_slice())?)?))?;
-                                    }
-                                    _ => {
-                                        write_scroller(unknown_cap_header, |w| Ok(write!(w, "name: {}, args cannot be displayed on Ledger", name_utf8)?))?;
-                                        set_from_thunk(destination, || Some(((), false))); // Fallback case
-                                    }
-                                }
-                                Some(())
-                            }),
-                        )),
+                        field_clist: CLIST_ACTION,
                     }),
                         mkfn(|signer: &Signer<_,_,_, Option<(Count, All)>>, dest: &mut Option<CapabilityCoverage> | {
                             *dest = Some(match signer.field_clist {
@@ -231,6 +165,75 @@ pub static SIGN_IMPL: SignImplT = Action(
         Some(())
     }),
 );
+
+const CLIST_ACTION: SubInterpM<Action<KadenaCapabilityInterp<KadenaCapabilityArgsInterp, JsonStringAccumulate<128_usize>>, for<'r, 's> fn(&'r KadenaCapability<Option<<KadenaCapabilityArgsInterp as ParserCommon<JsonArray<JsonAny>>>::Returning>, Option<ArrayVec<u8, 128_usize>>>, &'s mut Option<((), bool)>) -> Option<()>>, (Count, All)> =
+  SubInterpM::new(Action(
+      KadenaCapabilityInterp {
+          field_args: KadenaCapabilityArgsInterp,
+          field_name: JsonStringAccumulate::<128>
+      },
+      mkfn(|cap : &KadenaCapability<Option<<KadenaCapabilityArgsInterp as ParserCommon<JsonArray<JsonAny>>>::Returning>, Option<ArrayVec<u8, 128>>>, destination: &mut Option<((), bool)>| {
+          let name = cap.field_name.as_ref()?.as_slice();
+          let name_utf8 = from_utf8(name).ok()?;
+          let unknown_cap_header = "Unknown Capability";
+          let transfer_prompt = |(sender, receiver, amount):(&ArrayVec<u8, 128>, &ArrayVec<u8, 128>, &ArrayVec<u8, 20>)| -> Option<()> {
+              write_scroller("Transfer", |w| Ok(write!(w, "{} from {} to {}", from_utf8(amount.as_slice())?, from_utf8(sender.as_slice())?, from_utf8(receiver.as_slice())?)?))?;
+              Some(())
+          };
+          let cross_transfer_prompt = |(sender, receiver, amount, target_chain):(&ArrayVec<u8, 128>, &ArrayVec<u8, 128>, &ArrayVec<u8, 20>, &ArrayVec<u8, 20>)| -> Option<()> {
+              write_scroller("Transfer", |w| Ok(write!(w, "Cross-chain {} from {} to {} to chain {}", from_utf8(amount.as_slice())?, from_utf8(sender.as_slice())?, from_utf8(receiver.as_slice())?, from_utf8(target_chain.as_slice())?)?))?;
+              Some(())
+          };
+
+          trace!("Prompting for capability");
+          *destination = Some(((), true));
+          match cap.field_args.as_ref() {
+              Some((None, None, None, None)) if name == b"coin.GAS" => {
+                  write_scroller("Paying Gas", |w| Ok(write!(w, " ")?))?;
+                  trace!("Accepted gas");
+              }
+              _ if name == b"coin.GAS" => { return None; }
+              Some((Some(Some(acct)), None, None, None)) if name == b"coin.ROTATE" => {
+                  write_scroller("Rotate for account", |w| Ok(write!(w, "{}", from_utf8(acct.as_slice())?)?))?;
+              }
+              _ if name == b"coin.ROTATE" => { return None; }
+              Some((Some(Some(sender)), Some(Some(receiver)), Some(First(amount)), None)) if name == b"coin.TRANSFER" => {
+                  transfer_prompt((sender, receiver, amount));
+              }
+              Some((Some(Some(sender)), Some(Some(receiver)), Some(Second(Some(Decimal{field_decimal:Some (amount)}))), None)) if name == b"coin.TRANSFER" => {
+                  transfer_prompt((sender, receiver, amount));
+              }
+              _ if name == b"coin.TRANSFER" => { return None; }
+              Some((Some(Some(sender)), Some(Some(receiver)), Some(First(amount)), Some(Some(target_chain)))) if name == b"coin.TRANSFER_XCHAIN" => {
+                  cross_transfer_prompt((sender, receiver, amount, target_chain));
+              }
+              Some((Some(Some(sender)), Some(Some(receiver)), Some(Second(Some(Decimal{field_decimal:Some (amount)}))), Some(Some(target_chain)))) if name == b"coin.TRANSFER_XCHAIN" => {
+                  cross_transfer_prompt((sender, receiver, amount, target_chain));
+              }
+              _ if name == b"coin.TRANSFER_XCHAIN" => { return None; }
+              Some((None, None, None, None)) => {
+                  write_scroller(unknown_cap_header, |w| Ok(write!(w, "name: {}, no args", name_utf8)?))?;
+              }
+              Some((Some(Some(arg1)), None, None, None)) => {
+                  write_scroller(unknown_cap_header, |w| Ok(write!(w, "name: {}, arg 1: '{}'", name_utf8, from_utf8(arg1.as_slice())?)?))?;
+              }
+              Some((Some(Some(arg1)), Some(Some(arg2)), None, None)) => {
+                  write_scroller(unknown_cap_header, |w| Ok(write!(w, "name: {}, arg 1: '{}', arg 2: '{}'", name_utf8, from_utf8(arg1.as_slice())?, from_utf8(arg2.as_slice())?)?))?;
+              }
+              Some((Some(Some(arg1)), Some(Some(arg2)), Some(First(arg3)), None)) => {
+                  write_scroller(unknown_cap_header, |w| Ok(write!(w, "name: {}, arg 1: '{}', arg 2: '{}', arg 3: {}", name_utf8, from_utf8(arg1.as_slice())?, from_utf8(arg2.as_slice())?, from_utf8(arg3.as_slice())?)?))?;
+              }
+              Some((Some(Some(arg1)), Some(Some(arg2)), Some(First(arg3)), Some(Some(arg4)))) => {
+                  write_scroller(unknown_cap_header, |w| Ok(write!(w, "name: {}, arg 1: '{}', arg 2: '{}', arg 3: {}, arg 4: '{}'", name_utf8, from_utf8(arg1.as_slice())?, from_utf8(arg2.as_slice())?, from_utf8(arg3.as_slice())?, from_utf8(arg4.as_slice())?)?))?;
+              }
+              _ => {
+                  write_scroller(unknown_cap_header, |w| Ok(write!(w, "name: {}, args cannot be displayed on Ledger", name_utf8)?))?;
+                  set_from_thunk(destination, || Some(((), false))); // Fallback case
+              }
+          }
+          Some(())
+      }),
+  ));
 
 pub type SignHashImplT = impl InterpParser<SignHashParameters, Returning = ArrayVec<u8, 128_usize>>;
 
