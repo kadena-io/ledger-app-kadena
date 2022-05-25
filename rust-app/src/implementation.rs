@@ -9,7 +9,7 @@ use ledger_parser_combinators::interp_parser::{
 };
 use ledger_parser_combinators::json::Json;
 use ledger_parser_combinators::core_parsers::Alt;
-use prompts_ui::{write_scroller, final_accept_prompt};
+use ledger_prompts_ui::{write_scroller, final_accept_prompt};
 
 use ledger_parser_combinators::define_json_struct_interp;
 use ledger_parser_combinators::json_interp::AltResult::*;
