@@ -198,7 +198,17 @@ impl Summable<CapCountData> for CapCountData {
     fn zero() -> Self { CapCountData::CapCount { total_caps: 0, total_transfers: 0, total_unknown: 0} }
 }
 
-const CLIST_ACTION: SubInterpMFold::<Action<KadenaCapabilityInterp<KadenaCapabilityArgsInterp, JsonStringAccumulate<128_usize>>, for<'r, 's> fn(&'r KadenaCapability<Option<<KadenaCapabilityArgsInterp as ParserCommon<JsonArray<JsonAny>>>::Returning>, Option<ArrayVec<u8, 128_usize>>>, &'s mut Option<(CapCountData, bool)>, (CapCountData, All)) -> Option<()>>, (CapCountData, All)> =
+const CLIST_ACTION:
+  SubInterpMFold::<
+    Action< KadenaCapabilityInterp<KadenaCapabilityArgsInterp, JsonStringAccumulate<128_usize>>
+          , fn( &KadenaCapability< Option<<KadenaCapabilityArgsInterp as ParserCommon<JsonArray<JsonAny>>>::Returning>
+                                , Option<ArrayVec<u8, 128_usize>>>
+              , &mut Option<(CapCountData, bool)>
+              , (CapCountData, All)
+              ) -> Option<()>
+          >
+    , (CapCountData, All)
+    > =
   SubInterpMFold::new(Action(
       KadenaCapabilityInterp {
           field_args: KadenaCapabilityArgsInterp,
