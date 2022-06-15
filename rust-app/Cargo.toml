@@ -10,6 +10,8 @@ arrayvec = { version = "0.7.2", default-features = false }
 base64 = { version = "0.13.0", default-features = false }
 ledger-parser-combinators = { git = "https://github.com/obsidiansystems/ledger-parser-combinators" }
 ledger-log = { git = "https://github.com/Alamgu/ledger-log" }
+ledger-crypto-helpers = { git = "https://github.com/Alamgu/ledger-crypto-helpers", branch = "jg-update-for-new-sdk" }
+zeroize = { version = "1.5.2", default-features = false }
 
 # Pass --features speculos,ledger-log/log_info (or log_trace, etc) to enable
 # speculos logging and change log level.

@@ -77,12 +77,14 @@ version = "0.2.1"
 dependencies = [
  "arrayvec",
  "base64",
+ "ledger-crypto-helpers",
  "ledger-log",
  "ledger-parser-combinators",
  "ledger-prompts-ui",
  "nanos_sdk",
  "nanos_ui",
  "testmacro",
+ "zeroize",
 ]
 
 [[package]]
@@ -93,6 +95,19 @@ checksum = "7507624b29483431c0ba2d82aece8ca6cdba9382bff4ddd0f7490560c056098d"
 dependencies = [
  "winapi",
  "winapi-build",
+]
+
+[[package]]
+name = "ledger-crypto-helpers"
+version = "0.1.0"
+source = "git+https://github.com/Alamgu/ledger-crypto-helpers?branch=jg-update-for-new-sdk#5bba474853f3d25bf08645ad95a5a2adc60a9e4e"
+dependencies = [
+ "arrayvec",
+ "base64",
+ "ledger-log",
+ "nanos_sdk",
+ "nanos_ui",
+ "zeroize",
 ]
 
 [[package]]
@@ -287,3 +302,9 @@ name = "winapi-build"
 version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2d315eee3b34aca4797b2da6b13ed88266e6d612562a0c46390af8299fc699bc"
+
+[[package]]
+name = "zeroize"
+version = "1.5.7"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c394b5bd0c6f669e7275d9c20aa90ae064cb22e75a1cad54e1b34088034b149f"
