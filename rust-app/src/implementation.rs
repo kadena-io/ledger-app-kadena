@@ -1,4 +1,6 @@
-use crate::crypto_helpers::{eddsa_sign, get_pkh, get_private_key, get_pubkey, get_pubkey_from_privkey, Hasher, Hash};
+use ledger_crypto_helpers::hasher::{Hash, Hasher, Blake2b};
+use ledger_crypto_helpers::common::{with_public_keys, PubKey};
+use ledger_crypto_helpers::eddsa::eddsa_sign;
 use crate::interface::*;
 use crate::*;
 use arrayvec::ArrayString;
@@ -18,6 +20,8 @@ use ledger_parser_combinators::json_interp::*;
 use ledger_parser_combinators::interp_parser::*;
 use core::convert::TryFrom;
 use core::str::from_utf8;
+use zeroize::{Zeroizing};
+use core::ops::Deref;
 
 // A couple type ascription functions to help the compiler along.
 const fn mkfn<A,B>(q: fn(&A,&mut B)->Option<()>) -> fn(&A,&mut B)->Option<()> {
@@ -36,9 +40,7 @@ const fn mkvfn<A>(q: fn(&A,&mut Option<()>)->Option<()>) -> fn(&A,&mut Option<()
 pub type GetAddressImplT = impl InterpParser<Bip32Key, Returning = ArrayVec<u8, 128_usize>>;
 pub const GET_ADDRESS_IMPL: GetAddressImplT =
     Action(SubInterp(DefaultInterp), mkfn(|path: &ArrayVec<u32, 10>, destination: &mut Option<ArrayVec<u8, 128>>| {
-        let key = get_pubkey(&path).ok()?;
-
-        let pkh = get_pkh(key);
+        with_public_keys(path, |key: &_, pkh: &PubKey| {
 
         write_scroller("Provide Public Key", |w| Ok(write!(w, "{}", pkh)?))?;
 
@@ -49,7 +51,8 @@ pub const GET_ADDRESS_IMPL: GetAddressImplT =
         let key_x = &key.W[1..key.W_len as usize];
         destination.as_mut()?.try_push(u8::try_from(key_x.len()).ok()?).ok()?;
         destination.as_mut()?.try_extend_from_slice(key_x).ok()?;
-        Some(())
+        Ok(())
+        }).ok()
     }));
 
 pub type SignImplT = impl InterpParser<SignParameters, Returning = ArrayVec<u8, 128_usize>>;
@@ -140,33 +143,31 @@ pub static SIGN_IMPL: SignImplT = Action(
                 )),
             true),
             // Ask the user if they accept the transaction body's hash
-            mkfn(|(_, mut hash): &(_, Hasher), destination: &mut Option<[u8; 32]>| {
-                let the_hash = hash.finalize();
-                write_scroller("Transaction hash", |w| Ok(write!(w, "{}", the_hash)?))?;
-                *destination=Some(the_hash.0.into());
+            mkfn(|(_, mut hasher): &(_, Blake2b), destination: &mut Option<Zeroizing<Hash<32>>>| {
+                let the_hash = hasher.finalize();
+                write_scroller("Transaction hash", |w| Ok(write!(w, "{}", the_hash.deref())?))?;
+                *destination=Some(the_hash);
                 Some(())
             }),
         ),
-        Action(
+        MoveAction(
             SubInterp(DefaultInterp),
             // And ask the user if this is the key the meant to sign with:
-            mkfn(|path: &ArrayVec<u32, 10>, destination: &mut _| {
-                // Mutable because of some awkwardness with the C api.
-                let mut privkey = get_private_key(&path).ok()?;
-                let pubkey = get_pubkey_from_privkey(&mut privkey).ok()?;
-                let pkh = get_pkh(pubkey);
-
-                write_scroller("Sign for Address", |w| Ok(write!(w, "{}", pkh)?))?;
-                *destination = Some(privkey);
+            mkmvfn(|path: ArrayVec<u32, 10>, destination: &mut Option<ArrayVec<u32, 10>>| {
+                with_public_keys(&path, |_, pkh: &PubKey| {
+                    write_scroller("Sign for Address", |w| Ok(write!(w, "{}", pkh)?))?;
+                    Ok(())
+                }).ok();
+                *destination = Some(path);
                 Some(())
             }),
         ),
     ),
-    mkfn(|(hash, key): &(Option<[u8; 32]>, Option<_>), destination: &mut _| {
+    mkfn(|(hash, path): &(Option<Zeroizing<Hash<32>>>, Option<ArrayVec<u32, 10>>), destination: &mut _| {
         final_accept_prompt(&[&"Sign Transaction?"])?;
 
         // By the time we get here, we've approved and just need to do the signature.
-        let sig = eddsa_sign(&hash.as_ref()?[..], key.as_ref()?)?;
+        let sig = eddsa_sign(path.as_ref()?, &hash.as_ref()?.0[..])?;
         let mut rv = ArrayVec::<u8, 128>::new();
         rv.try_extend_from_slice(&sig.0[..]).ok()?;
         *destination = Some(rv);
@@ -376,26 +377,24 @@ pub static SIGN_HASH_IMPL: SignHashImplT = Action(
                 Some(())
             }),
         ),
-        Action(
+        MoveAction(
             SubInterp(DefaultInterp),
             // And ask the user if this is the key the meant to sign with:
-            mkfn(|path: &ArrayVec<u32, 10>, destination: &mut _| {
-                // Mutable because of some awkwardness with the C api.
-                let mut privkey = get_private_key(&path).ok()?;
-                let pubkey = get_pubkey_from_privkey(&mut privkey).ok()?;
-                let pkh = get_pkh(pubkey);
-
-                write_scroller("Sign for Address", |w| Ok(write!(w, "{}", pkh)?))?;
-                *destination = Some(privkey);
+            mkmvfn(|path: ArrayVec<u32, 10>, destination: &mut Option<ArrayVec<u32, 10>>| {
+                with_public_keys(&path, |_, pkh: &PubKey| {
+                    write_scroller("Sign for Address", |w| Ok(write!(w, "{}", pkh)?))?;
+                    Ok(())
+                }).ok();
+                *destination = Some(path);
                 Some(())
             }),
         ),
     )),
-    mkfn(|(hash, key): &(Option<[u8; 32]>, Option<_>), destination: &mut _| {
+    mkfn(|(hash, path): &(Option<[u8; 32]>, Option<ArrayVec<u32, 10>>), destination: &mut _| {
         final_accept_prompt(&[&"Sign Transaction Hash?"])?;
 
         // By the time we get here, we've approved and just need to do the signature.
-        let sig = eddsa_sign(&hash.as_ref()?[..], key.as_ref()?)?;
+        let sig = eddsa_sign(path.as_ref()?, &hash.as_ref()?[..])?;
         let mut rv = ArrayVec::<u8, 128>::new();
         rv.try_extend_from_slice(&sig.0[..]).ok()?;
         *destination = Some(rv);

@@ -28,8 +28,6 @@ pub mod interface;
 pub mod utils;
 
 #[cfg(all(target_os = "nanos"))]
-pub mod crypto_helpers;
-#[cfg(all(target_os = "nanos"))]
 pub mod implementation;
 #[cfg(all(target_os = "nanos"))]
 pub mod settings;
