@@ -1228,22 +1228,22 @@ let
         sha512 = "EC2utToWl4RKfs5zd36Mxq7nzHHBuomZboI0yYL6Y0RmBgT7Sgkq4rQ0ezFTYoIsSs7Tm9SJe+o2FcAg6GBhGA==";
       };
     };
-    "hw-app-kda-git+ssh://git@github.com/obsidiansystems/hw-app-kda.git#816ce8e15005520c74f75560feb3b795c1e16ed5" = {
+    "hw-app-kda-git+https://github.com/obsidiansystems/hw-app-kda.git#816ce8e15005520c74f75560feb3b795c1e16ed5" = {
       name = "hw-app-kda";
       packageName = "hw-app-kda";
       version = "0.1.0";
       src = fetchgit {
-        url = "ssh://git@github.com/obsidiansystems/hw-app-kda.git";
+        url = "https://github.com/obsidiansystems/hw-app-kda.git";
         rev = "816ce8e15005520c74f75560feb3b795c1e16ed5";
         sha256 = "086bfcbd984b6fb0f3f71ada3e179a77d46141ccca0769a8b84e02b8c1690c84";
       };
     };
-    "hw-app-obsidian-common-git+ssh://git@github.com/obsidiansystems/hw-app-obsidian-common.git#46376b351e3f917976c9cad880f6bf9dd1bc9392" = {
+    "hw-app-obsidian-common-git+https://github.com/obsidiansystems/hw-app-obsidian-common.git#46376b351e3f917976c9cad880f6bf9dd1bc9392" = {
       name = "hw-app-obsidian-common";
       packageName = "hw-app-obsidian-common";
       version = "0.0.1";
       src = fetchgit {
-        url = "ssh://git@github.com/obsidiansystems/hw-app-obsidian-common.git";
+        url = "https://github.com/obsidiansystems/hw-app-obsidian-common.git";
         rev = "46376b351e3f917976c9cad880f6bf9dd1bc9392";
         sha256 = "e17711dd93308f8b79e6ca3ad07bb713a97aad634b8ededd8db21185e9adab1a";
       };
@@ -2897,8 +2897,8 @@ let
       sources."hash-base-3.1.0"
       sources."he-1.2.0"
       sources."http2-client-1.3.5"
-      sources."hw-app-kda-git+ssh://git@github.com/obsidiansystems/hw-app-kda.git#816ce8e15005520c74f75560feb3b795c1e16ed5"
-      sources."hw-app-obsidian-common-git+ssh://git@github.com/obsidiansystems/hw-app-obsidian-common.git#46376b351e3f917976c9cad880f6bf9dd1bc9392"
+      sources."hw-app-kda-git+https://github.com/obsidiansystems/hw-app-kda.git#816ce8e15005520c74f75560feb3b795c1e16ed5"
+      sources."hw-app-obsidian-common-git+https://github.com/obsidiansystems/hw-app-obsidian-common.git#46376b351e3f917976c9cad880f6bf9dd1bc9392"
       sources."inflight-1.0.6"
       sources."inherits-2.0.4"
       sources."internal-slot-1.0.3"
