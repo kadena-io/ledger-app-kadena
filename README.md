@@ -1,79 +1,77 @@
-# Rust Nano S Application
+# Kadena Ledger App
 
-A simple application that receives a message, displays it, and requests user approval to sign. Can also display an example menu.
+This application is compatible with Ledger Nano S devices running FW 2.1.0 and above.
 
-**Note**: the latest release is branch `main`, but the default branch in the git repo is `develop`, so PRs go to the right place.
-If you just want to try out the ledger app, you first make sure you have the right branch checked out!
+### Installation using the pre-packaged tarball
 
-## Building
+Before installing please ensure that your device is plugged, unlocked, and on the device home screen. 
+
+Installing the app from a tarball can be done using `ledgerctl`. For more information on how to install and use that tool see the [instructions from LedgerHQ](https://github.com/LedgerHQ/ledgerctl).
+
+```bash
+tar xzf release.tar.gz
+cd kadena
+ledgerctl install -f app.json
+```
+
+## Using the app with generic CLI tool
+
+The bundled `generic-cli` tool can be used to obtaining the public key and do signing.
+
+To use this tool first install it using Nix. From the root level of this repo, run:
+
+```bash
+nix-build -A ledger-platform.generic-cli -o result-generic-cli
+```
+
+This command will create a file (symlink) named `result-generic-cli` which could be used as described below.
+
+```bash
+./result-generic-cli/bin/generic-cli getAddress "44'/626'/0'/0/0"
+```
+
+For doing signing, the "cmd" of the transaction (in the JSON format) should be provided like this
+
+```bash
+./result-generic-cli/bin/generic-cli sign --json "44'/626'/0'/0/0" '{"networkId":"mainnet01","payload":{"exec":{"data":{"ks":{"pred":"keys-all","keys":["368820f80c324bbc7c2b0610688a7da43e39f91d118732671cd9c7500ff43cca"]}},"code":"(coin.transfer-create \"alice\" \"bob\" (read-keyset \"ks\") 100.1)\n(coin.transfer \"bob\" \"alice\" 0.1)"}},"signers":[{"pubKey":"6be2f485a7af75fedb4b7f153a903f7e6000ca4aa501179c91a2450b777bd2a7","clist":[{"args":["alice","bob",100.1],"name":"coin.TRANSFER"},{"args":[],"name":"coin.GAS"}]},{"pubKey":"368820f80c324bbc7c2b0610688a7da43e39f91d118732671cd9c7500ff43cca","clist":[{"args":["bob","alice",0.1],"name":"coin.TRANSFER"}]}],"meta":{"creationTime":1580316382,"ttl":7200,"gasLimit":1200,"chainId":"0","gasPrice":1.0e-5,"sender":"alice"},"nonce":"2020-01-29 16:46:22.916695 UTC"}'
+```
+
+Alternatively the contents of JSON could be copied to a file, and the name of the file could be used in the command-line instead. This is necessary when the size of the JSON being signed is very big, as the command-line has limits to the length.
+
+The following command demonstrates signing a big transaction specified in the file `./ts-tests/marmalade-tx.json`
+
+```bash
+./result-generic-cli/bin/generic-cli sign --file --json "44'/626'/0'/0/0" ./ts-tests/marmalade-tx.json
+```
+
+## Building the app from source
+
+**Note**: the latest release branch is `main`, but the default branch in the git repo is `develop`.
+If you want to use the latest release, make sure you have the `main` branch checked out before doing the build.
 
 This application has been packaged up with [Nix](https://nixos.org/).
-If you are on Linux and have Nix installed, builds and development environments are one command away.
-
-### Prerequisites
-
-This project requires ledger firmware version: 2.1.0 or greater
-This project will try to build [nanos-secure-sdk](https://github.com/LedgerHQ/nanos-secure-sdk), so you will need:
-
-#### Linux
-
-1. A standard ARM gcc (`sudo apt-get install gcc-arm-none-eabi binutils-arm-none-eabi`)
-2. Cross compilation headers (`sudo apt-get install gcc-multilib`)
-2. Python3 (`sudo apt-get install python3`)
-3. Pip3 (`sudo apt-get install python3-pip`)
-
-#### Windows
-
-1. install [Clang](http://releases.llvm.org/download.html)
-2. install an [ARM GCC toolchain](https://developer.arm.com/tools-and-software/open-source-software/developer-tools/gnu-toolchain/gnu-rm/downloads)
-3. [Python](https://www.python.org/)
-
-
-Other things you will need:
-- [Cargo-ledger](https://github.com/LedgerHQ/cargo-ledger.git)
-- [Speculos](https://github.com/LedgerHQ/speculos) (make sure you add speculos.py to your PATH by running `export PATH=/path/to/speculos:$PATH`)
-- The correct target for rustc: `rustup target add thumbv6m-none-eabi`
-
-You can build on either Windows or Linux with a simple `cargo build` or `cargo build --release`.
-It currently builds on stable.
-
-## Loading
-
-You can use [cargo-ledger](https://github.com/LedgerHQ/cargo-ledger.git) which builds, outputs a `hex` file and a manifest file for `ledgerctl`, and loads it on a device in a single `cargo-ledger load` command in the rust-app folder within app directory.
-
-This application is compatible with Ledger Nano S devices running FW 2.1.0 and above. Before installing, please ensure that your device is plugged, unlocked, and on the device home screen. 
 
 ### Nix/Linux
 
 Using Nix, from the root level of this repo, run:
+
 ```bash
 nix-shell -A ledger-platform.rustShell
 cd rust-app/
 cargo-ledger load
 ````
+
+The [cargo-ledger](https://github.com/LedgerHQ/cargo-ledger.git) builds, outputs a `hex` file and a manifest file for `ledgerctl`, and loads it on a device in a single `cargo-ledger load` command in the rust-app folder within app directory.
+
 You do not need to install cargo-ledger outside of the nix-shell.
 
-Some options of the manifest file can be configured directly in `Cargo.toml` under a custom section:
+This application is compatible with Ledger Nano S devices running FW 2.1.0 and above. Before installing, please ensure that your device is plugged, unlocked, and on the device home screen. 
 
-```yaml
-[package.metadata.nanos]
-curve = "secp256k1"
-flags = "0x40"
-icon = "btc.gif"
-```
+## Running tests
 
-### Using the pre-packaged tarball (any OS)
-Installing the app from a tarball can be done using `ledgerctl`. For more information on how to install and use that tool see the [instructions from LedgerHQ](https://github.com/LedgerHQ/ledgerctl).
+Using Nix, from the root level of this repo, run:
 ```bash
-tar xzf nano-s-release.tar.gz
-cd nano-s-release
-ledgerctl install -f app.json
-```
-
-## Testing
-
-One can for example use [speculos](https://github.com/LedgerHQ/speculos)
-
-`cargo run --release` defaults to running speculos on the generated binary with the appropriate flags, if `speculos.py` is in your `PATH`.
-
-There is a small test script that sends some of the available commands in `test/test_cmds.py`, or raw APDUs that can be used with `ledgerctl`.
+nix-shell -A ledger-platform.rustShell
+cd rust-app/
+cargo test
+````
