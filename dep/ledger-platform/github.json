@@ -1,8 +1,8 @@
 {
   "owner": "obsidiansystems",
   "repo": "ledger-platform",
-  "branch": "develop",
+  "branch": "dn-ledger-app-nix-code",
   "private": false,
-  "rev": "0ffdd154cae78f31392496169872f93e9f07fe20",
-  "sha256": "1d687wp6jzbxgbmxxmyycyvgyhw0wabd322cikmlrbhf901k90ki"
+  "rev": "b14d48074d429600daf865a6ffbabe17a2c118c4",
+  "sha256": "03dj5a4gp7wp5ydqbg06kcm0f2frr6k1d6p6wffnzwapvf6skx77"
 }
