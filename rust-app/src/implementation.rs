@@ -107,7 +107,7 @@ pub static SIGN_IMPL: SignImplT = Action(
                                     field_args: KadenaCapabilityArgsInterp,
                                     field_name: JsonStringAccumulate::<128>
                                 },
-                            mkfn(|cap : &KadenaCapability<Option<<KadenaCapabilityArgsInterp as JsonInterp<JsonArray<JsonAny>>>::Returning>, Option<ArrayVec<u8, 128>>>, destination: &mut Option<((), bool)>| {
+                            mkfn(|cap : &KadenaCapability<Option<<KadenaCapabilityArgsInterp as ParserCommon<JsonArray<JsonAny>>>::Returning>, Option<ArrayVec<u8, 128>>>, destination: &mut Option<((), bool)>| {
                                 let name = cap.field_name.as_ref()?.as_slice();
                                 let name_utf8 = from_utf8(name).ok()?;
                                 let unknown_cap_header = "Unknown Capability";
@@ -282,24 +282,26 @@ type ThirdArgInterpT = Alt<JsonStringAccumulate<20>, OrDropAny<DecimalInterp<Jso
 pub enum KadenaCapabilityArgsInterpState {
     Start,
     Begin,
-    FirstArgument(<OrDropAny<JsonStringAccumulate<128>> as JsonInterp<Alt<JsonString, JsonAny>>>::State),
+    FirstArgument(<OrDropAny<JsonStringAccumulate<128>> as ParserCommon<Alt<JsonString, JsonAny>>>::State),
     FirstValueSep,
-    SecondArgument(<OrDropAny<JsonStringAccumulate<128>> as JsonInterp<Alt<JsonString, JsonAny>>>::State),
+    SecondArgument(<OrDropAny<JsonStringAccumulate<128>> as ParserCommon<Alt<JsonString, JsonAny>>>::State),
     SecondValueSep,
-    ThirdArgument(<ThirdArgInterpT as JsonInterp<ThirdArgT>>::State),
+    ThirdArgument(<ThirdArgInterpT as ParserCommon<ThirdArgT>>::State),
     ThirdValueSep,
-    FourthArgument(<OrDropAny<JsonStringAccumulate<20>> as JsonInterp<Alt<JsonString, JsonAny>>>::State),
+    FourthArgument(<OrDropAny<JsonStringAccumulate<20>> as ParserCommon<Alt<JsonString, JsonAny>>>::State),
     FourthValueSep,
-    FallbackValue(<DropInterp as JsonInterp<JsonAny>>::State),
+    FallbackValue(<DropInterp as ParserCommon<JsonAny>>::State),
     FallbackValueSep
 }
 
-impl JsonInterp<JsonArray<JsonAny>> for KadenaCapabilityArgsInterp {
-    type State = (KadenaCapabilityArgsInterpState, Option<<DropInterp as JsonInterp<JsonAny>>::Returning>);
+impl ParserCommon<JsonArray<JsonAny>> for KadenaCapabilityArgsInterp {
+    type State = (KadenaCapabilityArgsInterpState, Option<<DropInterp as ParserCommon<JsonAny>>::Returning>);
     type Returning = ( Option<Option<ArrayVec<u8, 128>>>, Option<Option<ArrayVec<u8, 128>>>, Option<AltResult<ArrayVec<u8, 20_usize>, Option<Decimal<Option<ArrayVec<u8, 20_usize>>>>>>, Option<Option<ArrayVec<u8, 20>>> );
     fn init(&self) -> Self::State {
         (KadenaCapabilityArgsInterpState::Start, None)
     }
+}
+impl JsonInterp<JsonArray<JsonAny>> for KadenaCapabilityArgsInterp {
     #[inline(never)]
     fn parse<'a, 'b>(&self, (ref mut state, ref mut scratch): &'b mut Self::State, token: JsonToken<'a>, destination: &mut Option<Self::Returning>) -> Result<(), Option<OOB>> {
         let str_interp = OrDropAny(JsonStringAccumulate::<128>);
@@ -316,7 +318,7 @@ impl JsonInterp<JsonArray<JsonAny>> for KadenaCapabilityArgsInterp {
                     return Ok(());
                 }
                 Begin => {
-                    set_from_thunk(state, || FirstArgument(<OrDropAny<JsonStringAccumulate<128>> as JsonInterp<Alt<JsonString, JsonAny>>>::init(&str_interp)));
+                    set_from_thunk(state, || FirstArgument(<OrDropAny<JsonStringAccumulate<128>> as ParserCommon<Alt<JsonString, JsonAny>>>::init(&str_interp)));
                     continue;
                 }
                 FirstArgument(ref mut s) => {
@@ -324,7 +326,7 @@ impl JsonInterp<JsonArray<JsonAny>> for KadenaCapabilityArgsInterp {
                     set_from_thunk(state, || FirstValueSep);
                 }
                 FirstValueSep if token == JsonToken::ValueSeparator => {
-                    set_from_thunk(state, || SecondArgument(<OrDropAny<JsonStringAccumulate<128>> as JsonInterp<Alt<JsonString, JsonAny>>>::init(&str_interp)));
+                    set_from_thunk(state, || SecondArgument(<OrDropAny<JsonStringAccumulate<128>> as ParserCommon<Alt<JsonString, JsonAny>>>::init(&str_interp)));
                 }
                 FirstValueSep if token == JsonToken::EndArray => return Ok(()),
                 SecondArgument(ref mut s) => {
@@ -332,7 +334,7 @@ impl JsonInterp<JsonArray<JsonAny>> for KadenaCapabilityArgsInterp {
                     set_from_thunk(state, || SecondValueSep);
                 }
                 SecondValueSep if token == JsonToken::ValueSeparator => {
-                    set_from_thunk(state, || ThirdArgument(<ThirdArgInterpT as JsonInterp<ThirdArgT>>::init(&dec_interp)));
+                    set_from_thunk(state, || ThirdArgument(<ThirdArgInterpT as ParserCommon<ThirdArgT>>::init(&dec_interp)));
                 }
                 SecondValueSep if token == JsonToken::EndArray => return Ok(()),
                 ThirdArgument(ref mut s) => {
@@ -340,7 +342,7 @@ impl JsonInterp<JsonArray<JsonAny>> for KadenaCapabilityArgsInterp {
                     set_from_thunk(state, || ThirdValueSep);
                 }
                 ThirdValueSep if token == JsonToken::ValueSeparator => {
-                    set_from_thunk(state, || FourthArgument(<OrDropAny<JsonStringAccumulate<20>> as JsonInterp<Alt<JsonString, JsonAny>>>::init(&f_interp)));
+                    set_from_thunk(state, || FourthArgument(<OrDropAny<JsonStringAccumulate<20>> as ParserCommon<Alt<JsonString, JsonAny>>>::init(&f_interp)));
                 }
                 ThirdValueSep if token == JsonToken::EndArray => return Ok(()),
                 FourthArgument(ref mut s) => {
@@ -350,14 +352,14 @@ impl JsonInterp<JsonArray<JsonAny>> for KadenaCapabilityArgsInterp {
                 FourthValueSep if token == JsonToken::EndArray => return Ok(()),
                 FourthValueSep if token == JsonToken::ValueSeparator => {
                     set_from_thunk(destination, || None);
-                    set_from_thunk(state, || FallbackValue(<DropInterp as JsonInterp<JsonAny>>::init(&DropInterp)));
+                    set_from_thunk(state, || FallbackValue(<DropInterp as ParserCommon<JsonAny>>::init(&DropInterp)));
                 }
                 FallbackValue(ref mut s) => {
                     <DropInterp as JsonInterp<JsonAny>>::parse(&DropInterp, s, token, scratch)?;
                     set_from_thunk(state, || FallbackValueSep);
                 }
                 FallbackValueSep if token == JsonToken::ValueSeparator => {
-                    set_from_thunk(state, || FallbackValue(<DropInterp as JsonInterp<JsonAny>>::init(&DropInterp)));
+                    set_from_thunk(state, || FallbackValue(<DropInterp as ParserCommon<JsonAny>>::init(&DropInterp)));
                 }
                 FallbackValueSep if token == JsonToken::EndArray => {
                     return Ok(());
@@ -375,9 +377,9 @@ impl JsonInterp<JsonArray<JsonAny>> for KadenaCapabilityArgsInterp {
 pub enum ParsersState {
     NoState,
     SettingsState(u8),
-    GetAddressState(<GetAddressImplT as InterpParser<Bip32Key>>::State),
-    SignState(<SignImplT as InterpParser<SignParameters>>::State),
-    SignHashState(<SignHashImplT as InterpParser<SignHashParameters>>::State),
+    GetAddressState(<GetAddressImplT as ParserCommon<Bip32Key>>::State),
+    SignState(<SignImplT as ParserCommon<SignParameters>>::State),
+    SignHashState(<SignHashImplT as ParserCommon<SignHashParameters>>::State),
 }
 
 pub fn reset_parsers_state(state: &mut ParsersState) {
@@ -395,12 +397,12 @@ kadena_cmd_definition!{}
 #[inline(never)]
 pub fn get_get_address_state(
     s: &mut ParsersState,
-) -> &mut <GetAddressImplT as InterpParser<Bip32Key>>::State {
+) -> &mut <GetAddressImplT as ParserCommon<Bip32Key>>::State {
     match s {
         ParsersState::GetAddressState(_) => {}
         _ => {
             info!("Non-same state found; initializing state.");
-            *s = ParsersState::GetAddressState(<GetAddressImplT as InterpParser<Bip32Key>>::init(
+            *s = ParsersState::GetAddressState(<GetAddressImplT as ParserCommon<Bip32Key>>::init(
                 &GET_ADDRESS_IMPL,
             ));
         }
@@ -416,12 +418,12 @@ pub fn get_get_address_state(
 #[inline(never)]
 pub fn get_sign_state(
     s: &mut ParsersState,
-) -> &mut <SignImplT as InterpParser<SignParameters>>::State {
+) -> &mut <SignImplT as ParserCommon<SignParameters>>::State {
     match s {
         ParsersState::SignState(_) => {}
         _ => {
             info!("Non-same state found; initializing state.");
-            *s = ParsersState::SignState(<SignImplT as InterpParser<SignParameters>>::init(
+            *s = ParsersState::SignState(<SignImplT as ParserCommon<SignParameters>>::init(
                 &SIGN_IMPL,
             ));
         }
@@ -437,12 +439,12 @@ pub fn get_sign_state(
 #[inline(never)]
 pub fn get_sign_hash_state(
     s: &mut ParsersState,
-) -> &mut <SignHashImplT as InterpParser<SignHashParameters>>::State {
+) -> &mut <SignHashImplT as ParserCommon<SignHashParameters>>::State {
     match s {
         ParsersState::SignHashState(_) => {}
         _ => {
             info!("Non-same state found; initializing state.");
-            *s = ParsersState::SignHashState(<SignHashImplT as InterpParser<SignHashParameters>>::init(
+            *s = ParsersState::SignHashState(<SignHashImplT as ParserCommon<SignHashParameters>>::init(
                 &SIGN_HASH_IMPL,
             ));
         }
