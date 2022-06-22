@@ -14,6 +14,12 @@ cd kadena
 ledgerctl install -f app.json
 ```
 
+Using nix `ledgerctl` can only so be obtained by running this from the root of the repo.
+
+```
+$(nix-build --no-out-link -A ledger-platform.ledgerctl)/bin/ledgerctl install -f app.json
+```
+
 ## Using the app with generic CLI tool
 
 The bundled `generic-cli` tool can be used to obtaining the public key and do signing.
