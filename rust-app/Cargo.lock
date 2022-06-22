@@ -62,16 +62,16 @@ dependencies = [
  "base64",
  "ledger-log",
  "ledger-parser-combinators",
+ "ledger-prompts-ui",
  "nanos_sdk",
  "nanos_ui",
- "prompts-ui",
  "testmacro",
 ]
 
 [[package]]
 name = "ledger-log"
 version = "0.1.0"
-source = "git+https://github.com/obsidiansystems/ledger-platform#e028b6fdb01754240352dc4877dcb4862bdc42e7"
+source = "git+https://github.com/ea-nasir/ledger-log#4f813daf1099672cafa0cf7794d0b70786407a0e"
 dependencies = [
  "arrayvec",
  "nanos_sdk",
@@ -80,7 +80,7 @@ dependencies = [
 [[package]]
 name = "ledger-parser-combinators"
 version = "0.1.0"
-source = "git+https://github.com/obsidiansystems/ledger-parser-combinators#6479c805fd0fdb220b58f271a9ec9e0375fc5150"
+source = "git+https://github.com/obsidiansystems/ledger-parser-combinators?branch=use-ea-nasir#c89f16fa3cf3608390fe325ab4df7bf377ebc118"
 dependencies = [
  "arrayvec",
  "bstringify",
@@ -89,6 +89,17 @@ dependencies = [
  "log",
  "nanos_sdk",
  "paste",
+]
+
+[[package]]
+name = "ledger-prompts-ui"
+version = "0.1.0"
+source = "git+https://github.com/ea-nasir/ledger-prompts-ui#fd168107ff928130f485b1807c0422e45e818866"
+dependencies = [
+ "arrayvec",
+ "ledger-log",
+ "nanos_sdk",
+ "nanos_ui",
 ]
 
 [[package]]
@@ -140,17 +151,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c7342d5883fbccae1cc37a2353b09c87c9b0f3afd73f5fb9bba687a1f733b029"
 dependencies = [
  "unicode-xid",
-]
-
-[[package]]
-name = "prompts-ui"
-version = "0.1.0"
-source = "git+https://github.com/obsidiansystems/ledger-platform#7fbbc41e6c5d1883f3b00932cef628e320757045"
-dependencies = [
- "arrayvec",
- "ledger-log",
- "nanos_sdk",
- "nanos_ui",
 ]
 
 [[package]]

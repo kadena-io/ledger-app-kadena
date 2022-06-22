@@ -223,6 +223,11 @@ rec {
             packageId = "ledger-parser-combinators";
           }
           {
+            name = "ledger-prompts-ui";
+            packageId = "ledger-prompts-ui";
+            target = { target, features }: ((let p = stdenv.hostPlatform; in p.rustc.config or p.config) == "thumbv6m-none-eabi");
+          }
+          {
             name = "nanos_sdk";
             packageId = "nanos_sdk";
             target = { target, features }: ((let p = stdenv.hostPlatform; in p.rustc.config or p.config) == "thumbv6m-none-eabi");
@@ -230,11 +235,6 @@ rec {
           {
             name = "nanos_ui";
             packageId = "nanos_ui";
-            target = { target, features }: ((let p = stdenv.hostPlatform; in p.rustc.config or p.config) == "thumbv6m-none-eabi");
-          }
-          {
-            name = "prompts-ui";
-            packageId = "prompts-ui";
             target = { target, features }: ((let p = stdenv.hostPlatform; in p.rustc.config or p.config) == "thumbv6m-none-eabi");
           }
         ];
@@ -262,9 +262,9 @@ rec {
         edition = "2018";
         workspace_member = null;
         src = pkgs.fetchgit {
-          url = "https://github.com/obsidiansystems/ledger-platform";
-          rev = "e028b6fdb01754240352dc4877dcb4862bdc42e7";
-          sha256 = "09xz3w0808y9lqsswi0j8q4n4wa9js946kpsca54i3hdw74km91k";
+          url = "https://github.com/ea-nasir/ledger-log";
+          rev = "4f813daf1099672cafa0cf7794d0b70786407a0e";
+          sha256 = "1cfi6k60pnsnpvvcbn6k2ccx29q2pxahwgi3l6vhkm39fm7g6i25";
         };
         dependencies = [
           {
@@ -294,8 +294,8 @@ rec {
         workspace_member = null;
         src = pkgs.fetchgit {
           url = "https://github.com/obsidiansystems/ledger-parser-combinators";
-          rev = "6479c805fd0fdb220b58f271a9ec9e0375fc5150";
-          sha256 = "0cmb7didga8pr8mldkgc8821cimlrxz272fklxa1760qk5zhbqys";
+          rev = "c89f16fa3cf3608390fe325ab4df7bf377ebc118";
+          sha256 = "14ca0wz9bnfdyg8x4myzbcas3nvk6hh73x211clxrwc8qxr1q5lk";
         };
         authors = [
           "Jonathan D.K. Gibbons <jonored@gmail.com>"
@@ -340,6 +340,39 @@ rec {
           "logging" = [ "ledger-log" ];
         };
         resolvedDefaultFeatures = [ "ledger-log" "logging" ];
+      };
+      "ledger-prompts-ui" = rec {
+        crateName = "ledger-prompts-ui";
+        version = "0.1.0";
+        edition = "2018";
+        workspace_member = null;
+        src = pkgs.fetchgit {
+          url = "https://github.com/ea-nasir/ledger-prompts-ui";
+          rev = "fd168107ff928130f485b1807c0422e45e818866";
+          sha256 = "10mqc05pkpyx1n5q1hma5zigijwk2pxfil3hlfx4xd9azfdbv1qf";
+        };
+        dependencies = [
+          {
+            name = "arrayvec";
+            packageId = "arrayvec";
+            usesDefaultFeatures = false;
+          }
+          {
+            name = "ledger-log";
+            packageId = "ledger-log";
+          }
+          {
+            name = "nanos_sdk";
+            packageId = "nanos_sdk";
+          }
+          {
+            name = "nanos_ui";
+            packageId = "nanos_ui";
+          }
+        ];
+        features = {
+          "speculos" = [ "nanos_sdk/speculos" ];
+        };
       };
       "log" = rec {
         crateName = "log";
@@ -465,39 +498,6 @@ rec {
           "default" = [ "proc-macro" ];
         };
         resolvedDefaultFeatures = [ "proc-macro" ];
-      };
-      "prompts-ui" = rec {
-        crateName = "prompts-ui";
-        version = "0.1.0";
-        edition = "2018";
-        workspace_member = null;
-        src = pkgs.fetchgit {
-          url = "https://github.com/obsidiansystems/ledger-platform";
-          rev = "e028b6fdb01754240352dc4877dcb4862bdc42e7";
-          sha256 = "09xz3w0808y9lqsswi0j8q4n4wa9js946kpsca54i3hdw74km91k";
-        };
-        dependencies = [
-          {
-            name = "arrayvec";
-            packageId = "arrayvec";
-            usesDefaultFeatures = false;
-          }
-          {
-            name = "ledger-log";
-            packageId = "ledger-log";
-          }
-          {
-            name = "nanos_sdk";
-            packageId = "nanos_sdk";
-          }
-          {
-            name = "nanos_ui";
-            packageId = "nanos_ui";
-          }
-        ];
-        features = {
-          "speculos" = [ "nanos_sdk/speculos" ];
-        };
       };
       "quote" = rec {
         crateName = "quote";
