@@ -85,22 +85,22 @@ let
         sha512 = "dDnQizD94EdBwEj/fh3zPRa/HWCS9O5au2PuHhZBbuM3xWHxuaKzPBOEWze7Nn0xW68MIpZ7Xdyn1CoCpjKCuQ==";
       };
     };
-    "@jridgewell/resolve-uri-3.0.7" = {
+    "@jridgewell/resolve-uri-3.0.8" = {
       name = "_at_jridgewell_slash_resolve-uri";
       packageName = "@jridgewell/resolve-uri";
-      version = "3.0.7";
+      version = "3.0.8";
       src = fetchurl {
-        url = "https://registry.npmjs.org/@jridgewell/resolve-uri/-/resolve-uri-3.0.7.tgz";
-        sha512 = "8cXDaBBHOr2pQ7j77Y6Vp5VDT2sIqWyWQ56TjEq4ih/a4iST3dItRe8Q9fp0rrIl9DoKhWQtUQz/YpOxLkXbNA==";
+        url = "https://registry.npmjs.org/@jridgewell/resolve-uri/-/resolve-uri-3.0.8.tgz";
+        sha512 = "YK5G9LaddzGbcucK4c8h5tWFmMPBvRZ/uyWmN1/SbBdIvqGUdWGkJ5BAaccgs6XbzVLsqbPJrBSFwKv3kT9i7w==";
       };
     };
-    "@jridgewell/sourcemap-codec-1.4.13" = {
+    "@jridgewell/sourcemap-codec-1.4.14" = {
       name = "_at_jridgewell_slash_sourcemap-codec";
       packageName = "@jridgewell/sourcemap-codec";
-      version = "1.4.13";
+      version = "1.4.14";
       src = fetchurl {
-        url = "https://registry.npmjs.org/@jridgewell/sourcemap-codec/-/sourcemap-codec-1.4.13.tgz";
-        sha512 = "GryiOJmNcWbovBxTfZSF71V/mXbgcV3MewDe3kIMCLyIh5e7SKAeUZs+rMnJ8jkMolZ/4/VsdBmMrw3l+VdZ3w==";
+        url = "https://registry.npmjs.org/@jridgewell/sourcemap-codec/-/sourcemap-codec-1.4.14.tgz";
+        sha512 = "XPSJHWmi394fuUuzDnGz1wiKqWfo1yXecHQMRf2l6hztTO+nPru658AyDngaBe7isIxEkRsPR3FZh+s7iVa4Uw==";
       };
     };
     "@jridgewell/trace-mapping-0.3.9" = {
@@ -1255,14 +1255,14 @@ let
         sha512 = "EC2utToWl4RKfs5zd36Mxq7nzHHBuomZboI0yYL6Y0RmBgT7Sgkq4rQ0ezFTYoIsSs7Tm9SJe+o2FcAg6GBhGA==";
       };
     };
-    "hw-app-kda-git+https://github.com/obsidiansystems/hw-app-kda.git#1ae4d376b6904205ba2dbe7e4c9d7ff63791ea2e" = {
+    "hw-app-kda-git+https://github.com/obsidiansystems/hw-app-kda.git#450ded2fee56ec8e0d37a250ba563d7a574c3c47" = {
       name = "hw-app-kda";
       packageName = "hw-app-kda";
       version = "0.1.0";
       src = fetchgit {
         url = "https://github.com/obsidiansystems/hw-app-kda.git";
-        rev = "1ae4d376b6904205ba2dbe7e4c9d7ff63791ea2e";
-        sha256 = "8206d165166a060e3457c77814d720eee9c75c5e894faf0bcaedcffbd1b04785";
+        rev = "450ded2fee56ec8e0d37a250ba563d7a574c3c47";
+        sha256 = "63f413b5db5bb4f4a029337b752351bce8519cc4923afb7b98ba495699926df2";
       };
     };
     "hw-app-obsidian-common-git+https://github.com/obsidiansystems/hw-app-obsidian-common.git#46376b351e3f917976c9cad880f6bf9dd1bc9392" = {
@@ -2454,13 +2454,13 @@ let
         sha512 = "0fr/mIH1dlO+x7TlcMy+bIDqKPsw/70tVyeHW787goQjhmqaZe10uwLujubK9q9Lg6Fiho1KUKDYz0Z7k7g5/g==";
       };
     };
-    "typedoc-0.22.17" = {
+    "typedoc-0.22.18" = {
       name = "typedoc";
       packageName = "typedoc";
-      version = "0.22.17";
+      version = "0.22.18";
       src = fetchurl {
-        url = "https://registry.npmjs.org/typedoc/-/typedoc-0.22.17.tgz";
-        sha512 = "h6+uXHVVCPDaANzjwzdsj9aePBjZiBTpiMpBBeyh1zcN2odVsDCNajz8zyKnixF93HJeGpl34j/70yoEE5BfNg==";
+        url = "https://registry.npmjs.org/typedoc/-/typedoc-0.22.18.tgz";
+        sha512 = "NK9RlLhRUGMvc6Rw5USEYgT4DVAUFk7IF7Q6MYfpJ88KnTZP7EneEa4RcP+tX1auAcz7QT1Iy0bUSZBYYHdoyA==";
       };
     };
     "typescript-4.6.4" = {
@@ -2780,8 +2780,8 @@ let
       sources."@cspotcode/source-map-support-0.8.1"
       sources."@dabh/diagnostics-2.0.3"
       sources."@exodus/schemasafe-1.0.0-rc.6"
-      sources."@jridgewell/resolve-uri-3.0.7"
-      sources."@jridgewell/sourcemap-codec-1.4.13"
+      sources."@jridgewell/resolve-uri-3.0.8"
+      sources."@jridgewell/sourcemap-codec-1.4.14"
       sources."@jridgewell/trace-mapping-0.3.9"
       sources."@jsdevtools/ono-7.1.3"
       sources."@ledgerhq/devices-6.27.1"
@@ -2926,7 +2926,7 @@ let
       sources."hash-base-3.1.0"
       sources."he-1.2.0"
       sources."http2-client-1.3.5"
-      sources."hw-app-kda-git+https://github.com/obsidiansystems/hw-app-kda.git#1ae4d376b6904205ba2dbe7e4c9d7ff63791ea2e"
+      sources."hw-app-kda-git+https://github.com/obsidiansystems/hw-app-kda.git#450ded2fee56ec8e0d37a250ba563d7a574c3c47"
       sources."hw-app-obsidian-common-git+https://github.com/obsidiansystems/hw-app-obsidian-common.git#46376b351e3f917976c9cad880f6bf9dd1bc9392"
       sources."inflight-1.0.6"
       sources."inherits-2.0.4"
@@ -3080,7 +3080,7 @@ let
       })
       sources."tslib-1.14.1"
       sources."type-detect-4.0.8"
-      sources."typedoc-0.22.17"
+      sources."typedoc-0.22.18"
       sources."typescript-4.7.4"
       sources."uglify-js-3.16.1"
       sources."unbox-primitive-1.0.2"
