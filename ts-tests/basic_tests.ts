@@ -637,13 +637,15 @@ function testSignHash(path: string, hash: string, prompts: any[]) {
        await sendCommandAndAccept(
          async (kda : Kda) => {
            let pubkey = (await kda.getPublicKey(path)).publicKey;
-           await Axios.delete("http://localhost:5000/events");
-
            await toggleHashSettings();
+           await Axios.delete("http://localhost:5000/events");
            let rv = await kda.signHash(path, hash);
            expect(rv.signature.length).to.equal(128);
-           let pass = nacl.crypto_sign_verify_detached(Buffer.from(rv.signature, 'hex'), Buffer.from(hash, 'hex'), Buffer.from(pubkey, 'hex'));
+           const rawHash = hash.length == 64 ? Buffer.from(hash, "hex") : Buffer.from(hash, "base64");
+           let pass = nacl.crypto_sign_verify_detached(Buffer.from(rv.signature, 'hex'), rawHash, Buffer.from(pubkey, 'hex'));
            expect(pass).to.equal(true);
+           // reset setting
+           await toggleHashSettings();
          }, prompts);
      }
 }
@@ -664,6 +666,7 @@ function testSignHashFail2(path: string, hash: string) {
         // Enable and then disable
         await toggleHashSettings();
         await toggleHashSettings();
+        await Axios.delete("http://localhost:5000/events");
         await kda.signHash(path, hash);
       });
   }
@@ -676,7 +679,6 @@ let toggleHashSettings = async function() {
   await Axios.post("http://localhost:5000/button/both", {"action":"press-and-release"});
   await Axios.post("http://localhost:5000/button/right", {"action":"press-and-release"});
   await Axios.post("http://localhost:5000/button/both", {"action":"press-and-release"});
-  await Axios.delete("http://localhost:5000/events");
 }
 
 describe('Hash Signing Tests', function() {
@@ -694,6 +696,26 @@ describe('Hash Signing Tests', function() {
      testSignHash(
        "0/0",
        'ffd8cd79deb956fa3c7d9be0f836f20ac84b140168a087a842be4760e40e2b1c',
+       [
+         { "header": "Signing", "prompt": "Transaction Hash" },
+         { "header": "Transaction hash", "prompt": "_9jNed65Vvo8fZvg-DbyCshLFAFooIeoQr5HYOQOKxw" },
+         { "header": "Sign for Address", "prompt": "ffd8cd79deb956fa3c7d9be0f836f20ac84b140168a087a842be4760e40e2b1c" },
+         {
+           "text": "Sign Transaction Hash?",
+           "x": 4,
+           "y": 11,
+         },
+         {
+           "text": "Confirm",
+           "x": 43,
+           "y": 11,
+         }
+       ]
+     ));
+  it("can sign a hash after enabling settings with base64 encoding",
+     testSignHash(
+       "0/0",
+       '_9jNed65Vvo8fZvg-DbyCshLFAFooIeoQr5HYOQOKxw',
        [
          { "header": "Signing", "prompt": "Transaction Hash" },
          { "header": "Transaction hash", "prompt": "_9jNed65Vvo8fZvg-DbyCshLFAFooIeoQr5HYOQOKxw" },
