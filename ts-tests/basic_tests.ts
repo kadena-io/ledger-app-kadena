@@ -211,7 +211,7 @@ describe("Signing tests", function() {
          { "header": "Requiring", "prompt": "Capabilities" },
          { "header": "Of Key", "prompt": "83934c0f9b005f378ba3520f9dea952fb0a90e5aa36f1b5ff837d9b30c471790" },
          { "header": "Paying Gas", "prompt": " " },
-         { "header": "Transfer 1", "prompt": "11 from 83934c0f9b005f378ba3520f9dea952fb0a90e5aa36f1b5ff837d9b30c471790 to 9790d119589a26114e1a42d92598b3f632551c566819ec48e0e8c54dae6ebb42" },
+         { "header": "Transfer 1", "prompt": "11 from \"83934c0f9b005f378ba3520f9dea952fb0a90e5aa36f1b5ff837d9b30c471790\" to \"9790d119589a26114e1a42d92598b3f632551c566819ec48e0e8c54dae6ebb42\"" },
          { "header": "On Chain", "prompt": "0" },
          { "header": "Using Gas", "prompt": "at most 600 at price 1.0e-5" },
          { "header": "Transaction hash", "prompt": "fPSCfMUaoK1N31qwhwBFUPwG-YR_guPP894uixsNZgk" },
@@ -239,7 +239,7 @@ describe("Signing tests", function() {
             { "header": "Of Key", "prompt": "aab7d3e457f3f78480832d6ac4ace7387f460620a63a5b68c8c799d6bff1566a" },
             {
               "header": "Transfer 1",
-              "prompt": "2 from aab7d3e457f3f78480832d6ac4ace7387f460620a63a5b68c8c799d6bff1566a to 4c310df6224d674d80463a29cde00cb0ecfb71e0cfdce494243a61b8ea572dfd",
+              "prompt": "2 from \"aab7d3e457f3f78480832d6ac4ace7387f460620a63a5b68c8c799d6bff1566a\" to \"4c310df6224d674d80463a29cde00cb0ecfb71e0cfdce494243a61b8ea572dfd\"",
             },
             {
               "header": "Paying Gas",
@@ -277,7 +277,7 @@ describe("Signing tests", function() {
             { "header": "Of Key", "prompt": "aab7d3e457f3f78480832d6ac4ace7387f460620a63a5b68c8c799d6bff1566a" },
             {
               "header": "Transfer 1",
-              "prompt": "123456789.0123456789 from aab7d3e457f3f78480832d6ac4ace7387f460620a63a5b68c8c799d6bff1566a to 4c310df6224d674d80463a29cde00cb0ecfb71e0cfdce494243a61b8ea572dfd",
+              "prompt": "{\"decimal\":\"123456789.0123456789\"} from \"aab7d3e457f3f78480832d6ac4ace7387f460620a63a5b68c8c799d6bff1566a\" to \"4c310df6224d674d80463a29cde00cb0ecfb71e0cfdce494243a61b8ea572dfd\"",
             },
             {
               "header": "Paying Gas",
@@ -319,7 +319,7 @@ describe("Signing tests", function() {
          },
          {
            "header": "Transfer 1",
-           "prompt": "4.98340488 from e4a1b2980c086c4551ab7d2148cf56e9774c64eb86f795d5fd83e39ccfd2ec66 to 875e4493e19c8721583bfb46f0768f10266ebcca33c4a0e04bc099a7044a90f7",
+           "prompt": "4.98340488 from \"e4a1b2980c086c4551ab7d2148cf56e9774c64eb86f795d5fd83e39ccfd2ec66\" to \"875e4493e19c8721583bfb46f0768f10266ebcca33c4a0e04bc099a7044a90f7\"",
          },
          { "header": "On Chain", "prompt": "0" },
          { "header": "Using Gas", "prompt": "at most 60000 at price 1.0e-6" },
@@ -365,7 +365,7 @@ describe("Signing tests", function() {
          },
          {
            "header": "Transfer 1",
-           "prompt": "4.89093455 from 73580ffb3e5ca9859442395d4c1cb0bf3aa4e7246564ce943b7ae508b3ee7c03 to 875e4493e19c8721583bfb46f0768f10266ebcca33c4a0e04bc099a7044a90f7",
+           "prompt": "4.89093455 from \"73580ffb3e5ca9859442395d4c1cb0bf3aa4e7246564ce943b7ae508b3ee7c03\" to \"875e4493e19c8721583bfb46f0768f10266ebcca33c4a0e04bc099a7044a90f7\"",
          },
          { "header": "On Chain", "prompt": "0" },
          { "header": "Using Gas", "prompt": "at most 60000 at price 1.0e-6" },
@@ -404,7 +404,7 @@ describe("Signing tests", function() {
          },
          {
            "header": "Rotate for account",
-           "prompt": "d3300d284f4bcfbc91555184ef026a356e57ff0fa97b5e6c9830750892cd3093",
+           "prompt": "\"d3300d284f4bcfbc91555184ef026a356e57ff0fa97b5e6c9830750892cd3093\"",
          },
          { "header": "On Chain", "prompt": "0" },
          { "header": "Using Gas", "prompt": "at most 1500 at price 1.0e-5" },
@@ -490,7 +490,7 @@ describe("Signing tests", function() {
               },
               {
                 "header": "Transfer 1",
-                "prompt": "2 from k:b9ac3ca5559cc6f394ea0e31c11be16efd6c6ff6804b98ce7cee496bcca96164 to k:dfdb3896919544490637c0fd2f34f8bf4463d416fbd915990c8a136b1a970ca5",
+                "prompt": "2 from \"k:b9ac3ca5559cc6f394ea0e31c11be16efd6c6ff6804b98ce7cee496bcca96164\" to \"k:dfdb3896919544490637c0fd2f34f8bf4463d416fbd915990c8a136b1a970ca5\"",
               },
               {
                 "header": "Of Key",
@@ -541,7 +541,7 @@ describe("Signing tests", function() {
               },
               {
                 "header": "Transfer 1",
-                "prompt": "Cross-chain 1.0 from k:ffd8cd79deb956fa3c7d9be0f836f20ac84b140168a087a842be4760e40e2b1c to k:ffd8cd79deb956fa3c7d9be0f836f20ac84b140168a087a842be4760e40e2b1c to chain 0",
+                "prompt": "Cross-chain 1.0 from \"k:ffd8cd79deb956fa3c7d9be0f836f20ac84b140168a087a842be4760e40e2b1c\" to \"k:ffd8cd79deb956fa3c7d9be0f836f20ac84b140168a087a842be4760e40e2b1c\" to chain \"0\"",
               },
               { "header": "On Chain", "prompt": "1" },
               { "header": "Using Gas", "prompt": "at most 600 at price 0.00001" },
@@ -588,7 +588,7 @@ describe("Signing tests", function() {
               },
               {
                 "header": "Transfer 1",
-                "prompt": "Cross-chain 123456789.0123456789 from k:ffd8cd79deb956fa3c7d9be0f836f20ac84b140168a087a842be4760e40e2b1c to k:ffd8cd79deb956fa3c7d9be0f836f20ac84b140168a087a842be4760e40e2b1c to chain 0",
+                "prompt": "Cross-chain {\"decimal\":\"123456789.0123456789\"} from \"k:ffd8cd79deb956fa3c7d9be0f836f20ac84b140168a087a842be4760e40e2b1c\" to \"k:ffd8cd79deb956fa3c7d9be0f836f20ac84b140168a087a842be4760e40e2b1c\" to chain \"0\"",
               },
               { "header": "On Chain", "prompt": "1" },
               { "header": "Using Gas", "prompt": "at most 600 at price 0.00001" },
@@ -623,19 +623,19 @@ describe("Signing tests", function() {
             { "header": "Of Key", "prompt": "aab7d3e457f3f78480832d6ac4ace7387f460620a63a5b68c8c799d6bff1566a" },
             {
               "header": "Transfer 1",
-              "prompt": "1 from aab7d3e457f3f78480832d6ac4ace7387f460620a63a5b68c8c799d6bff1566a to 4c310df6224d674d80463a29cde00cb0ecfb71e0cfdce494243a61b8ea572dfa",
+              "prompt": "1 from \"aab7d3e457f3f78480832d6ac4ace7387f460620a63a5b68c8c799d6bff1566a\" to \"4c310df6224d674d80463a29cde00cb0ecfb71e0cfdce494243a61b8ea572dfa\"",
             },
             {
               "header": "Transfer 2",
-              "prompt": "2 from aab7d3e457f3f78480832d6ac4ace7387f460620a63a5b68c8c799d6bff1566a to 4c310df6224d674d80463a29cde00cb0ecfb71e0cfdce494243a61b8ea572dfb",
+              "prompt": "2 from \"aab7d3e457f3f78480832d6ac4ace7387f460620a63a5b68c8c799d6bff1566a\" to \"4c310df6224d674d80463a29cde00cb0ecfb71e0cfdce494243a61b8ea572dfb\"",
             },
             {
               "header": "Transfer 3",
-              "prompt": "3 from aab7d3e457f3f78480832d6ac4ace7387f460620a63a5b68c8c799d6bff1566a to 4c310df6224d674d80463a29cde00cb0ecfb71e0cfdce494243a61b8ea572dfc",
+              "prompt": "3 from \"aab7d3e457f3f78480832d6ac4ace7387f460620a63a5b68c8c799d6bff1566a\" to \"4c310df6224d674d80463a29cde00cb0ecfb71e0cfdce494243a61b8ea572dfc\"",
             },
             {
               "header": "Transfer 4",
-              "prompt": "4 from aab7d3e457f3f78480832d6ac4ace7387f460620a63a5b68c8c799d6bff1566a to 4c310df6224d674d80463a29cde00cb0ecfb71e0cfdce494243a61b8ea572dfd",
+              "prompt": "4 from \"aab7d3e457f3f78480832d6ac4ace7387f460620a63a5b68c8c799d6bff1566a\" to \"4c310df6224d674d80463a29cde00cb0ecfb71e0cfdce494243a61b8ea572dfd\"",
             },
             {
               "header": "Paying Gas",
@@ -673,19 +673,19 @@ describe("Signing tests", function() {
             { "header": "Of Key", "prompt": "aab7d3e457f3f78480832d6ac4ace7387f460620a63a5b68c8c799d6bff1566a" },
             {
               "header": "Transfer 1",
-              "prompt": "1 from aab7d3e457f3f78480832d6ac4ace7387f460620a63a5b68c8c799d6bff1566a to 4c310df6224d674d80463a29cde00cb0ecfb71e0cfdce494243a61b8ea572dfa",
+              "prompt": "1 from \"aab7d3e457f3f78480832d6ac4ace7387f460620a63a5b68c8c799d6bff1566a\" to \"4c310df6224d674d80463a29cde00cb0ecfb71e0cfdce494243a61b8ea572dfa\"",
             },
             {
               "header": "Transfer 2",
-              "prompt": "Cross-chain 2 from aab7d3e457f3f78480832d6ac4ace7387f460620a63a5b68c8c799d6bff1566a to 4c310df6224d674d80463a29cde00cb0ecfb71e0cfdce494243a61b8ea572dfb to chain 3",
+              "prompt": "Cross-chain 2 from \"aab7d3e457f3f78480832d6ac4ace7387f460620a63a5b68c8c799d6bff1566a\" to \"4c310df6224d674d80463a29cde00cb0ecfb71e0cfdce494243a61b8ea572dfb\" to chain \"3\"",
             },
             {
               "header": "Transfer 3",
-              "prompt": "Cross-chain 3 from aab7d3e457f3f78480832d6ac4ace7387f460620a63a5b68c8c799d6bff1566a to 4c310df6224d674d80463a29cde00cb0ecfb71e0cfdce494243a61b8ea572dfc to chain 2",
+              "prompt": "Cross-chain 3 from \"aab7d3e457f3f78480832d6ac4ace7387f460620a63a5b68c8c799d6bff1566a\" to \"4c310df6224d674d80463a29cde00cb0ecfb71e0cfdce494243a61b8ea572dfc\" to chain \"2\"",
             },
             {
               "header": "Transfer 4",
-              "prompt": "4 from aab7d3e457f3f78480832d6ac4ace7387f460620a63a5b68c8c799d6bff1566a to 4c310df6224d674d80463a29cde00cb0ecfb71e0cfdce494243a61b8ea572dfd",
+              "prompt": "4 from \"aab7d3e457f3f78480832d6ac4ace7387f460620a63a5b68c8c799d6bff1566a\" to \"4c310df6224d674d80463a29cde00cb0ecfb71e0cfdce494243a61b8ea572dfd\"",
             },
             {
               "header": "Paying Gas",
@@ -859,7 +859,7 @@ describe("Capability Signing tests", function() {
          { "header": "Requiring", "prompt": "Capabilities" },
          { "header": "Of Key", "prompt": "83934c0f9b005f378ba3520f9dea952fb0a90e5aa36f1b5ff837d9b30c471790" },
          { "header": "Paying Gas", "prompt": " " },
-         { "header": "Unknown Capability 1", "prompt": "name: mycoin.MY_TRANSFER, arg 1: '83934c0f9b005f378ba3520f9dea952fb0a90e5aa36f1b5ff837d9b30c471790'" },
+         { "header": "Unknown Capability 1", "prompt": "name: mycoin.MY_TRANSFER, arg 1: \"83934c0f9b005f378ba3520f9dea952fb0a90e5aa36f1b5ff837d9b30c471790\"" },
          { "header": "On Chain", "prompt": "0" },
          { "header": "Using Gas", "prompt": "at most 600 at price 1.0e-5" },
          { "header": "Transaction hash", "prompt": "kQqVYwYzDNSKqcRwJ3Yd4xgG2UW9j2sdcupQx-T6XEY" },
@@ -887,7 +887,7 @@ describe("Capability Signing tests", function() {
          { "header": "Requiring", "prompt": "Capabilities" },
          { "header": "Of Key", "prompt": "83934c0f9b005f378ba3520f9dea952fb0a90e5aa36f1b5ff837d9b30c471790" },
          { "header": "Paying Gas", "prompt": " " },
-         { "header": "Unknown Capability 1", "prompt": "name: mycoin.MY_TRANSFER, arg 1: '83934c0f9b005f378ba3520f9dea952fb0a90e5aa36f1b5ff837d9b30c471790', arg 2: 'second arg'" },
+         { "header": "Unknown Capability 1", "prompt": "name: mycoin.MY_TRANSFER, arg 1: \"83934c0f9b005f378ba3520f9dea952fb0a90e5aa36f1b5ff837d9b30c471790\", arg 2: \"second arg\"" },
          { "header": "On Chain", "prompt": "0" },
          { "header": "Using Gas", "prompt": "at most 600 at price 1.0e-5" },
          { "header": "Transaction hash", "prompt": "ONXn9kz2V9InGB-RddO3kUCy-GHQOEs8jRYqO2vzxuY" },
@@ -915,7 +915,7 @@ describe("Capability Signing tests", function() {
          { "header": "Requiring", "prompt": "Capabilities" },
          { "header": "Of Key", "prompt": "83934c0f9b005f378ba3520f9dea952fb0a90e5aa36f1b5ff837d9b30c471790" },
          { "header": "Paying Gas", "prompt": " " },
-         { "header": "Unknown Capability 1", "prompt": "name: mycoin.MY_TRANSFER, arg 1: '83934c0f9b005f378ba3520f9dea952fb0a90e5aa36f1b5ff837d9b30c471790', arg 2: 'second arg', arg 3: 22.2" },
+         { "header": "Unknown Capability 1", "prompt": "name: mycoin.MY_TRANSFER, arg 1: \"83934c0f9b005f378ba3520f9dea952fb0a90e5aa36f1b5ff837d9b30c471790\", arg 2: \"second arg\", arg 3: 22.2" },
          { "header": "On Chain", "prompt": "0" },
          { "header": "Using Gas", "prompt": "at most 600 at price 1.0e-5" },
          { "header": "Transaction hash", "prompt": "OEV1W2Adz7vvU3qYzV9V48pDhxRdFDi2KG4JXx73WTA" },
@@ -972,13 +972,12 @@ describe("Capability Signing tests", function() {
          { "header": "Of Key", "prompt": "83934c0f9b005f378ba3520f9dea952fb0a90e5aa36f1b5ff837d9b30c471790" },
          { "header": "Paying Gas", "prompt": " " },
          { "header": "Unknown Capability 1", "prompt": "name: mycoin.MY_TRANSFER0, no args" },
-         { "header": "Unknown Capability 2", "prompt": "name: mycoin.MY_TRANSFER1, arg 1: '83934c0f9b005f378ba3520f9dea952fb0a90e5aa36f1b5ff837d9b30c471790'" },
-         { "header": "Unknown Capability 3", "prompt": "name: mycoin.MY_TRANSFER2, arg 1: '83934c0f9b005f378ba3520f9dea952fb0a90e5aa36f1b5ff837d9b30c471790', arg 2: 'second arg'" },
-         { "header": "Unknown Capability 4", "prompt": "name: mycoin.MY_TRANSFER3, arg 1: '83934c0f9b005f378ba3520f9dea952fb0a90e5aa36f1b5ff837d9b30c471790', arg 2: 'second arg', arg 3: 22.2" },
-         { "header": "Unknown Capability 5", "prompt": "name: mycoin.MY_TRANSFER4, args cannot be displayed on Ledger" },
+         { "header": "Unknown Capability 2", "prompt": "name: mycoin.MY_TRANSFER1, arg 1: \"83934c0f9b005f378ba3520f9dea952fb0a90e5aa36f1b5ff837d9b30c471790\"" },
+         { "header": "Unknown Capability 3", "prompt": "name: mycoin.MY_TRANSFER2, arg 1: \"83934c0f9b005f378ba3520f9dea952fb0a90e5aa36f1b5ff837d9b30c471790\", arg 2: \"second arg\"" },
+         { "header": "Unknown Capability 4", "prompt": "name: mycoin.MY_TRANSFER3, arg 1: \"83934c0f9b005f378ba3520f9dea952fb0a90e5aa36f1b5ff837d9b30c471790\", arg 2: \"second arg\", arg 3: 22.2" },
+         { "header": "Unknown Capability 5", "prompt": "name: mycoin.MY_TRANSFER4, arg 1: \"83934c0f9b005f378ba3520f9dea952fb0a90e5aa36f1b5ff837d9b30c471790\", arg 2: \"second arg\", arg 3: 5000, arg 4: 22.2" },
          { "header": "On Chain", "prompt": "0" },
          { "header": "Using Gas", "prompt": "at most 600 at price 1.0e-5" },
-         { "header": "WARNING", "prompt": WARNING_FOR_CAP_NOT_SHOWN },
          { "header": "Transaction hash", "prompt": "QJDO0ks635Xpnq2GC85cqoQUxLgESujMgun7NUgrf5E" },
          { "header": "Sign for Address", "prompt": "ffd8cd79deb956fa3c7d9be0f836f20ac84b140168a087a842be4760e40e2b1c" },
          {
@@ -1005,10 +1004,10 @@ describe("Capability Signing tests", function() {
          { "header": "Of Key", "prompt": "83934c0f9b005f378ba3520f9dea952fb0a90e5aa36f1b5ff837d9b30c471790" },
          { "header": "Paying Gas", "prompt": " " },
          { "header": "Unknown Capability 1", "prompt": "name: mycoin.MY_TRANSFER0, no args" },
-         { "header": "Unknown Capability 2", "prompt": "name: mycoin.MY_TRANSFER1, arg 1: '83934c0f9b005f378ba3520f9dea952fb0a90e5aa36f1b5ff837d9b30c471790'" },
-         { "header": "Transfer 1", "prompt": "4 from 83934c0f9b005f378ba3520f9dea952fb0a90e5aa36f1b5ff837d9b30c471790 to 83934c0f9b005f378ba3520f9dea952fb0a90e5aa36f1b5ff837d9b30c471791"},
-         { "header": "Transfer 2", "prompt": "Cross-chain 22.2 from 83934c0f9b005f378ba3520f9dea952fb0a90e5aa36f1b5ff837d9b30c471790 to 83934c0f9b005f378ba3520f9dea952fb0a90e5aa36f1b5ff837d9b30c471791 to chain 4"},
-         { "header": "Unknown Capability 3", "prompt": "name: mycoin.MY_TRANSFER4, arg 1: '83934c0f9b005f378ba3520f9dea952fb0a90e5aa36f1b5ff837d9b30c471790', arg 2: '83934c0f9b005f378ba3520f9dea952fb0a90e5aa36f1b5ff837d9b30c471792', arg 3: 5000, arg 4: '0'" },
+         { "header": "Unknown Capability 2", "prompt": "name: mycoin.MY_TRANSFER1, arg 1: \"83934c0f9b005f378ba3520f9dea952fb0a90e5aa36f1b5ff837d9b30c471790\"" },
+         { "header": "Transfer 1", "prompt": "4 from \"83934c0f9b005f378ba3520f9dea952fb0a90e5aa36f1b5ff837d9b30c471790\" to \"83934c0f9b005f378ba3520f9dea952fb0a90e5aa36f1b5ff837d9b30c471791\""},
+         { "header": "Transfer 2", "prompt": "Cross-chain 22.2 from \"83934c0f9b005f378ba3520f9dea952fb0a90e5aa36f1b5ff837d9b30c471790\" to \"83934c0f9b005f378ba3520f9dea952fb0a90e5aa36f1b5ff837d9b30c471791\" to chain \"4\""},
+         { "header": "Unknown Capability 3", "prompt": "name: mycoin.MY_TRANSFER4, arg 1: \"83934c0f9b005f378ba3520f9dea952fb0a90e5aa36f1b5ff837d9b30c471790\", arg 2: \"83934c0f9b005f378ba3520f9dea952fb0a90e5aa36f1b5ff837d9b30c471792\", arg 3: 5000, arg 4: \"0\"" },
          { "header": "On Chain", "prompt": "0" },
          { "header": "Using Gas", "prompt": "at most 600 at price 1.0e-5" },
          { "header": "Transaction hash", "prompt": "yMXcVG1vcnLrbtdiKHI1MAYgrBgoDqr15YSRID70DyU" },
