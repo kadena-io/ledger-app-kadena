@@ -444,8 +444,8 @@ rec {
         workspace_member = null;
         src = pkgs.fetchgit {
           url = "https://github.com/ea-nasir/ledger-prompts-ui";
-          rev = "fd168107ff928130f485b1807c0422e45e818866";
-          sha256 = "10mqc05pkpyx1n5q1hma5zigijwk2pxfil3hlfx4xd9azfdbv1qf";
+          rev = "4a669e4a21e38cbeb2588a405ca726af3908cd88";
+          sha256 = "1yar3ysszhbxif6iqjss2jj9ah2cz37rhhpmadcg386wsbrg4hg7";
         };
         dependencies = [
           {

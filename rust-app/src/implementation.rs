@@ -1,6 +1,7 @@
 use crate::crypto_helpers::{eddsa_sign, get_pkh, get_private_key, get_pubkey, get_pubkey_from_privkey, Hasher, Hash};
 use crate::interface::*;
 use crate::*;
+use arrayvec::ArrayString;
 use arrayvec::ArrayVec;
 use core::fmt::Write;
 use ledger_log::{info};
@@ -9,7 +10,7 @@ use ledger_parser_combinators::interp_parser::{
 };
 use ledger_parser_combinators::json::Json;
 use ledger_parser_combinators::core_parsers::Alt;
-use ledger_prompts_ui::{write_scroller, final_accept_prompt};
+use ledger_prompts_ui::{write_scroller, final_accept_prompt, mk_prompt_write};
 
 use ledger_parser_combinators::define_json_struct_interp;
 use ledger_parser_combinators::json_interp::AltResult::*;
@@ -22,6 +23,9 @@ use core::str::from_utf8;
 // A couple type ascription functions to help the compiler along.
 const fn mkfn<A,B>(q: fn(&A,&mut B)->Option<()>) -> fn(&A,&mut B)->Option<()> {
   q
+}
+const fn mkfnc<A,B,C>(q: fn(&A,&mut B,C)->Option<()>) -> fn(&A,&mut B,C)->Option<()> {
+    q
 }
 const fn mkvfn<A>(q: fn(&A,&mut Option<()>)->Option<()>) -> fn(&A,&mut Option<()>)->Option<()> {
   q
@@ -102,77 +106,11 @@ pub static SIGN_IMPL: SignImplT = Action(
                             write_scroller("Of Key", |w| Ok(write!(w, "{}", from_utf8(key.as_slice())?)?))
                         })),
                         field_addr: DropInterp,
-                        field_clist: SubInterpM::<_, (Count, All)>::new(Action(
-                                KadenaCapabilityInterp {
-                                    field_args: KadenaCapabilityArgsInterp,
-                                    field_name: JsonStringAccumulate::<128>
-                                },
-                            mkfn(|cap : &KadenaCapability<Option<<KadenaCapabilityArgsInterp as ParserCommon<JsonArray<JsonAny>>>::Returning>, Option<ArrayVec<u8, 128>>>, destination: &mut Option<((), bool)>| {
-                                let name = cap.field_name.as_ref()?.as_slice();
-                                let name_utf8 = from_utf8(name).ok()?;
-                                let unknown_cap_header = "Unknown Capability";
-                                let transfer_prompt = |(sender, receiver, amount):(&ArrayVec<u8, 128>, &ArrayVec<u8, 128>, &ArrayVec<u8, 20>)| -> Option<()> {
-                                    write_scroller("Transfer", |w| Ok(write!(w, "{} from {} to {}", from_utf8(amount.as_slice())?, from_utf8(sender.as_slice())?, from_utf8(receiver.as_slice())?)?))?;
-                                    Some(())
-                                };
-                                let cross_transfer_prompt = |(sender, receiver, amount, target_chain):(&ArrayVec<u8, 128>, &ArrayVec<u8, 128>, &ArrayVec<u8, 20>, &ArrayVec<u8, 20>)| -> Option<()> {
-                                    write_scroller("Transfer", |w| Ok(write!(w, "Cross-chain {} from {} to {} to chain {}", from_utf8(amount.as_slice())?, from_utf8(sender.as_slice())?, from_utf8(receiver.as_slice())?, from_utf8(target_chain.as_slice())?)?))?;
-                                    Some(())
-                                };
-
-                                trace!("Prompting for capability");
-                                *destination = Some(((), true));
-                                match cap.field_args.as_ref() {
-                                    Some((None, None, None, None)) if name == b"coin.GAS" => {
-                                        write_scroller("Paying Gas", |w| Ok(write!(w, " ")?))?;
-                                        trace!("Accepted gas");
-                                    }
-                                    _ if name == b"coin.GAS" => { return None; }
-                                    Some((Some(Some(acct)), None, None, None)) if name == b"coin.ROTATE" => {
-                                        write_scroller("Rotate for account", |w| Ok(write!(w, "{}", from_utf8(acct.as_slice())?)?))?;
-                                    }
-                                    _ if name == b"coin.ROTATE" => { return None; }
-                                    Some((Some(Some(sender)), Some(Some(receiver)), Some(First(amount)), None)) if name == b"coin.TRANSFER" => {
-                                        transfer_prompt((sender, receiver, amount));
-                                    }
-                                    Some((Some(Some(sender)), Some(Some(receiver)), Some(Second(Some(Decimal{field_decimal:Some (amount)}))), None)) if name == b"coin.TRANSFER" => {
-                                        transfer_prompt((sender, receiver, amount));
-                                    }
-                                    _ if name == b"coin.TRANSFER" => { return None; }
-                                    Some((Some(Some(sender)), Some(Some(receiver)), Some(First(amount)), Some(Some(target_chain)))) if name == b"coin.TRANSFER_XCHAIN" => {
-                                        cross_transfer_prompt((sender, receiver, amount, target_chain));
-                                    }
-                                    Some((Some(Some(sender)), Some(Some(receiver)), Some(Second(Some(Decimal{field_decimal:Some (amount)}))), Some(Some(target_chain)))) if name == b"coin.TRANSFER_XCHAIN" => {
-                                        cross_transfer_prompt((sender, receiver, amount, target_chain));
-                                    }
-                                    _ if name == b"coin.TRANSFER_XCHAIN" => { return None; }
-                                    Some((None, None, None, None)) => {
-                                        write_scroller(unknown_cap_header, |w| Ok(write!(w, "name: {}, no args", name_utf8)?))?;
-                                    }
-                                    Some((Some(Some(arg1)), None, None, None)) => {
-                                        write_scroller(unknown_cap_header, |w| Ok(write!(w, "name: {}, arg 1: '{}'", name_utf8, from_utf8(arg1.as_slice())?)?))?;
-                                    }
-                                    Some((Some(Some(arg1)), Some(Some(arg2)), None, None)) => {
-                                        write_scroller(unknown_cap_header, |w| Ok(write!(w, "name: {}, arg 1: '{}', arg 2: '{}'", name_utf8, from_utf8(arg1.as_slice())?, from_utf8(arg2.as_slice())?)?))?;
-                                    }
-                                    Some((Some(Some(arg1)), Some(Some(arg2)), Some(First(arg3)), None)) => {
-                                        write_scroller(unknown_cap_header, |w| Ok(write!(w, "name: {}, arg 1: '{}', arg 2: '{}', arg 3: {}", name_utf8, from_utf8(arg1.as_slice())?, from_utf8(arg2.as_slice())?, from_utf8(arg3.as_slice())?)?))?;
-                                    }
-                                    Some((Some(Some(arg1)), Some(Some(arg2)), Some(First(arg3)), Some(Some(arg4)))) => {
-                                        write_scroller(unknown_cap_header, |w| Ok(write!(w, "name: {}, arg 1: '{}', arg 2: '{}', arg 3: {}, arg 4: '{}'", name_utf8, from_utf8(arg1.as_slice())?, from_utf8(arg2.as_slice())?, from_utf8(arg3.as_slice())?, from_utf8(arg4.as_slice())?)?))?;
-                                    }
-                                    _ => {
-                                        write_scroller(unknown_cap_header, |w| Ok(write!(w, "name: {}, args cannot be displayed on Ledger", name_utf8)?))?;
-                                        set_from_thunk(destination, || Some(((), false))); // Fallback case
-                                    }
-                                }
-                                Some(())
-                            }),
-                        )),
+                        field_clist: CLIST_ACTION,
                     }),
-                        mkfn(|signer: &Signer<_,_,_, Option<(Count, All)>>, dest: &mut Option<CapabilityCoverage> | {
+                        mkfn(|signer: &Signer<_,_,_, Option<(CapCountData, All)>>, dest: &mut Option<CapabilityCoverage> | {
                             *dest = Some(match signer.field_clist {
-                                Some((Count(n), All(a))) if n > 0 => if a {CapabilityCoverage::Full} else {CapabilityCoverage::HasFallback},
+                                Some((CapCountData::CapCount{total_caps,..}, All(a))) if total_caps > 0 => if a {CapabilityCoverage::Full} else {CapabilityCoverage::HasFallback},
                                 _ => CapabilityCoverage::NoCaps,
                             });
                             Some(())
@@ -231,6 +169,136 @@ pub static SIGN_IMPL: SignImplT = Action(
         Some(())
     }),
 );
+
+#[derive(Debug, Clone, Copy)]
+enum CapCountData {
+    IsTransfer,
+    IsUnknownCap,
+    CapCount {
+        total_caps: u16,
+        total_transfers: u16,
+        total_unknown: u16,
+    },
+}
+
+impl Summable<CapCountData> for CapCountData {
+    fn add_and_set(&mut self, other: &CapCountData) {
+        match self {
+            CapCountData::CapCount {total_caps, total_transfers, total_unknown} => {
+                *total_caps += 1;
+                match other {
+                    CapCountData::IsTransfer => *total_transfers += 1,
+                    CapCountData::IsUnknownCap => *total_unknown += 1,
+                    _ => {},
+                }
+            },
+            _ => {}
+        }
+    }
+    fn zero() -> Self { CapCountData::CapCount { total_caps: 0, total_transfers: 0, total_unknown: 0} }
+}
+
+const CLIST_ACTION:
+  SubInterpMFold::<
+    Action< KadenaCapabilityInterp<KadenaCapabilityArgsInterp, JsonStringAccumulate<128_usize>>
+          , fn( &KadenaCapability< Option<<KadenaCapabilityArgsInterp as ParserCommon<JsonArray<JsonAny>>>::Returning>
+                                , Option<ArrayVec<u8, 128_usize>>>
+              , &mut Option<(CapCountData, bool)>
+              , (CapCountData, All)
+              ) -> Option<()>
+          >
+    , (CapCountData, All)
+    > =
+  SubInterpMFold::new(Action(
+      KadenaCapabilityInterp {
+          field_args: KadenaCapabilityArgsInterp,
+          field_name: JsonStringAccumulate::<128>
+      },
+      mkfnc(|cap : &KadenaCapability<Option<<KadenaCapabilityArgsInterp as ParserCommon<JsonArray<JsonAny>>>::Returning>, Option<ArrayVec<u8, 128>>>, destination: &mut Option<(CapCountData, bool)>, v: (CapCountData, All)| {
+          let name = cap.field_name.as_ref()?.as_slice();
+          let name_utf8 = from_utf8(name).ok()?;
+          let mk_unknown_cap_title = || -> Option <_>{
+              let count = match v.0 {
+                  CapCountData::CapCount{ total_unknown, ..} => total_unknown,
+                  _ => 0,
+              };
+              let mut buffer: ArrayString<22> = ArrayString::new();
+              Ok(write!(mk_prompt_write(&mut buffer), "Unknown Capability {}", count + 1).ok()?)?;
+              Some(buffer)
+          };
+          let mk_transfer_title = || -> Option <_>{
+              let count = match v.0 {
+                  CapCountData::CapCount{ total_transfers, ..} => total_transfers,
+                  _ => 0,
+              };
+              let mut buffer: ArrayString<22> = ArrayString::new();
+              Ok(write!(mk_prompt_write(&mut buffer), "Transfer {}", count + 1).ok()?)?;
+              Some(buffer)
+          };
+          let transfer_prompt = |(sender, receiver, amount):(&ArrayVec<u8, 128>, &ArrayVec<u8, 128>, &ArrayVec<u8, 20>)| -> Option<()> {
+              write_scroller(&mk_transfer_title()?, |w| Ok(write!(w, "{} from {} to {}", from_utf8(amount.as_slice())?, from_utf8(sender.as_slice())?, from_utf8(receiver.as_slice())?)?))?;
+              Some(())
+          };
+          let cross_transfer_prompt = |(sender, receiver, amount, target_chain):(&ArrayVec<u8, 128>, &ArrayVec<u8, 128>, &ArrayVec<u8, 20>, &ArrayVec<u8, 20>)| -> Option<()> {
+              write_scroller(&mk_transfer_title()?, |w| Ok(write!(w, "Cross-chain {} from {} to {} to chain {}", from_utf8(amount.as_slice())?, from_utf8(sender.as_slice())?, from_utf8(receiver.as_slice())?, from_utf8(target_chain.as_slice())?)?))?;
+              Some(())
+          };
+
+          trace!("Prompting for capability");
+          *destination = Some((CapCountData::IsUnknownCap, true));
+          match cap.field_args.as_ref() {
+              Some((None, None, None, None)) if name == b"coin.GAS" => {
+                  write_scroller("Paying Gas", |w| Ok(write!(w, " ")?))?;
+                  *destination = Some((Summable::zero(), true));
+                  trace!("Accepted gas");
+              }
+              _ if name == b"coin.GAS" => { return None; }
+              Some((Some(Some(acct)), None, None, None)) if name == b"coin.ROTATE" => {
+                  write_scroller("Rotate for account", |w| Ok(write!(w, "{}", from_utf8(acct.as_slice())?)?))?;
+                  *destination = Some((Summable::zero(), true));
+              }
+              _ if name == b"coin.ROTATE" => { return None; }
+              Some((Some(Some(sender)), Some(Some(receiver)), Some(First(amount)), None)) if name == b"coin.TRANSFER" => {
+                  transfer_prompt((sender, receiver, amount));
+                  *destination = Some((CapCountData::IsTransfer, true));
+              }
+              Some((Some(Some(sender)), Some(Some(receiver)), Some(Second(Some(Decimal{field_decimal:Some (amount)}))), None)) if name == b"coin.TRANSFER" => {
+                  transfer_prompt((sender, receiver, amount));
+                  *destination = Some((CapCountData::IsTransfer, true));
+              }
+              _ if name == b"coin.TRANSFER" => { return None; }
+              Some((Some(Some(sender)), Some(Some(receiver)), Some(First(amount)), Some(Some(target_chain)))) if name == b"coin.TRANSFER_XCHAIN" => {
+                  cross_transfer_prompt((sender, receiver, amount, target_chain));
+                  *destination = Some((CapCountData::IsTransfer, true));
+              }
+              Some((Some(Some(sender)), Some(Some(receiver)), Some(Second(Some(Decimal{field_decimal:Some (amount)}))), Some(Some(target_chain)))) if name == b"coin.TRANSFER_XCHAIN" => {
+                  cross_transfer_prompt((sender, receiver, amount, target_chain));
+                  *destination = Some((CapCountData::IsTransfer, true));
+              }
+              _ if name == b"coin.TRANSFER_XCHAIN" => { return None; }
+              Some((None, None, None, None)) => {
+                  write_scroller(&mk_unknown_cap_title()?, |w| Ok(write!(w, "name: {}, no args", name_utf8)?))?;
+              }
+              Some((Some(Some(arg1)), None, None, None)) => {
+                  write_scroller(&mk_unknown_cap_title()?, |w| Ok(write!(w, "name: {}, arg 1: '{}'", name_utf8, from_utf8(arg1.as_slice())?)?))?;
+              }
+              Some((Some(Some(arg1)), Some(Some(arg2)), None, None)) => {
+                  write_scroller(&mk_unknown_cap_title()?, |w| Ok(write!(w, "name: {}, arg 1: '{}', arg 2: '{}'", name_utf8, from_utf8(arg1.as_slice())?, from_utf8(arg2.as_slice())?)?))?;
+              }
+              Some((Some(Some(arg1)), Some(Some(arg2)), Some(First(arg3)), None)) => {
+                  write_scroller(&mk_unknown_cap_title()?, |w| Ok(write!(w, "name: {}, arg 1: '{}', arg 2: '{}', arg 3: {}", name_utf8, from_utf8(arg1.as_slice())?, from_utf8(arg2.as_slice())?, from_utf8(arg3.as_slice())?)?))?;
+              }
+              Some((Some(Some(arg1)), Some(Some(arg2)), Some(First(arg3)), Some(Some(arg4)))) => {
+                  write_scroller(&mk_unknown_cap_title()?, |w| Ok(write!(w, "name: {}, arg 1: '{}', arg 2: '{}', arg 3: {}, arg 4: '{}'", name_utf8, from_utf8(arg1.as_slice())?, from_utf8(arg2.as_slice())?, from_utf8(arg3.as_slice())?, from_utf8(arg4.as_slice())?)?))?;
+              }
+              _ => {
+                  write_scroller(&mk_unknown_cap_title()?, |w| Ok(write!(w, "name: {}, args cannot be displayed on Ledger", name_utf8)?))?;
+                  set_from_thunk(destination, || Some((CapCountData::IsUnknownCap, false))); // Fallback case
+              }
+          }
+          Some(())
+      }),
+  ));
 
 pub type SignHashImplT = impl InterpParser<SignHashParameters, Returning = ArrayVec<u8, 128_usize>>;
 
