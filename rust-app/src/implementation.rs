@@ -13,7 +13,6 @@ use ledger_parser_combinators::core_parsers::Alt;
 use ledger_prompts_ui::{write_scroller, final_accept_prompt, mk_prompt_write};
 
 use ledger_parser_combinators::define_json_struct_interp;
-use ledger_parser_combinators::json_interp::AltResult::*;
 use ledger_parser_combinators::json::*;
 use ledger_parser_combinators::json_interp::*;
 use ledger_parser_combinators::interp_parser::*;
@@ -235,61 +234,79 @@ const CLIST_ACTION:
               Ok(write!(mk_prompt_write(&mut buffer), "Transfer {}", count + 1).ok()?)?;
               Some(buffer)
           };
-          let transfer_prompt = |(sender, receiver, amount):(&ArrayVec<u8, 128>, &ArrayVec<u8, 128>, &ArrayVec<u8, 20>)| -> Option<()> {
-              write_scroller(&mk_transfer_title()?, |w| Ok(write!(w, "{} from {} to {}", from_utf8(amount.as_slice())?, from_utf8(sender.as_slice())?, from_utf8(receiver.as_slice())?)?))?;
-              Some(())
-          };
-          let cross_transfer_prompt = |(sender, receiver, amount, target_chain):(&ArrayVec<u8, 128>, &ArrayVec<u8, 128>, &ArrayVec<u8, 20>, &ArrayVec<u8, 20>)| -> Option<()> {
-              write_scroller(&mk_transfer_title()?, |w| Ok(write!(w, "Cross-chain {} from {} to {} to chain {}", from_utf8(amount.as_slice())?, from_utf8(sender.as_slice())?, from_utf8(receiver.as_slice())?, from_utf8(target_chain.as_slice())?)?))?;
-              Some(())
-          };
 
           trace!("Prompting for capability");
           *destination = Some((CapCountData::IsUnknownCap, true));
           match cap.field_args.as_ref() {
-              Some((None, None, None, None)) if name == b"coin.GAS" => {
-                  write_scroller("Paying Gas", |w| Ok(write!(w, " ")?))?;
-                  *destination = Some((Summable::zero(), true));
-                  trace!("Accepted gas");
+              Some((None, _)) => {
+                  if name == b"coin.GAS" {
+                      write_scroller("Paying Gas", |w| Ok(write!(w, " ")?))?;
+                      *destination = Some((Summable::zero(), true));
+                      trace!("Accepted gas");
+                  } else {
+                      write_scroller(&mk_unknown_cap_title()?, |w| Ok(write!(w, "name: {}, no args", name_utf8)?))?;
+                  }
               }
-              _ if name == b"coin.GAS" => { return None; }
-              Some((Some(Some(acct)), None, None, None)) if name == b"coin.ROTATE" => {
-                  write_scroller("Rotate for account", |w| Ok(write!(w, "{}", from_utf8(acct.as_slice())?)?))?;
-                  *destination = Some((Summable::zero(), true));
-              }
-              _ if name == b"coin.ROTATE" => { return None; }
-              Some((Some(Some(sender)), Some(Some(receiver)), Some(First(amount)), None)) if name == b"coin.TRANSFER" => {
-                  transfer_prompt((sender, receiver, amount));
-                  *destination = Some((CapCountData::IsTransfer, true));
-              }
-              Some((Some(Some(sender)), Some(Some(receiver)), Some(Second(Some(Decimal{field_decimal:Some (amount)}))), None)) if name == b"coin.TRANSFER" => {
-                  transfer_prompt((sender, receiver, amount));
-                  *destination = Some((CapCountData::IsTransfer, true));
-              }
-              _ if name == b"coin.TRANSFER" => { return None; }
-              Some((Some(Some(sender)), Some(Some(receiver)), Some(First(amount)), Some(Some(target_chain)))) if name == b"coin.TRANSFER_XCHAIN" => {
-                  cross_transfer_prompt((sender, receiver, amount, target_chain));
-                  *destination = Some((CapCountData::IsTransfer, true));
-              }
-              Some((Some(Some(sender)), Some(Some(receiver)), Some(Second(Some(Decimal{field_decimal:Some (amount)}))), Some(Some(target_chain)))) if name == b"coin.TRANSFER_XCHAIN" => {
-                  cross_transfer_prompt((sender, receiver, amount, target_chain));
-                  *destination = Some((CapCountData::IsTransfer, true));
-              }
-              _ if name == b"coin.TRANSFER_XCHAIN" => { return None; }
-              Some((None, None, None, None)) => {
-                  write_scroller(&mk_unknown_cap_title()?, |w| Ok(write!(w, "name: {}, no args", name_utf8)?))?;
-              }
-              Some((Some(Some(arg1)), None, None, None)) => {
-                  write_scroller(&mk_unknown_cap_title()?, |w| Ok(write!(w, "name: {}, arg 1: '{}'", name_utf8, from_utf8(arg1.as_slice())?)?))?;
-              }
-              Some((Some(Some(arg1)), Some(Some(arg2)), None, None)) => {
-                  write_scroller(&mk_unknown_cap_title()?, |w| Ok(write!(w, "name: {}, arg 1: '{}', arg 2: '{}'", name_utf8, from_utf8(arg1.as_slice())?, from_utf8(arg2.as_slice())?)?))?;
-              }
-              Some((Some(Some(arg1)), Some(Some(arg2)), Some(First(arg3)), None)) => {
-                  write_scroller(&mk_unknown_cap_title()?, |w| Ok(write!(w, "name: {}, arg 1: '{}', arg 2: '{}', arg 3: {}", name_utf8, from_utf8(arg1.as_slice())?, from_utf8(arg2.as_slice())?, from_utf8(arg3.as_slice())?)?))?;
-              }
-              Some((Some(Some(arg1)), Some(Some(arg2)), Some(First(arg3)), Some(Some(arg4)))) => {
-                  write_scroller(&mk_unknown_cap_title()?, |w| Ok(write!(w, "name: {}, arg 1: '{}', arg 2: '{}', arg 3: {}, arg 4: '{}'", name_utf8, from_utf8(arg1.as_slice())?, from_utf8(arg2.as_slice())?, from_utf8(arg3.as_slice())?, from_utf8(arg4.as_slice())?)?))?;
+              Some((Some(Some(args)), arg_lengths)) => {
+                  if arg_lengths[3] != 0 {
+                      write_scroller(&mk_unknown_cap_title()?, |w| Ok(
+                          write!(w, "name: {}, arg 1: {}, arg 2: {}, arg 3: {}, arg 4: {}, arg 5: {}", name_utf8
+                                 , from_utf8(args.as_slice().get(0..arg_lengths[0])?)?
+                                 , from_utf8(args.as_slice().get(arg_lengths[0]..arg_lengths[1])?)?
+                                 , from_utf8(args.as_slice().get(arg_lengths[1]..arg_lengths[2])?)?
+                                 , from_utf8(args.as_slice().get(arg_lengths[2]..arg_lengths[3])?)?
+                                 , from_utf8(args.as_slice().get(arg_lengths[3]..args.len())?)?
+                          )?))?;
+                  } else if arg_lengths[2] != 0 {
+                      if name == b"coin.TRANSFER_XCHAIN" {
+                          write_scroller(&mk_transfer_title()?, |w| Ok(
+                              write!(w, "Cross-chain {} from {} to {} to chain {}"
+                                     , from_utf8(args.as_slice().get(arg_lengths[1]..arg_lengths[2])?)?
+                                     , from_utf8(args.as_slice().get(0..arg_lengths[0])?)?
+                                     , from_utf8(args.as_slice().get(arg_lengths[0]..arg_lengths[1])?)?
+                                     , from_utf8(args.as_slice().get(arg_lengths[2]..args.len())?)?
+                              )?))?;
+                          *destination = Some((CapCountData::IsTransfer, true));
+                      } else {
+                          write_scroller(&mk_unknown_cap_title()?, |w| Ok(
+                              write!(w, "name: {}, arg 1: {}, arg 2: {}, arg 3: {}, arg 4: {}", name_utf8
+                                     , from_utf8(args.as_slice().get(0..arg_lengths[0])?)?
+                                     , from_utf8(args.as_slice().get(arg_lengths[0]..arg_lengths[1])?)?
+                                     , from_utf8(args.as_slice().get(arg_lengths[1]..arg_lengths[2])?)?
+                                     , from_utf8(args.as_slice().get(arg_lengths[2]..args.len())?)?
+                              )?))?;
+                      }
+                  } else if arg_lengths[1] != 0 {
+                      if name == b"coin.TRANSFER" {
+                          write_scroller(&mk_transfer_title()?, |w| Ok(
+                              write!(w, "{} from {} to {}"
+                                     , from_utf8(args.as_slice().get(arg_lengths[1]..args.len())?)?
+                                     , from_utf8(args.as_slice().get(0..arg_lengths[0])?)?
+                                     , from_utf8(args.as_slice().get(arg_lengths[0]..arg_lengths[1])?)?
+                              )?))?;
+                          *destination = Some((CapCountData::IsTransfer, true));
+                      } else {
+                          write_scroller(&mk_unknown_cap_title()?, |w| Ok(
+                              write!(w, "name: {}, arg 1: {}, arg 2: {}, arg 3: {}", name_utf8
+                                     , from_utf8(args.as_slice().get(0..arg_lengths[0])?)?
+                                     , from_utf8(args.as_slice().get(arg_lengths[0]..arg_lengths[1])?)?
+                                     , from_utf8(args.as_slice().get(arg_lengths[1]..args.len())?)?
+                              )?))?;
+                      }
+                  } else if arg_lengths[0] != 0 {
+                      write_scroller(&mk_unknown_cap_title()?, |w| Ok(
+                          write!(w, "name: {}, arg 1: {}, arg 2: {}", name_utf8
+                                 , from_utf8(args.as_slice().get(0..arg_lengths[0])?)?
+                                 , from_utf8(args.as_slice().get(arg_lengths[0]..args.len())?)?
+                      )?))?;
+                  } else {
+                      if name == b"coin.ROTATE" {
+                          write_scroller("Rotate for account", |w| Ok(write!(w, "{}", from_utf8(args.as_slice())?)?))?;
+                          *destination = Some((Summable::zero(), true));
+                      } else {
+                          write_scroller(&mk_unknown_cap_title()?, |w| Ok(write!(w, "name: {}, arg 1: {}", name_utf8, from_utf8(args.as_slice())?)?))?;
+                      }
+                  }
               }
               _ => {
                   write_scroller(&mk_unknown_cap_title()?, |w| Ok(write!(w, "name: {}, args cannot be displayed on Ledger", name_utf8)?))?;
@@ -343,85 +360,78 @@ pub static SIGN_HASH_IMPL: SignHashImplT = Action(
 );
 
 pub struct KadenaCapabilityArgsInterp;
-type ThirdArgT = Alt<JsonNumber, Alt<DecimalSchema, JsonAny>>;
-type ThirdArgInterpT = Alt<JsonStringAccumulate<20>, OrDropAny<DecimalInterp<JsonStringAccumulate<20>>>>;
+
+// The Caps list is parsed and the args are stored in a single common ArrayVec of this size.
+// (This may be as large as the stack allows)
+const ARG_ARRAY_SIZE: usize = 408;
+const MAX_ARG_COUNT: usize = 5;
+
+// Since we use a single ArrayVec to store the rendered json of all the args.
+// This list keeps track of the indices in the array for each arg, and even the args count
+
+// If there are three args; then indices[0] will contain the end of first arg, indices[1] will be end of second, and indices[2] will be 0
+// In other words, first arg will be: array[0..indices[0]], second: array[indices[0]..indices[1]], third: array[indices[1]..array.len()]
+type ArgListIndicesT = [usize; MAX_ARG_COUNT - 1];
+
+// The Alt parser will first try to parse JsonAny and render it upto the available space in array
+// on hitting end of array it will fallback to the OrDropAny
+type CapArgT = Alt<JsonAny, JsonAny>;
+type CapArgInterpT = OrDropAny<JsonStringAccumulate<ARG_ARRAY_SIZE>>;
 
 #[derive(Debug)]
 pub enum KadenaCapabilityArgsInterpState {
     Start,
     Begin,
-    FirstArgument(<OrDropAny<JsonStringAccumulate<128>> as ParserCommon<Alt<JsonString, JsonAny>>>::State),
-    FirstValueSep,
-    SecondArgument(<OrDropAny<JsonStringAccumulate<128>> as ParserCommon<Alt<JsonString, JsonAny>>>::State),
-    SecondValueSep,
-    ThirdArgument(<ThirdArgInterpT as ParserCommon<ThirdArgT>>::State),
-    ThirdValueSep,
-    FourthArgument(<OrDropAny<JsonStringAccumulate<20>> as ParserCommon<Alt<JsonString, JsonAny>>>::State),
-    FourthValueSep,
+    Argument(<CapArgInterpT as ParserCommon<CapArgT>>::State),
+    ValueSep,
     FallbackValue(<DropInterp as ParserCommon<JsonAny>>::State),
     FallbackValueSep
 }
 
 impl ParserCommon<JsonArray<JsonAny>> for KadenaCapabilityArgsInterp {
-    type State = (KadenaCapabilityArgsInterpState, Option<<DropInterp as ParserCommon<JsonAny>>::Returning>);
-    type Returning = ( Option<Option<ArrayVec<u8, 128>>>, Option<Option<ArrayVec<u8, 128>>>, Option<AltResult<ArrayVec<u8, 20_usize>, Option<Decimal<Option<ArrayVec<u8, 20_usize>>>>>>, Option<Option<ArrayVec<u8, 20>>> );
+    type State = (KadenaCapabilityArgsInterpState, Option<<DropInterp as ParserCommon<JsonAny>>::Returning>, usize);
+    type Returning = (Option<<CapArgInterpT as ParserCommon<CapArgT>>::Returning>, ArgListIndicesT );
     fn init(&self) -> Self::State {
-        (KadenaCapabilityArgsInterpState::Start, None)
+        (KadenaCapabilityArgsInterpState::Start, None, 0)
     }
 }
 impl JsonInterp<JsonArray<JsonAny>> for KadenaCapabilityArgsInterp {
     #[inline(never)]
-    fn parse<'a, 'b>(&self, (ref mut state, ref mut scratch): &'b mut Self::State, token: JsonToken<'a>, destination: &mut Option<Self::Returning>) -> Result<(), Option<OOB>> {
-        let str_interp = OrDropAny(JsonStringAccumulate::<128>);
-        let dec_interp = Alt(JsonStringAccumulate::<20>, OrDropAny(DecimalInterp { field_decimal: JsonStringAccumulate::<20>}));
-        let f_interp = OrDropAny(JsonStringAccumulate::<20>);
+    fn parse<'a, 'b>(&self, (ref mut state, ref mut scratch, ref mut arg_count): &'b mut Self::State, token: JsonToken<'a>, destination: &mut Option<Self::Returning>) -> Result<(), Option<OOB>> {
+        let str_interp = OrDropAny(JsonStringAccumulate::<ARG_ARRAY_SIZE>);
         loop {
             use KadenaCapabilityArgsInterpState::*;
             match state {
                 Start if token == JsonToken::BeginArray => {
-                    set_from_thunk(destination, || Some((None, None, None, None)));
+                    set_from_thunk(destination, || Some((None, [0,0,0,0])));
                     set_from_thunk(state, || Begin);
                 }
                 Begin if token == JsonToken::EndArray => {
                     return Ok(());
                 }
                 Begin => {
-                    set_from_thunk(state, || FirstArgument(<OrDropAny<JsonStringAccumulate<128>> as ParserCommon<Alt<JsonString, JsonAny>>>::init(&str_interp)));
+                    set_from_thunk(state, || Argument(<CapArgInterpT as ParserCommon<CapArgT>>::init(&str_interp)));
+                    *arg_count = 1;
                     continue;
                 }
-                FirstArgument(ref mut s) => {
-                    <OrDropAny<JsonStringAccumulate<128>> as JsonInterp<Alt<JsonString, JsonAny>>>::parse(&str_interp, s, token, &mut destination.as_mut().ok_or(Some(OOB::Reject))?.0)?;
-                    set_from_thunk(state, || FirstValueSep);
+                Argument(ref mut s) => {
+                    <CapArgInterpT as JsonInterp<CapArgT>>::parse(&str_interp, s, token, &mut destination.as_mut().ok_or(Some(OOB::Reject))?.0)?;
+                    set_from_thunk(state, || ValueSep);
                 }
-                FirstValueSep if token == JsonToken::ValueSeparator => {
-                    set_from_thunk(state, || SecondArgument(<OrDropAny<JsonStringAccumulate<128>> as ParserCommon<Alt<JsonString, JsonAny>>>::init(&str_interp)));
+                ValueSep if token == JsonToken::ValueSeparator => {
+                    match &destination.as_mut().ok_or(Some(OOB::Reject))?.0 {
+                        Some(Some(sub_dest)) if *arg_count < MAX_ARG_COUNT => {
+                            destination.as_mut().ok_or(Some(OOB::Reject))?.1[*arg_count-1] = sub_dest.len();
+                            set_from_thunk(state, || Argument(<CapArgInterpT as ParserCommon<CapArgT>>::init(&str_interp)));
+                            *arg_count+=1;
+                        }
+                        _ => {
+                            set_from_thunk(destination, || None);
+                            set_from_thunk(state, || FallbackValue(<DropInterp as ParserCommon<JsonAny>>::init(&DropInterp)));
+                        }
+                    }
                 }
-                FirstValueSep if token == JsonToken::EndArray => return Ok(()),
-                SecondArgument(ref mut s) => {
-                    <OrDropAny<JsonStringAccumulate<128>> as JsonInterp<Alt<JsonString, JsonAny>>>::parse(&str_interp, s, token, &mut destination.as_mut().ok_or(Some(OOB::Reject))?.1)?;
-                    set_from_thunk(state, || SecondValueSep);
-                }
-                SecondValueSep if token == JsonToken::ValueSeparator => {
-                    set_from_thunk(state, || ThirdArgument(<ThirdArgInterpT as ParserCommon<ThirdArgT>>::init(&dec_interp)));
-                }
-                SecondValueSep if token == JsonToken::EndArray => return Ok(()),
-                ThirdArgument(ref mut s) => {
-                    <ThirdArgInterpT as JsonInterp<ThirdArgT>>::parse(&dec_interp, s, token, &mut destination.as_mut().ok_or(Some(OOB::Reject))?.2)?;
-                    set_from_thunk(state, || ThirdValueSep);
-                }
-                ThirdValueSep if token == JsonToken::ValueSeparator => {
-                    set_from_thunk(state, || FourthArgument(<OrDropAny<JsonStringAccumulate<20>> as ParserCommon<Alt<JsonString, JsonAny>>>::init(&f_interp)));
-                }
-                ThirdValueSep if token == JsonToken::EndArray => return Ok(()),
-                FourthArgument(ref mut s) => {
-                    <OrDropAny<JsonStringAccumulate<20>> as JsonInterp<Alt<JsonString, JsonAny>>>::parse(&f_interp, s, token, &mut destination.as_mut().ok_or(Some(OOB::Reject))?.3)?;
-                    set_from_thunk(state, || FourthValueSep);
-                }
-                FourthValueSep if token == JsonToken::EndArray => return Ok(()),
-                FourthValueSep if token == JsonToken::ValueSeparator => {
-                    set_from_thunk(destination, || None);
-                    set_from_thunk(state, || FallbackValue(<DropInterp as ParserCommon<JsonAny>>::init(&DropInterp)));
-                }
+                ValueSep if token == JsonToken::EndArray => return Ok(()),
                 FallbackValue(ref mut s) => {
                     <DropInterp as JsonInterp<JsonAny>>::parse(&DropInterp, s, token, scratch)?;
                     set_from_thunk(state, || FallbackValueSep);
@@ -455,7 +465,6 @@ pub fn reset_parsers_state(state: &mut ParsersState) {
 }
 
 meta_definition!{}
-decimal_definition!{}
 kadena_capability_definition!{}
 signer_definition!{}
 payload_definition!{}
