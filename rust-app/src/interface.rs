@@ -41,7 +41,7 @@ define_json_struct! { KadenaCmd 16 {
   meta: MetaSchema,
   signers: JsonArray<SignerSchema>,
   payload: PayloadSchema,
-  networkId: JsonString
+  networkId: Alt<JsonString,JsonNull>
 }}
 
 // Payload for a signature request, content-agnostic.

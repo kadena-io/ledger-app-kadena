@@ -115,9 +115,14 @@ pub static SIGN_IMPL: SignImplT = Action(
                             Some(())
                         })),
                         ),
-                    field_network_id: Action(JsonStringAccumulate::<32>, mkvfn(|net: &ArrayVec<u8, 32>, dest: &mut Option<()>| {
+                    field_network_id: Action(Alt(JsonStringAccumulate::<32>, DropInterp), mkvfn(|mnet: &AltResult<ArrayVec<u8, 32>, ()>, dest: &mut Option<()>| {
                         *dest = Some(());
-                        write_scroller("On Network", |w| Ok(write!(w, "{}", from_utf8(net.as_slice())?)?))
+                        match mnet {
+                            AltResult::First(net) => {
+                                write_scroller("On Network", |w| Ok(write!(w, "{}", from_utf8(net.as_slice())?)?))
+                            }
+                            _ => { Some(())} // Ignore null
+                        }
                     }))
                 }),
                 mkvfn(|cmd : &KadenaCmd<_,_,Option<CapabilityCoverage>,_,_>, _| { 
