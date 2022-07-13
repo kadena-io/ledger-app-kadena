@@ -386,8 +386,8 @@ rec {
         workspace_member = null;
         src = pkgs.fetchgit {
           url = "https://github.com/obsidiansystems/ledger-parser-combinators";
-          rev = "3f1bdb4d58249a71543c3ba10ded9a8491ea9c28";
-          sha256 = "0pmrb7md8c05x27v6hlz9rf284alii48lq4xkf7v9zdipcxwlvb0";
+          rev = "64290de3225ab58c6357a6852b46f9c494565cd3";
+          sha256 = "1jw4qgimcflf1ywc707brbhllaxal2hcc6fnczpqf1wxmmk2vqzp";
         };
         authors = [
           "Jonathan D.K. Gibbons <jonored@gmail.com>"
@@ -804,9 +804,9 @@ rec {
       };
       "unicode-ident" = rec {
         crateName = "unicode-ident";
-        version = "1.0.1";
+        version = "1.0.2";
         edition = "2018";
-        sha256 = "131niycgp77aiwvgjdyh47389xfnb7fmlc8ybrxys8v0a0kgxljv";
+        sha256 = "19zf5lzhzix2s35lp5lckdy90sw0kfi5a0ii49d24dcj7yk1pihm";
         authors = [
           "David Tolnay <dtolnay@gmail.com>"
         ];

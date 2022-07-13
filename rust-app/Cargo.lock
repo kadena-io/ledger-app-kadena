@@ -119,7 +119,7 @@ dependencies = [
 [[package]]
 name = "ledger-parser-combinators"
 version = "0.1.0"
-source = "git+https://github.com/obsidiansystems/ledger-parser-combinators#3f1bdb4d58249a71543c3ba10ded9a8491ea9c28"
+source = "git+https://github.com/obsidiansystems/ledger-parser-combinators#64290de3225ab58c6357a6852b46f9c494565cd3"
 dependencies = [
  "arrayvec",
  "bstringify",
@@ -283,9 +283,9 @@ checksum = "dcf81ac59edc17cc8697ff311e8f5ef2d99fcbd9817b34cec66f90b6c3dfd987"
 
 [[package]]
 name = "unicode-ident"
-version = "1.0.1"
+version = "1.0.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5bd2fe26506023ed7b5e1e315add59d6f584c621d037f9368fea9cfb988f368c"
+checksum = "15c61ba63f9235225a22310255a29b806b907c9b8c964bcbd0a2c70f3f2deea7"
 
 [[package]]
 name = "utf8-ranges"
