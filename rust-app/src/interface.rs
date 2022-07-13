@@ -24,7 +24,7 @@ define_json_struct! { Signer 16 {
     scheme: JsonString,
     pubKey: JsonString,
     addr: JsonString,
-    clist: JsonArray<KadenaCapabilitySchema>
+    clist: Alt<JsonNull,JsonArray<KadenaCapabilitySchema>>
 }}
 
 define_json_struct! { Command 5 {

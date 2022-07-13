@@ -110,11 +110,11 @@ pub static SIGN_IMPL: SignImplT = Action(
                             Some(())
                         })),
                         field_addr: DropInterp,
-                        field_clist: CLIST_ACTION,
+                        field_clist: Alt(DropInterp, CLIST_ACTION),
                     }),
-                        mkfn(|signer: &Signer<_,Option<ArrayVec<u8, 64>>,_, Option<(CapCountData, All)>>, dest: &mut Option<CapabilityCoverage> | {
+                        mkfn(|signer: &Signer<_,Option<ArrayVec<u8, 64>>,_, Option<AltResult<(),(CapCountData, All)>>>, dest: &mut Option<CapabilityCoverage> | {
                             *dest = Some(match signer.field_clist {
-                                Some((CapCountData::CapCount{total_caps,..}, All(a))) if total_caps > 0 => if a {CapabilityCoverage::Full} else {CapabilityCoverage::HasFallback},
+                                Some(AltResult::Second((CapCountData::CapCount{total_caps,..}, All(a)))) if total_caps > 0 => if a {CapabilityCoverage::Full} else {CapabilityCoverage::HasFallback},
                                 _ => {
                                     match from_utf8(signer.field_pub_key.as_ref()?.as_slice()) {
                                         Ok(pub_key) => write_scroller("Unscoped Signer", |w| Ok(write!(w, "{}", pub_key)?)),
@@ -379,7 +379,7 @@ pub struct KadenaCapabilityArgsInterp;
 
 // The Caps list is parsed and the args are stored in a single common ArrayVec of this size.
 // (This may be as large as the stack allows)
-const ARG_ARRAY_SIZE: usize = 336;
+const ARG_ARRAY_SIZE: usize = 328;
 const MAX_ARG_COUNT: usize = 5;
 
 // Since we use a single ArrayVec to store the rendered json of all the args.
