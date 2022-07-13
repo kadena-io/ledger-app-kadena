@@ -23,6 +23,9 @@ use core::str::from_utf8;
 const fn mkfn<A,B>(q: fn(&A,&mut B)->Option<()>) -> fn(&A,&mut B)->Option<()> {
   q
 }
+const fn mkmvfn<A,B,C>(q: fn(A,&mut B)->Option<C>) -> fn(A,&mut B)->Option<C> {
+    q
+}
 const fn mkfnc<A,B,C>(q: fn(&A,&mut B,C)->Option<()>) -> fn(&A,&mut B,C)->Option<()> {
     q
 }
@@ -101,16 +104,24 @@ pub static SIGN_IMPL: SignImplT = Action(
                             },
                             SignerInterp {
                         field_scheme: DropInterp,
-                        field_pub_key: Action(JsonStringAccumulate::<64>, mkvfn(|key : &ArrayVec<u8, 64>, _: &mut Option<()>| -> Option<()> {
-                            write_scroller("Of Key", |w| Ok(write!(w, "{}", from_utf8(key.as_slice())?)?))
+                        field_pub_key: MoveAction(JsonStringAccumulate::<64>, mkmvfn(|key : ArrayVec<u8, 64>, dest: &mut Option<ArrayVec<u8, 64>>| -> Option<()> {
+                            write_scroller("Of Key", |w| Ok(write!(w, "{}", from_utf8(key.as_slice())?)?))?;
+                            set_from_thunk(dest, || Some(key));
+                            Some(())
                         })),
                         field_addr: DropInterp,
                         field_clist: CLIST_ACTION,
                     }),
-                        mkfn(|signer: &Signer<_,_,_, Option<(CapCountData, All)>>, dest: &mut Option<CapabilityCoverage> | {
+                        mkfn(|signer: &Signer<_,Option<ArrayVec<u8, 64>>,_, Option<(CapCountData, All)>>, dest: &mut Option<CapabilityCoverage> | {
                             *dest = Some(match signer.field_clist {
                                 Some((CapCountData::CapCount{total_caps,..}, All(a))) if total_caps > 0 => if a {CapabilityCoverage::Full} else {CapabilityCoverage::HasFallback},
-                                _ => CapabilityCoverage::NoCaps,
+                                _ => {
+                                    match from_utf8(signer.field_pub_key.as_ref()?.as_slice()) {
+                                        Ok(pub_key) => write_scroller("Unscoped Signer", |w| Ok(write!(w, "{}", pub_key)?)),
+                                        _ => Some(()),
+                                    };
+                                    CapabilityCoverage::NoCaps
+                                },
                             });
                             Some(())
                         })),
@@ -368,7 +379,7 @@ pub struct KadenaCapabilityArgsInterp;
 
 // The Caps list is parsed and the args are stored in a single common ArrayVec of this size.
 // (This may be as large as the stack allows)
-const ARG_ARRAY_SIZE: usize = 408;
+const ARG_ARRAY_SIZE: usize = 336;
 const MAX_ARG_COUNT: usize = 5;
 
 // Since we use a single ArrayVec to store the rendered json of all the args.

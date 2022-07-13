@@ -540,6 +540,10 @@ describe("Signing tests", function() {
                 "header": "Of Key",
                 "prompt": "ffd8cd79deb956fa3c7d9be0f836f20ac84b140168a087a842be4760e40e2b1c",
               },
+              {
+                "header": "Unscoped Signer",
+                "prompt": "ffd8cd79deb956fa3c7d9be0f836f20ac84b140168a087a842be4760e40e2b1c"
+              },
               { "header": "On Chain", "prompt": "1" },
               { "header": "Using Gas", "prompt": "at most 600 at price 0.00001" },
               {
