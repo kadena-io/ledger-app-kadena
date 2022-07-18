@@ -14,7 +14,7 @@ cd kadena
 ledgerctl install -f app.json
 ```
 
-Using nix `ledgerctl` can only so be obtained by running this from the root of the repo.
+Using nix, `ledgerctl` can only so be obtained by running this from the root of the repo.
 
 ```
 $(nix-build --no-out-link -A ledger-platform.ledgerctl)/bin/ledgerctl install -f app.json
@@ -36,7 +36,7 @@ This command will create a file (symlink) named `result-generic-cli` which could
 ./result-generic-cli/bin/generic-cli getAddress "44'/626'/0'/0/0"
 ```
 
-For doing signing, the "cmd" of the transaction (in the JSON format) should be provided like this
+For signing, the "cmd" of the transaction (in the JSON format) should be provided like this
 
 ```bash
 ./result-generic-cli/bin/generic-cli sign --json "44'/626'/0'/0/0" '{"networkId":"mainnet01","payload":{"exec":{"data":{"ks":{"pred":"keys-all","keys":["368820f80c324bbc7c2b0610688a7da43e39f91d118732671cd9c7500ff43cca"]}},"code":"(coin.transfer-create \"alice\" \"bob\" (read-keyset \"ks\") 100.1)\n(coin.transfer \"bob\" \"alice\" 0.1)"}},"signers":[{"pubKey":"6be2f485a7af75fedb4b7f153a903f7e6000ca4aa501179c91a2450b777bd2a7","clist":[{"args":["alice","bob",100.1],"name":"coin.TRANSFER"},{"args":[],"name":"coin.GAS"}]},{"pubKey":"368820f80c324bbc7c2b0610688a7da43e39f91d118732671cd9c7500ff43cca","clist":[{"args":["bob","alice",0.1],"name":"coin.TRANSFER"}]}],"meta":{"creationTime":1580316382,"ttl":7200,"gasLimit":1200,"chainId":"0","gasPrice":1.0e-5,"sender":"alice"},"nonce":"2020-01-29 16:46:22.916695 UTC"}'
