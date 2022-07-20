@@ -1,6 +1,6 @@
 [package]
 name = "kadena"
-version = "0.1.1"
+version = "0.2.1"
 authors = ["jonored", "yhql"]
 edition = "2018"
 autobins = false
