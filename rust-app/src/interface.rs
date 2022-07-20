@@ -15,10 +15,6 @@ define_json_struct! { Meta 16 {
     creationTime: JsonNumber
 }}
 
-define_json_struct! { Decimal 7 {
-    decimal: JsonString
-}}
-
 define_json_struct! { KadenaCapability 4 {
     args: JsonArray<JsonAny>,
     name: JsonString
@@ -28,7 +24,7 @@ define_json_struct! { Signer 16 {
     scheme: JsonString,
     pubKey: JsonString,
     addr: JsonString,
-    clist: JsonArray<KadenaCapabilitySchema>
+    clist: Alt<JsonNull,JsonArray<KadenaCapabilitySchema>>
 }}
 
 define_json_struct! { Command 5 {
@@ -45,7 +41,7 @@ define_json_struct! { KadenaCmd 16 {
   meta: MetaSchema,
   signers: JsonArray<SignerSchema>,
   payload: PayloadSchema,
-  networkId: JsonString
+  networkId: Alt<JsonString,JsonNull>
 }}
 
 // Payload for a signature request, content-agnostic.
