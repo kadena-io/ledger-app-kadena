@@ -262,7 +262,7 @@ rec {
       };
       "kadena" = rec {
         crateName = "kadena";
-        version = "0.1.1";
+        version = "0.2.1";
         edition = "2018";
         crateBin = [
           { name = "kadena"; path = "bin-src/main.rs"; }
