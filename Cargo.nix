@@ -354,7 +354,7 @@ rec {
         edition = "2018";
         workspace_member = null;
         src = pkgs.fetchgit {
-          url = "https://github.com/ea-nasir/ledger-log";
+          url = "https://github.com/alamgu/ledger-log";
           rev = "4f813daf1099672cafa0cf7794d0b70786407a0e";
           sha256 = "1cfi6k60pnsnpvvcbn6k2ccx29q2pxahwgi3l6vhkm39fm7g6i25";
         };
@@ -443,7 +443,7 @@ rec {
         edition = "2018";
         workspace_member = null;
         src = pkgs.fetchgit {
-          url = "https://github.com/ea-nasir/ledger-prompts-ui";
+          url = "https://github.com/alamgu/ledger-prompts-ui";
           rev = "4a669e4a21e38cbeb2588a405ca726af3908cd88";
           sha256 = "1yar3ysszhbxif6iqjss2jj9ah2cz37rhhpmadcg386wsbrg4hg7";
         };
