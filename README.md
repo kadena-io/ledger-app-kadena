@@ -17,7 +17,7 @@ ledgerctl install -f app.json
 Using nix, `ledgerctl` can only so be obtained by running this from the root of the repo.
 
 ```
-$(nix-build --no-out-link -A ledger-platform.ledgerctl)/bin/ledgerctl install -f app.json
+$(nix-build --no-out-link -A alamgu.ledgerctl)/bin/ledgerctl install -f app.json
 ```
 
 ## Using the app with generic CLI tool
@@ -27,7 +27,7 @@ The bundled `generic-cli` tool can be used to obtaining the public key and do si
 To use this tool first install it using Nix. From the root level of this repo, run:
 
 ```bash
-nix-build -A ledger-platform.generic-cli -o result-generic-cli
+nix-build -A alamgu.generic-cli -o result-generic-cli
 ```
 
 This command will create a file (symlink) named `result-generic-cli` which could be used as described below.
@@ -62,7 +62,7 @@ This application has been packaged up with [Nix](https://nixos.org/).
 Using Nix, from the root level of this repo, run:
 
 ```bash
-nix-shell -A ledger-platform.rustShell
+nix-shell -A alamgu.rustShell
 cd rust-app/
 cargo-ledger load
 ````
@@ -77,7 +77,7 @@ This application is compatible with Ledger Nano S devices running FW 2.1.0 and a
 
 Using Nix, from the root level of this repo, run:
 ```bash
-nix-shell -A ledger-platform.rustShell
+nix-shell -A alamgu.rustShell
 cd rust-app/
 cargo test
 ````

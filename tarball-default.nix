@@ -1,7 +1,7 @@
 {pkgs ? import <nixpkgs> {}}:
 let
-  ledgerPlatform = import (fetchTarball "https://github.com/obsidiansystems/ledger-platform/archive/develop.tar.gz") {};
-  ledgerctl = ledgerPlatform.ledgerctl;
+  alamgu = import (fetchTarball "https://github.com/alamgu/alamgu/archive/develop.tar.gz") {};
+  ledgerctl = alamgu.ledgerctl;
   this = ./.;
 in
 pkgs.writeScriptBin "load-app" ''
