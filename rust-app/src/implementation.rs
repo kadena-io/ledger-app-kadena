@@ -381,7 +381,7 @@ pub struct KadenaCapabilityArgsInterp;
 
 // The Caps list is parsed and the args are stored in a single common ArrayVec of this size.
 // (This may be as large as the stack allows)
-const ARG_ARRAY_SIZE: usize = 328;
+const ARG_ARRAY_SIZE: usize = 280;
 const MAX_ARG_COUNT: usize = 5;
 
 // Since we use a single ArrayVec to store the rendered json of all the args.
