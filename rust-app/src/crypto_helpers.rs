@@ -5,8 +5,6 @@ use nanos_sdk::io::SyscallError;
 use ledger_log::*;
 use base64;
 
-pub const BIP32_PATH: [u32; 5] = nanos_sdk::ecc::make_bip32_path(b"m/44'/535348'/0'/0/0");
-
 /// Helper function that derives the seed over Ed25519
 pub fn bip32_derive_eddsa(path: &[u32]) -> Result<[u8; 32], SyscallError> {
     let mut raw_key = [0u8; 32];
