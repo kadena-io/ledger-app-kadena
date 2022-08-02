@@ -28,6 +28,8 @@ pub mod crypto_helpers;
 pub mod implementation;
 #[cfg(all(target_os = "nanos"))]
 pub mod settings;
+#[cfg(all(target_os = "nanos"))]
+pub mod main_nanos;
 
 #[cfg(all(target_os = "nanos", test))]
 use core::panic::PanicInfo;

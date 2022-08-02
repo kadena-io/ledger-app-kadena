@@ -1,16 +1,14 @@
-use kadena::implementation::*;
-use kadena::interface::*;
-use kadena::settings::*;
+use crate::implementation::*;
+use crate::interface::*;
+use crate::settings::*;
 use ledger_parser_combinators::interp_parser::set_from_thunk;
+use ledger_log::{info, trace};
 
 use nanos_sdk::io;
 use nanos_sdk::buttons::{ButtonEvent};
 use nanos_ui::ui::{SingleMessage};
 
-nanos_sdk::set_panic!(nanos_sdk::exiting_panic);
-
 use ledger_parser_combinators::interp_parser::OOB;
-use kadena::*;
 
 // Pulling this out of sample_main to global const saves 24 bytes
 // But the SingleMessage::new fails to work with global const, therefore doing fill_idle_menu
@@ -21,9 +19,8 @@ fn fill_idle_menu(arr: &mut [&str; 3]) {
     }
 }
 
-#[cfg(not(test))]
-#[no_mangle]
-extern "C" fn sample_main() {
+#[allow(dead_code)]
+pub fn app_main() {
     let mut comm = io::Comm::new();
     let mut states = ParsersState::NoState;
     let mut menu = Menu::new(&IDLE_MENU);
