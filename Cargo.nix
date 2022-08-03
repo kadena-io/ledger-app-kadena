@@ -385,7 +385,7 @@ rec {
         edition = "2018";
         workspace_member = null;
         src = pkgs.fetchgit {
-          url = "https://github.com/obsidiansystems/ledger-parser-combinators";
+          url = "https://github.com/alamgu/ledger-parser-combinators";
           rev = "64290de3225ab58c6357a6852b46f9c494565cd3";
           sha256 = "1jw4qgimcflf1ywc707brbhllaxal2hcc6fnczpqf1wxmmk2vqzp";
         };
@@ -529,7 +529,7 @@ rec {
         edition = "2018";
         workspace_member = null;
         src = pkgs.fetchgit {
-          url = "https://github.com/obsidiansystems/ledger-nanos-sdk.git";
+          url = "https://github.com/alamgu/ledger-nanos-sdk.git";
           rev = "1d358edd6cddbdcd4d6deb29f856b40e7e863c07";
           sha256 = "1v5xz06vsd2ih6vl3qxill5w3k5gplbylqk3nw0jdvcwy0jx3v09";
         };

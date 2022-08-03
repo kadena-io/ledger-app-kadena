@@ -165,7 +165,6 @@ fn run_parser_apdu<P: InterpParser<A, Returning = ArrayVec<u8, 128>>, A>(
     }
 }
 
-// fn handle_apdu<P: for<'a> FnMut(ParserTag, &'a [u8]) -> RX<'a, ArrayVec<u8, 260> > >(comm: &mut io::Comm, ins: Ins, parser: &mut P) -> Result<(), Reply> {
 #[inline(never)]
 fn handle_apdu(comm: &mut io::Comm, ins: Ins, parser: &mut ParsersState) -> Result<(), Reply> {
     info!("entering handle_apdu with command {:?}", ins);

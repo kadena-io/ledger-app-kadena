@@ -4,12 +4,13 @@ version = "0.2.1"
 authors = ["jonored", "yhql"]
 edition = "2018"
 autobins = false
+resolver = "2"
 
 [dependencies]
 arrayvec = { version = "0.7.2", default-features = false }
 base64 = { version = "0.13.0", default-features = false }
-ledger-parser-combinators = { git = "https://github.com/obsidiansystems/ledger-parser-combinators" }
 ledger-log = { git = "https://github.com/alamgu/ledger-log" }
+ledger-parser-combinators = { git = "https://github.com/alamgu/ledger-parser-combinators" }
 
 # Pass --features speculos,ledger-log/log_info (or log_trace, etc) to enable
 # speculos logging and change log level.
@@ -37,7 +38,7 @@ test = false
 path = "bin-src/main.rs"
 
 [patch."https://github.com/LedgerHQ/ledger-nanos-sdk.git".nanos_sdk]
-git = "https://github.com/obsidiansystems/ledger-nanos-sdk.git"
+git = "https://github.com/alamgu/ledger-nanos-sdk.git"
 branch = "use-ambient-compiler-and-target"
 
 [package.metadata.nanos]
