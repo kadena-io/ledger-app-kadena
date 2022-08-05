@@ -97,20 +97,7 @@ pub static SIGN_IMPL: SignImplT = Action(
                 Hasher::update,
                 Json(Action(Preaction( || -> Option<()> { scroller("Signing", |w| Ok(write!(w, "Transaction")?)) } , KadenaCmdInterp {
                     field_nonce: DropInterp,
-                    field_meta: Action(MetaInterp {
-                        field_chain_id: Action(JsonStringAccumulate::<32>, mkvfn(|chain: &ArrayVec<u8, 32>, _| -> Option<()> {
-                                scroller("On Chain", |w| Ok(write!(w, "{}", from_utf8(chain.as_slice())?)?))
-                        })),
-                        field_sender: DropInterp,
-                        field_gas_limit: JsonStringAccumulate::<100>,
-                        field_gas_price: JsonStringAccumulate::<100>,
-                        field_ttl: DropInterp,
-                        field_creation_time: DropInterp
-                    }, mkvfn(|Meta { ref field_gas_limit, ref field_gas_price, .. } : &Meta<_,_,Option<ArrayVec<u8,100>>,Option<ArrayVec<u8,100>>,_,_>, _| {
-                        scroller("Using Gas", |w| Ok(write!(w, "at most {} at price {}"
-                           , from_utf8(field_gas_limit.as_ref().ok_or(ScrollerError)?.as_slice())?
-                           , from_utf8(field_gas_price.as_ref().ok_or(ScrollerError)?.as_slice())?)?))
-                    })),
+                    field_meta: META_ACTION,
                     field_payload: PayloadInterp {
                         field_exec: CommandInterp {
                             field_code: DropInterp,
@@ -202,6 +189,34 @@ pub static SIGN_IMPL: SignImplT = Action(
         Some(())
     }),
 );
+
+const META_ACTION:
+  Action<MetaInterp<
+          Action<JsonStringAccumulate<32_usize>, fn(&ArrayVec<u8, 32_usize>, &mut Option<()>) -> Option<()>>
+          , DropInterp
+          , JsonStringAccumulate<100_usize>
+          , JsonStringAccumulate<100_usize>
+          , DropInterp
+          , DropInterp>
+         , fn(&Meta<Option<()>, Option<()>, Option<ArrayVec<u8, 100_usize>>
+                    , Option<ArrayVec<u8, 100_usize>>, Option<()>, Option<()>>
+              , &mut Option<()>) -> Option<()>
+         >
+    = Action(
+        MetaInterp {
+            field_chain_id: Action(JsonStringAccumulate::<32>, mkvfn(|chain: &ArrayVec<u8, 32>, _| -> Option<()> {
+                scroller("On Chain", |w| Ok(write!(w, "{}", from_utf8(chain.as_slice())?)?))
+            })),
+            field_sender: DropInterp,
+            field_gas_limit: JsonStringAccumulate::<100>,
+            field_gas_price: JsonStringAccumulate::<100>,
+            field_ttl: DropInterp,
+            field_creation_time: DropInterp
+        }, mkvfn(|Meta { ref field_gas_limit, ref field_gas_price, .. }, _| {
+            scroller("Using Gas", |w| Ok(write!(w, "at most {} at price {}"
+                , from_utf8(field_gas_limit.as_ref().ok_or(ScrollerError)?.as_slice())?
+                , from_utf8(field_gas_price.as_ref().ok_or(ScrollerError)?.as_slice())?)?))
+        }));
 
 #[derive(Debug, Clone, Copy)]
 enum CapCountData {
