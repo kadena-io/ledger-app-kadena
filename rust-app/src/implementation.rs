@@ -191,19 +191,20 @@ pub static SIGN_IMPL: SignImplT = Action(
 );
 
 const META_ACTION:
-  Action<MetaInterp<
-          Action<JsonStringAccumulate<32_usize>, fn(&ArrayVec<u8, 32_usize>, &mut Option<()>) -> Option<()>>
-          , DropInterp
-          , JsonStringAccumulate<100_usize>
-          , JsonStringAccumulate<100_usize>
-          , DropInterp
+  Action<Alt<MetaInterp<
+             Action<JsonStringAccumulate<32_usize>, fn(&ArrayVec<u8, 32_usize>, &mut Option<()>) -> Option<()>>
+             , DropInterp
+             , JsonStringAccumulate<100_usize>
+             , JsonStringAccumulate<100_usize>
+             , DropInterp
+             , DropInterp>
           , DropInterp>
-         , fn(&Meta<Option<()>, Option<()>, Option<ArrayVec<u8, 100_usize>>
-                    , Option<ArrayVec<u8, 100_usize>>, Option<()>, Option<()>>
+         , fn(&AltResult<Meta<Option<()>, Option<()>, Option<ArrayVec<u8, 100_usize>>
+                    , Option<ArrayVec<u8, 100_usize>>, Option<()>, Option<()>>, ()>
               , &mut Option<()>) -> Option<()>
          >
     = Action(
-        MetaInterp {
+        Alt(MetaInterp {
             field_chain_id: Action(JsonStringAccumulate::<32>, mkvfn(|chain: &ArrayVec<u8, 32>, _| -> Option<()> {
                 scroller("On Chain", |w| Ok(write!(w, "{}", from_utf8(chain.as_slice())?)?))
             })),
@@ -212,10 +213,18 @@ const META_ACTION:
             field_gas_price: JsonStringAccumulate::<100>,
             field_ttl: DropInterp,
             field_creation_time: DropInterp
-        }, mkvfn(|Meta { ref field_gas_limit, ref field_gas_price, .. }, _| {
-            scroller("Using Gas", |w| Ok(write!(w, "at most {} at price {}"
-                , from_utf8(field_gas_limit.as_ref().ok_or(ScrollerError)?.as_slice())?
-                , from_utf8(field_gas_price.as_ref().ok_or(ScrollerError)?.as_slice())?)?))
+        }, DropInterp)
+        , mkvfn(|v , _| {
+            match v {
+                AltResult::First(Meta { ref field_gas_limit, ref field_gas_price, .. }) => {
+                    scroller("Using Gas", |w| Ok(write!(w, "at most {} at price {}"
+                      , from_utf8(field_gas_limit.as_ref().ok_or(ScrollerError)?.as_slice())?
+                      , from_utf8(field_gas_price.as_ref().ok_or(ScrollerError)?.as_slice())?)?))
+                }
+                _ => {
+                    scroller("WARNING", |w| Ok(write!(w, "The 'meta' field of the transaction was not recognized, proceed with caution.")?))
+                }
+            }
         }));
 
 #[derive(Debug, Clone, Copy)]
