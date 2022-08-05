@@ -45,6 +45,10 @@ fn scroller < F: for <'b> Fn(&mut PromptWrite<'b, 16>) -> Result<(), ScrollerErr
     ledger_prompts_ui::write_scroller(title, prompt_function)
 }
 
+fn mkstr(v: Option<&[u8]>) -> Result<&str, ScrollerError> {
+    Ok(from_utf8(v.ok_or(ScrollerError)?)?)
+}
+
 pub type GetAddressImplT = impl InterpParser<Bip32Key, Returning = ArrayVec<u8, 128_usize>>;
 pub const GET_ADDRESS_IMPL: GetAddressImplT =
     Action(SubInterp(DefaultInterp), mkfn(|path: &ArrayVec<u32, 10>, destination: &mut Option<ArrayVec<u8, 128>>| {
@@ -104,8 +108,8 @@ pub static SIGN_IMPL: SignImplT = Action(
                         field_creation_time: DropInterp
                     }, mkvfn(|Meta { ref field_gas_limit, ref field_gas_price, .. } : &Meta<_,_,Option<ArrayVec<u8,100>>,Option<ArrayVec<u8,100>>,_,_>, _| {
                         scroller("Using Gas", |w| Ok(write!(w, "at most {} at price {}"
-                                                                  , from_utf8(field_gas_limit.as_ref().ok_or(ScrollerError)?.as_slice())?
-                                                                  , from_utf8(field_gas_price.as_ref().ok_or(ScrollerError)?.as_slice())?)?))
+                           , from_utf8(field_gas_limit.as_ref().ok_or(ScrollerError)?.as_slice())?
+                           , from_utf8(field_gas_price.as_ref().ok_or(ScrollerError)?.as_slice())?)?))
                     })),
                     field_payload: PayloadInterp {
                         field_exec: CommandInterp {
@@ -281,60 +285,60 @@ const CLIST_ACTION:
                   if arg_lengths[3] != 0 {
                       scroller(&mk_unknown_cap_title()?, |w| Ok(
                           write!(w, "name: {}, arg 1: {}, arg 2: {}, arg 3: {}, arg 4: {}, arg 5: {}", name_utf8
-                                 , from_utf8(args.as_slice().get(0..arg_lengths[0]).ok_or(ScrollerError)?)?
-                                 , from_utf8(args.as_slice().get(arg_lengths[0]..arg_lengths[1]).ok_or(ScrollerError)?)?
-                                 , from_utf8(args.as_slice().get(arg_lengths[1]..arg_lengths[2]).ok_or(ScrollerError)?)?
-                                 , from_utf8(args.as_slice().get(arg_lengths[2]..arg_lengths[3]).ok_or(ScrollerError)?)?
-                                 , from_utf8(args.as_slice().get(arg_lengths[3]..args.len()).ok_or(ScrollerError)?)?
+                                 , mkstr(args.as_slice().get(0..arg_lengths[0]))?
+                                 , mkstr(args.as_slice().get(arg_lengths[0]..arg_lengths[1]))?
+                                 , mkstr(args.as_slice().get(arg_lengths[1]..arg_lengths[2]))?
+                                 , mkstr(args.as_slice().get(arg_lengths[2]..arg_lengths[3]))?
+                                 , mkstr(args.as_slice().get(arg_lengths[3]..args.len()))?
                           )?))?;
                   } else if arg_lengths[2] != 0 {
                       if name == b"coin.TRANSFER_XCHAIN" {
                           scroller(&mk_transfer_title()?, |w| Ok(
                               write!(w, "Cross-chain {} from {} to {} to chain {}"
-                                     , from_utf8(args.as_slice().get(arg_lengths[1]..arg_lengths[2]).ok_or(ScrollerError)?)?
-                                     , from_utf8(args.as_slice().get(0..arg_lengths[0]).ok_or(ScrollerError)?)?
-                                     , from_utf8(args.as_slice().get(arg_lengths[0]..arg_lengths[1]).ok_or(ScrollerError)?)?
-                                     , from_utf8(args.as_slice().get(arg_lengths[2]..args.len()).ok_or(ScrollerError)?)?
+                                     , mkstr(args.as_slice().get(arg_lengths[1]..arg_lengths[2]))?
+                                     , mkstr(args.as_slice().get(0..arg_lengths[0]))?
+                                     , mkstr(args.as_slice().get(arg_lengths[0]..arg_lengths[1]))?
+                                     , mkstr(args.as_slice().get(arg_lengths[2]..args.len()))?
                               )?))?;
                           *destination = Some((CapCountData::IsTransfer, true));
                       } else {
                           scroller(&mk_unknown_cap_title()?, |w| Ok(
                               write!(w, "name: {}, arg 1: {}, arg 2: {}, arg 3: {}, arg 4: {}", name_utf8
-                                     , from_utf8(args.as_slice().get(0..arg_lengths[0]).ok_or(ScrollerError)?)?
-                                     , from_utf8(args.as_slice().get(arg_lengths[0]..arg_lengths[1]).ok_or(ScrollerError)?)?
-                                     , from_utf8(args.as_slice().get(arg_lengths[1]..arg_lengths[2]).ok_or(ScrollerError)?)?
-                                     , from_utf8(args.as_slice().get(arg_lengths[2]..args.len()).ok_or(ScrollerError)?)?
+                                     , mkstr(args.as_slice().get(0..arg_lengths[0]))?
+                                     , mkstr(args.as_slice().get(arg_lengths[0]..arg_lengths[1]))?
+                                     , mkstr(args.as_slice().get(arg_lengths[1]..arg_lengths[2]))?
+                                     , mkstr(args.as_slice().get(arg_lengths[2]..args.len()))?
                               )?))?;
                       }
                   } else if arg_lengths[1] != 0 {
                       if name == b"coin.TRANSFER" {
                           scroller(&mk_transfer_title()?, |w| Ok(
                               write!(w, "{} from {} to {}"
-                                     , from_utf8(args.as_slice().get(arg_lengths[1]..args.len()).ok_or(ScrollerError)?)?
-                                     , from_utf8(args.as_slice().get(0..arg_lengths[0]).ok_or(ScrollerError)?)?
-                                     , from_utf8(args.as_slice().get(arg_lengths[0]..arg_lengths[1]).ok_or(ScrollerError)?)?
+                                     , mkstr(args.as_slice().get(arg_lengths[1]..args.len()))?
+                                     , mkstr(args.as_slice().get(0..arg_lengths[0]))?
+                                     , mkstr(args.as_slice().get(arg_lengths[0]..arg_lengths[1]))?
                               )?))?;
                           *destination = Some((CapCountData::IsTransfer, true));
                       } else {
                           scroller(&mk_unknown_cap_title()?, |w| Ok(
                               write!(w, "name: {}, arg 1: {}, arg 2: {}, arg 3: {}", name_utf8
-                                     , from_utf8(args.as_slice().get(0..arg_lengths[0]).ok_or(ScrollerError)?)?
-                                     , from_utf8(args.as_slice().get(arg_lengths[0]..arg_lengths[1]).ok_or(ScrollerError)?)?
-                                     , from_utf8(args.as_slice().get(arg_lengths[1]..args.len()).ok_or(ScrollerError)?)?
+                                     , mkstr(args.as_slice().get(0..arg_lengths[0]))?
+                                     , mkstr(args.as_slice().get(arg_lengths[0]..arg_lengths[1]))?
+                                     , mkstr(args.as_slice().get(arg_lengths[1]..args.len()))?
                               )?))?;
                       }
                   } else if arg_lengths[0] != 0 {
                       scroller(&mk_unknown_cap_title()?, |w| Ok(
                           write!(w, "name: {}, arg 1: {}, arg 2: {}", name_utf8
-                                 , from_utf8(args.as_slice().get(0..arg_lengths[0]).ok_or(ScrollerError)?)?
-                                 , from_utf8(args.as_slice().get(arg_lengths[0]..args.len()).ok_or(ScrollerError)?)?
+                                 , mkstr(args.as_slice().get(0..arg_lengths[0]))?
+                                 , mkstr(args.as_slice().get(arg_lengths[0]..args.len()))?
                       )?))?;
                   } else {
                       if name == b"coin.ROTATE" {
-                          scroller("Rotate for account", |w| Ok(write!(w, "{}", from_utf8(args.as_slice())?)?))?;
+                          scroller("Rotate for account", |w| Ok(write!(w, "{}", from_utf8(args)?)?))?;
                           *destination = Some((Summable::zero(), true));
                       } else {
-                          scroller(&mk_unknown_cap_title()?, |w| Ok(write!(w, "name: {}, arg 1: {}", name_utf8, from_utf8(args.as_slice())?)?))?;
+                          scroller(&mk_unknown_cap_title()?, |w| Ok(write!(w, "name: {}, arg 1: {}", name_utf8, from_utf8(args)?)?))?;
                       }
                   }
               }
