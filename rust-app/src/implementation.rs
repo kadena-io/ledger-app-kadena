@@ -103,34 +103,7 @@ pub static SIGN_IMPL: SignImplT = Action(
                             field_code: DropInterp,
                             field_data: DropInterp
                         }},
-                    field_signers: SubInterpM::<_, CapabilityCoverage>::new(Action(Preaction(
-                            || -> Option<()> {
-                                scroller("Requiring", |w| Ok(write!(w, "Capabilities")?))
-                            },
-                            SignerInterp {
-                        field_scheme: DropInterp,
-                        field_pub_key: MoveAction(JsonStringAccumulate::<64>, mkmvfn(|key : ArrayVec<u8, 64>, dest: &mut Option<ArrayVec<u8, 64>>| -> Option<()> {
-                            scroller("Of Key", |w| Ok(write!(w, "{}", from_utf8(key.as_slice())?)?))?;
-                            set_from_thunk(dest, || Some(key));
-                            Some(())
-                        })),
-                        field_addr: DropInterp,
-                        field_clist: Alt(DropInterp, CLIST_ACTION),
-                    }),
-                        mkfn(|signer: &Signer<_,Option<ArrayVec<u8, 64>>,_, Option<AltResult<(),(CapCountData, All)>>>, dest: &mut Option<CapabilityCoverage> | {
-                            *dest = Some(match signer.field_clist {
-                                Some(AltResult::Second((CapCountData::CapCount{total_caps,..}, All(a)))) if total_caps > 0 => if a {CapabilityCoverage::Full} else {CapabilityCoverage::HasFallback},
-                                _ => {
-                                    match from_utf8(signer.field_pub_key.as_ref()?.as_slice()) {
-                                        Ok(pub_key) => scroller("Unscoped Signer", |w| Ok(write!(w, "{}", pub_key)?)),
-                                        _ => Some(()),
-                                    };
-                                    CapabilityCoverage::NoCaps
-                                },
-                            });
-                            Some(())
-                        })),
-                        ),
+                    field_signers: SIGNERS_ACTION,
                     field_network_id: Action(Alt(JsonStringAccumulate::<32>, DropInterp), mkvfn(|mnet: &AltResult<ArrayVec<u8, 32>, ()>, dest: &mut Option<()>| {
                         *dest = Some(());
                         match mnet {
@@ -226,6 +199,49 @@ const META_ACTION:
                 }
             }
         }));
+
+const SIGNERS_ACTION:
+  SubInterpM<
+    Action<Preaction<
+      SignerInterp
+        < DropInterp
+        , MoveAction<JsonStringAccumulate<64_usize>, fn(ArrayVec<u8, 64_usize>, &mut Option<ArrayVec<u8, 64_usize>>) -> Option<()>>
+        , DropInterp
+        , Alt< DropInterp
+              , SubInterpMFold<
+                  Action< KadenaCapabilityInterp<KadenaCapabilityArgsInterp, JsonStringAccumulate<128_usize>>
+                        , fn(&KadenaCapability < Option<<KadenaCapabilityArgsInterp as ParserCommon<JsonArray<JsonAny>>>::Returning>, Option<ArrayVec<u8, 128_usize>>>
+                            , &mut Option<(CapCountData, bool)>, (CapCountData, All)) -> Option<()>
+                        >
+                  , (CapCountData, All)>
+             >
+        >>
+      , fn(&Signer<Option<()>, Option<ArrayVec<u8, 64_usize>>, Option<()>, Option<AltResult<(), (CapCountData, All)>>>, &mut Option<CapabilityCoverage>) -> Option<()>>
+  , CapabilityCoverage>
+  = SubInterpM::new(Action(Preaction(|| -> Option<()> { scroller("Requiring", |w| Ok(write!(w, "Capabilities")?))},
+    SignerInterp {
+        field_scheme: DropInterp,
+        field_pub_key: MoveAction(JsonStringAccumulate::<64>, mkmvfn(|key : ArrayVec<u8, 64>, dest: &mut Option<ArrayVec<u8, 64>>| -> Option<()> {
+            scroller("Of Key", |w| Ok(write!(w, "{}", from_utf8(key.as_slice())?)?))?;
+            set_from_thunk(dest, || Some(key));
+            Some(())
+        })),
+        field_addr: DropInterp,
+        field_clist: Alt(DropInterp, CLIST_ACTION),
+    }),
+    mkfn(|signer: &Signer<Option<()>,Option<ArrayVec<u8, 64>>,Option<()>, Option<AltResult<(),(CapCountData, All)>>>, dest: &mut Option<CapabilityCoverage> | {
+        *dest = Some(match signer.field_clist {
+            Some(AltResult::Second((CapCountData::CapCount{total_caps,..}, All(a)))) if total_caps > 0 => if a {CapabilityCoverage::Full} else {CapabilityCoverage::HasFallback},
+            _ => {
+                match from_utf8(signer.field_pub_key.as_ref()?.as_slice()) {
+                    Ok(pub_key) => scroller("Unscoped Signer", |w| Ok(write!(w, "{}", pub_key)?)),
+                    _ => Some(()),
+                };
+                CapabilityCoverage::NoCaps
+            },
+        });
+        Some(())
+    })));
 
 #[derive(Debug, Clone, Copy)]
 enum CapCountData {
