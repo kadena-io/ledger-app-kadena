@@ -29,6 +29,9 @@ const fn mkmvfn<A,B,C>(q: fn(A,&mut B)->Option<C>) -> fn(A,&mut B)->Option<C> {
 const fn mkfnc<A,B,C>(q: fn(&A,&mut B,C)->Option<()>) -> fn(&A,&mut B,C)->Option<()> {
     q
 }
+const fn mkmvfnc<A,B,C,P>(q: fn(A,&mut B,P)->Option<C>) -> fn(A,&mut B,P)->Option<C> {
+    q
+}
 const fn mkvfn<A>(q: fn(&A,&mut Option<()>)->Option<()>) -> fn(&A,&mut Option<()>)->Option<()> {
   q
 }
