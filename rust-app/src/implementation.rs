@@ -276,8 +276,10 @@ const SIGNERS_ACTION:
                 if *signerCapsState == IsSigner || *signerCapsState == CapsAlreadyShown {
                     scroller("Of Key", |w| Ok(write!(w, "{}", from_utf8(key.as_slice())?)?))?;
                 }
+                if *signerCapsState == IsSigner {
+                    set_from_thunk(dest, || Some(key));
+                }
             }
-            set_from_thunk(dest, || Some(key));
             Some(())
         })),
         field_addr: DynDropInterp::new(),
@@ -287,8 +289,8 @@ const SIGNERS_ACTION:
         *dest = Some(match signer.field_clist {
             Some(AltResult::Second((CapCountData::CapCount{total_caps,..}, All(a)))) if total_caps > 0 => if a {CapabilityCoverage::Full} else {CapabilityCoverage::HasFallback},
             _ => {
-                match from_utf8(signer.field_pub_key.as_ref()?.as_slice()) {
-                    Ok(pub_key) => scroller("Unscoped Signer", |w| Ok(write!(w, "{}", pub_key)?)),
+                match signer.field_pub_key.as_ref().map(|k| from_utf8(k.as_slice())) {
+                    Some(Ok(pub_key)) => scroller("Unscoped Signer", |w| Ok(write!(w, "{}", pub_key)?)),
                     _ => Some(()),
                 };
                 CapabilityCoverage::NoCaps
