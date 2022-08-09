@@ -4,7 +4,6 @@ use crate::*;
 use arrayvec::ArrayString;
 use arrayvec::ArrayVec;
 use core::fmt::Write;
-use core::cell::RefCell;
 use ledger_log::{info};
 use ledger_parser_combinators::interp_parser::{
     Action, DefaultInterp, DropInterp, InterpParser, ObserveLengthedBytes, SubInterp, OOB, set_from_thunk
@@ -259,14 +258,14 @@ const SIGNERS_ACTION:
         field_scheme: DynDropInterp::new(),
         field_pub_key: MoveAction(JsonStringAccumulate::<64>, mkmvfnc(|key : ArrayVec<u8, 64>, dest: &mut Option<ArrayVec<u8, 64>>, p| -> Option<()> {
             use SignerCapsStateEnum::*;
-            let mut signerCapsState = p.0.borrow_mut();
-            {
-                let mut buffer: ArrayString<64> = ArrayString::new();
-                {
-                    let pkh = get_pkh(get_pubkey(&BIP32_PATH).ok()?);
-                    write!(mk_prompt_write(&mut buffer), "{}", pkh).ok()?;
-                }
+            let signerCapsState = p.0;
+            unsafe {
                 if *signerCapsState != CapsAlreadyShown {
+                    let mut buffer: ArrayString<64> = ArrayString::new();
+                    { // Convert the PKH to UTF8 for comparison
+                        let pkh = get_pkh(get_pubkey(&BIP32_PATH).ok()?);
+                        write!(mk_prompt_write(&mut buffer), "{}", pkh).ok()?;
+                    }
                     if buffer.as_bytes() == key.as_slice() {
                         *signerCapsState = IsSigner;
                         scroller("Requiring", |w| Ok(write!(w, "Capabilities")?))?;
@@ -274,9 +273,9 @@ const SIGNERS_ACTION:
                         *signerCapsState = IsNotSigner;
                     }
                 }
-            }
-            if *signerCapsState == IsSigner || *signerCapsState == CapsAlreadyShown {
-                scroller("Of Key", |w| Ok(write!(w, "{}", from_utf8(key.as_slice())?)?))?;
+                if *signerCapsState == IsSigner || *signerCapsState == CapsAlreadyShown {
+                    scroller("Of Key", |w| Ok(write!(w, "{}", from_utf8(key.as_slice())?)?))?;
+                }
             }
             set_from_thunk(dest, || Some(key));
             Some(())
@@ -301,7 +300,7 @@ const SIGNERS_ACTION:
 struct SignerDynInterpWrap(pub SignerDynInterpT);
 
 #[derive(Clone)]
-struct SignerCapsState (RefCell<SignerCapsStateEnum>);
+struct SignerCapsState (*mut SignerCapsStateEnum);
 unsafe impl Sync for SignerCapsState {}
 
 // State we use to control the behaviour of prompt that get shown (or not shown) to the user
@@ -328,21 +327,21 @@ type SignerDynInterpT =
 
 
 impl ParserCommon<SignerSchema> for SignerDynInterpWrap {
-    type State = (<SignerDynInterpT as ParserCommon<SignerSchema>>::State, SignerCapsState, bool);
+    type State = (<SignerDynInterpT as ParserCommon<SignerSchema>>::State, SignerCapsStateEnum, bool);
     type Returning = <SignerDynInterpT as ParserCommon<SignerSchema>>::Returning;
     fn init(&self) -> Self::State {
         (<SignerDynInterpT as ParserCommon<SignerSchema>>::init(&self.0)
-         , SignerCapsState(RefCell::new(SignerCapsStateEnum::PubKeyNotChecked)), false)
+         , SignerCapsStateEnum::PubKeyNotChecked, false)
     }
 }
 
 impl JsonInterp<SignerSchema> for SignerDynInterpWrap {
     #[inline(never)]
-    fn parse<'b>(&self, (ref mut state, param, ref mut init_param_done): &mut Self::State, token: JsonToken<'b>, destination: &mut Option<Self::Returning>) -> Result<(), Option<OOB>> {
+    fn parse<'b>(&self, (ref mut state, ptr, ref mut init_param_done): &mut Self::State, token: JsonToken<'b>, destination: &mut Option<Self::Returning>) -> Result<(), Option<OOB>> {
         if !(*init_param_done) {
             // init_param should ideally not happen in parse
             *init_param_done = true;
-            <SignerDynInterpT as DynParser<SignerSchema>>::init_param(&self.0, param.clone(), state, destination);
+            <SignerDynInterpT as DynParser<SignerSchema>>::init_param(&self.0, SignerCapsState(ptr), state, destination);
         }
         <SignerDynInterpT as JsonInterp<SignerSchema>>::parse(&self.0, state, token, destination)
     }
@@ -382,15 +381,17 @@ impl JsonInterp<ClistT> for ClistDynInterpWrap {
     #[inline(never)]
     fn parse<'b>(&self, (ref mut state, p, scratch): &mut Self::State, token: JsonToken<'b>, destination: &mut Option<Self::Returning>) -> Result<(), Option<OOB>> {
         use SignerCapsStateEnum::*;
-        let mut signerCapsState = p.as_ref().ok_or(Some(OOB::Reject))?.0.borrow_mut();
-        if *signerCapsState != IsNotSigner {
-            if *signerCapsState == PubKeyNotChecked {
-                *signerCapsState = CapsAlreadyShown;
-                scroller("Requiring", |w| Ok(write!(w, "Capabilities")?)).ok_or(Some(OOB::Reject))?;
+        let signerCapsState = p.as_ref().ok_or(Some(OOB::Reject))?.0;
+        unsafe {
+            if *signerCapsState != IsNotSigner {
+                if *signerCapsState == PubKeyNotChecked {
+                    *signerCapsState = CapsAlreadyShown;
+                    scroller("Requiring", |w| Ok(write!(w, "Capabilities")?)).ok_or(Some(OOB::Reject))?;
+                }
+                <ClistInterpT as JsonInterp<ClistT>>::parse(&self.0, state, token, destination)
+            } else {
+                <DropInterp as JsonInterp<ClistT>>::parse(&DropInterp, scratch, token, &mut None)
             }
-            <ClistInterpT as JsonInterp<ClistT>>::parse(&self.0, state, token, destination)
-        } else {
-            <DropInterp as JsonInterp<ClistT>>::parse(&DropInterp, scratch, token, &mut None)
         }
     }
 }
