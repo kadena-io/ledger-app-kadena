@@ -1252,7 +1252,8 @@ describe("Capability Signing tests", function() {
         let pubkey = (await kda.getPublicKey(path)).publicKey;
         await Axios.delete("http://0.0.0.0:5000/events");
 
-        let txn = await fs.readFileSync(file);
+        let payloadString = await fs.readFileSync(file, {encoding: "ascii"});
+        let txn = Buffer.from(payloadString.trim(), 'binary')
         let rv = await kda.signTransaction(path, txn);
         expect(rv.signature.length).to.equal(128);
         let hash = blake2b(32).update(txn).digest();
