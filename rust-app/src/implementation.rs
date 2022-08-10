@@ -249,7 +249,7 @@ const SIGNERS_ACTION:
         Some(())
     })));
 
-pub const BIP32_PATH: [u32; 5] = nanos_sdk::ecc::make_bip32_path(b"m/44'/626'/0'/0/0");
+pub const BIP32_PATH_FOR_SIGN_TX: [u32; 5] = nanos_sdk::ecc::make_bip32_path(b"m/44'/626'/0'/0/0");
 
 #[cfg(not(target_device = "nanos"))]
 const SIGNERS_ACTION:
@@ -267,7 +267,7 @@ const SIGNERS_ACTION:
                 if *signer_caps_state != CapsAlreadyShown {
                     let mut buffer: ArrayString<64> = ArrayString::new();
                     { // Convert the PKH to UTF8 for comparison
-                        let pkh = get_pkh(get_pubkey(&BIP32_PATH).ok()?);
+                        let pkh = get_pkh(get_pubkey(&BIP32_PATH_FOR_SIGN_TX).ok()?);
                         write!(mk_prompt_write(&mut buffer), "{}", pkh).ok()?;
                     }
                     if buffer.as_bytes() == key.as_slice() {
