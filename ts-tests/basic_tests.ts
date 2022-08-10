@@ -211,17 +211,17 @@ describe("Signing tests", function() {
 
   it("can sign a simple transfer",
      testTransaction(
-       '{"networkId":"mainnet01","payload":{"exec":{"data":{},"code":"(coin.transfer \\"83934c0f9b005f378ba3520f9dea952fb0a90e5aa36f1b5ff837d9b30c471790\\" \\"9790d119589a26114e1a42d92598b3f632551c566819ec48e0e8c54dae6ebb42\\" 11.0)"}},"signers":[{"pubKey":"83934c0f9b005f378ba3520f9dea952fb0a90e5aa36f1b5ff837d9b30c471790","clist":[{"args":[],"name":"coin.GAS"},{"args":["83934c0f9b005f378ba3520f9dea952fb0a90e5aa36f1b5ff837d9b30c471790","9790d119589a26114e1a42d92598b3f632551c566819ec48e0e8c54dae6ebb42",11],"name":"coin.TRANSFER"}]}],"meta":{"creationTime":1634009214,"ttl":28800,"gasLimit":600,"chainId":"0","gasPrice":1.0e-5,"sender":"83934c0f9b005f378ba3520f9dea952fb0a90e5aa36f1b5ff837d9b30c471790"},"nonce":"\\"2021-10-12T03:27:53.700Z\\""}',
+       '{"networkId":"mainnet01","payload":{"exec":{"data":{},"code":"(coin.transfer \\"9ed54a1020ebbbf8bbe425346498434edd79e4cd36fe874ea58853e78eab4995\\" \\"9790d119589a26114e1a42d92598b3f632551c566819ec48e0e8c54dae6ebb42\\" 11.0)"}},"signers":[{"pubKey":"9ed54a1020ebbbf8bbe425346498434edd79e4cd36fe874ea58853e78eab4995","clist":[{"args":[],"name":"coin.GAS"},{"args":["9ed54a1020ebbbf8bbe425346498434edd79e4cd36fe874ea58853e78eab4995","9790d119589a26114e1a42d92598b3f632551c566819ec48e0e8c54dae6ebb42",11],"name":"coin.TRANSFER"}]}],"meta":{"creationTime":1634009214,"ttl":28800,"gasLimit":600,"chainId":"0","gasPrice":1.0e-5,"sender":"83934c0f9b005f378ba3520f9dea952fb0a90e5aa36f1b5ff837d9b30c471790"},"nonce":"\\"2021-10-12T03:27:53.700Z\\""}',
        [
          { "header": "Signing", "prompt": "Transaction" },
          { "header": "On Network", "prompt": "mainnet01" },
          { "header": "Requiring", "prompt": "Capabilities" },
-         { "header": "Of Key", "prompt": "83934c0f9b005f378ba3520f9dea952fb0a90e5aa36f1b5ff837d9b30c471790" },
+         { "header": "Of Key", "prompt": "9ed54a1020ebbbf8bbe425346498434edd79e4cd36fe874ea58853e78eab4995" },
          { "header": "Paying Gas", "prompt": " " },
-         { "header": "Transfer 1", "prompt": "11 from \"83934c0f9b005f378ba3520f9dea952fb0a90e5aa36f1b5ff837d9b30c471790\" to \"9790d119589a26114e1a42d92598b3f632551c566819ec48e0e8c54dae6ebb42\"" },
+         { "header": "Transfer 1", "prompt": "11 from \"9ed54a1020ebbbf8bbe425346498434edd79e4cd36fe874ea58853e78eab4995\" to \"9790d119589a26114e1a42d92598b3f632551c566819ec48e0e8c54dae6ebb42\"" },
          { "header": "On Chain", "prompt": "0" },
          { "header": "Using Gas", "prompt": "at most 600 at price 1.0e-5" },
-         { "header": "Transaction hash", "prompt": "fPSCfMUaoK1N31qwhwBFUPwG-YR_guPP894uixsNZgk" },
+         { "header": "Transaction hash", "prompt": "4C3zw_Mnl_lTx77S63QLiu95iyvRnNxEekBJ7EHswVo" },
          { "header": "Sign for Address", "prompt": "9ed54a1020ebbbf8bbe425346498434edd79e4cd36fe874ea58853e78eab4995" },
          {
            "text": "Sign Transaction?",
@@ -237,15 +237,15 @@ describe("Signing tests", function() {
      ));
      it("Fallback to showing all args with coin.GAS containing args",
         testTransaction(
-          '{"networkId":"mainnet01","payload":{"exec":{"data":{},"code":"(coin.transfer \\"aab7d3e457f3f78480832d6ac4ace7387f460620a63a5b68c8c799d6bff1566a\\" \\"4c310df6224d674d80463a29cde00cb0ecfb71e0cfdce494243a61b8ea572dfd\\" 2.0)"}},"signers":[{"pubKey":"aab7d3e457f3f78480832d6ac4ace7387f460620a63a5b68c8c799d6bff1566a","clist":[{"args":["aab7d3e457f3f78480832d6ac4ace7387f460620a63a5b68c8c799d6bff1566a","4c310df6224d674d80463a29cde00cb0ecfb71e0cfdce494243a61b8ea572dfd",2],"name":"coin.TRANSFER"},{"args":[1,true,null],"name":"coin.GAS"}]}],"meta":{"creationTime":1634009195,"ttl":900,"gasLimit":600,"chainId":"0","gasPrice":1.0e-6,"sender":"aab7d3e457f3f78480832d6ac4ace7387f460620a63a5b68c8c799d6bff1566a"},"nonce":"\\"2021-10-12T03:27:35.231Z\\""}',
+          '{"networkId":"mainnet01","payload":{"exec":{"data":{},"code":"(coin.transfer \\"9ed54a1020ebbbf8bbe425346498434edd79e4cd36fe874ea58853e78eab4995\\" \\"4c310df6224d674d80463a29cde00cb0ecfb71e0cfdce494243a61b8ea572dfd\\" 2.0)"}},"signers":[{"pubKey":"9ed54a1020ebbbf8bbe425346498434edd79e4cd36fe874ea58853e78eab4995","clist":[{"args":["9ed54a1020ebbbf8bbe425346498434edd79e4cd36fe874ea58853e78eab4995","4c310df6224d674d80463a29cde00cb0ecfb71e0cfdce494243a61b8ea572dfd",2],"name":"coin.TRANSFER"},{"args":[1,true,null],"name":"coin.GAS"}]}],"meta":{"creationTime":1634009195,"ttl":900,"gasLimit":600,"chainId":"0","gasPrice":1.0e-6,"sender":"aab7d3e457f3f78480832d6ac4ace7387f460620a63a5b68c8c799d6bff1566a"},"nonce":"\\"2021-10-12T03:27:35.231Z\\""}',
           [
             { "header": "Signing", "prompt": "Transaction" },
             { "header": "On Network", "prompt": "mainnet01" },
             { "header": "Requiring", "prompt": "Capabilities" },
-            { "header": "Of Key", "prompt": "aab7d3e457f3f78480832d6ac4ace7387f460620a63a5b68c8c799d6bff1566a" },
+            { "header": "Of Key", "prompt": "9ed54a1020ebbbf8bbe425346498434edd79e4cd36fe874ea58853e78eab4995" },
             {
               "header": "Transfer 1",
-              "prompt": "2 from \"aab7d3e457f3f78480832d6ac4ace7387f460620a63a5b68c8c799d6bff1566a\" to \"4c310df6224d674d80463a29cde00cb0ecfb71e0cfdce494243a61b8ea572dfd\"",
+              "prompt": "2 from \"9ed54a1020ebbbf8bbe425346498434edd79e4cd36fe874ea58853e78eab4995\" to \"4c310df6224d674d80463a29cde00cb0ecfb71e0cfdce494243a61b8ea572dfd\"",
             },
             {
               "header": "Unknown Capability 1",
@@ -255,7 +255,7 @@ describe("Signing tests", function() {
             { "header": "Using Gas", "prompt": "at most 600 at price 1.0e-6" },
             {
               "header": "Transaction hash",
-              "prompt": "anrl4cUVN53NFJCQ9tH4szt-ZzlCQ_SZuDI7e8OLyco",
+              "prompt": "H0OmxW4UBcv5EmJF2ZF-a5J8XSphLYC2sMbFeOQbog8",
             },
             {
               "header": "Sign for Address",
