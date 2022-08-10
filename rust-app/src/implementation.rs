@@ -262,25 +262,25 @@ const SIGNERS_ACTION:
         field_scheme: DynDropInterp::new(),
         field_pub_key: MoveAction(JsonStringAccumulate::<64>, mkmvfnc(|key : ArrayVec<u8, 64>, dest: &mut Option<ArrayVec<u8, 64>>, p| -> Option<()> {
             use SignerCapsStateEnum::*;
-            let signerCapsState = p.0;
+            let signer_caps_state = p.0;
             unsafe {
-                if *signerCapsState != CapsAlreadyShown {
+                if *signer_caps_state != CapsAlreadyShown {
                     let mut buffer: ArrayString<64> = ArrayString::new();
                     { // Convert the PKH to UTF8 for comparison
                         let pkh = get_pkh(get_pubkey(&BIP32_PATH).ok()?);
                         write!(mk_prompt_write(&mut buffer), "{}", pkh).ok()?;
                     }
                     if buffer.as_bytes() == key.as_slice() {
-                        *signerCapsState = IsSigner;
+                        *signer_caps_state = IsSigner;
                         scroller("Requiring", |w| Ok(write!(w, "Capabilities")?))?;
                     } else {
-                        *signerCapsState = IsNotSigner;
+                        *signer_caps_state = IsNotSigner;
                     }
                 }
-                if *signerCapsState == IsSigner || *signerCapsState == CapsAlreadyShown {
+                if *signer_caps_state == IsSigner || *signer_caps_state == CapsAlreadyShown {
                     scroller("Of Key", |w| Ok(write!(w, "{}", from_utf8(key.as_slice())?)?))?;
                 }
-                if *signerCapsState == IsSigner {
+                if *signer_caps_state == IsSigner {
                     set_from_thunk(dest, || Some(key));
                 }
             }
@@ -387,11 +387,11 @@ impl JsonInterp<ClistT> for ClistDynInterpWrap {
     #[inline(never)]
     fn parse<'b>(&self, (ref mut state, p, scratch): &mut Self::State, token: JsonToken<'b>, destination: &mut Option<Self::Returning>) -> Result<(), Option<OOB>> {
         use SignerCapsStateEnum::*;
-        let signerCapsState = p.as_ref().ok_or(Some(OOB::Reject))?.0;
+        let signer_caps_state = p.as_ref().ok_or(Some(OOB::Reject))?.0;
         unsafe {
-            if *signerCapsState != IsNotSigner {
-                if *signerCapsState == PubKeyNotChecked {
-                    *signerCapsState = CapsAlreadyShown;
+            if *signer_caps_state != IsNotSigner {
+                if *signer_caps_state == PubKeyNotChecked {
+                    *signer_caps_state = CapsAlreadyShown;
                     scroller("Requiring", |w| Ok(write!(w, "Capabilities")?)).ok_or(Some(OOB::Reject))?;
                 }
                 <ClistInterpT as JsonInterp<ClistT>>::parse(&self.0, state, token, destination)
