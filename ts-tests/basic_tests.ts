@@ -371,51 +371,6 @@ describe("Signing tests", function() {
            "y": 11,
          }
        ]));
-  it("can sign a second transfer-create",
-     testTransaction(
-       '{"networkId":"mainnet01","payload":{"exec":{"data":{"recp-ks":{"pred":"keys-all","keys":["875e4493e19c8721583bfb46f0768f10266ebcca33c4a0e04bc099a7044a90f7"]}},"code":"(coin.transfer-create \\"73580ffb3e5ca9859442395d4c1cb0bf3aa4e7246564ce943b7ae508b3ee7c03\\" \\"875e4493e19c8721583bfb46f0768f10266ebcca33c4a0e04bc099a7044a90f7\\" (read-keyset \\"recp-ks\\") 4.89093455)"}},"signers":[{"pubKey":"73580ffb3e5ca9859442395d4c1cb0bf3aa4e7246564ce943b7ae508b3ee7c03","clist":[{"args":[],"name":"coin.GAS"},{"args":["73580ffb3e5ca9859442395d4c1cb0bf3aa4e7246564ce943b7ae508b3ee7c03","875e4493e19c8721583bfb46f0768f10266ebcca33c4a0e04bc099a7044a90f7",4.89093455],"name":"coin.TRANSFER"}]}],"meta":{"creationTime":1634009098,"ttl":28800,"gasLimit":60000,"chainId":"0","gasPrice":1.0e-6,"sender":"73580ffb3e5ca9859442395d4c1cb0bf3aa4e7246564ce943b7ae508b3ee7c03"},"nonce":"\\"1634009113073\\""}',
-       [
-         { "header": "Signing",
-           "prompt": "Transaction"
-         },
-         { "header": "On Network", "prompt": "mainnet01" },
-         {
-           "header": "Requiring",
-           "prompt": "Capabilities",
-         },
-         {
-           "header": "Of Key",
-           "prompt": "73580ffb3e5ca9859442395d4c1cb0bf3aa4e7246564ce943b7ae508b3ee7c03"
-         },
-         {
-           "header": "Paying Gas",
-           "prompt": " ",
-         },
-         {
-           "header": "Transfer 1",
-           "prompt": "4.89093455 from \"73580ffb3e5ca9859442395d4c1cb0bf3aa4e7246564ce943b7ae508b3ee7c03\" to \"875e4493e19c8721583bfb46f0768f10266ebcca33c4a0e04bc099a7044a90f7\"",
-         },
-         { "header": "On Chain", "prompt": "0" },
-         { "header": "Using Gas", "prompt": "at most 60000 at price 1.0e-6" },
-         {
-           "header": "Transaction hash",
-           "prompt": "pJsk0-vgbqfzOBFc4zHtFMSMa0aCZpXBZ_QQFxox1-k",
-         },
-         {
-           "header": "Sign for Address",
-           "prompt": "9ed54a1020ebbbf8bbe425346498434edd79e4cd36fe874ea58853e78eab4995",
-         },
-         {
-           "text": "Sign Transaction?",
-           "x": 19,
-           "y": 11,
-         },
-         {
-           "text": "Confirm",
-           "x": 43,
-           "y": 11,
-         },
-       ]));
 
   it("Fallback to showing all args with coin.TRANSFER not having 3 args",
      testTransaction(
