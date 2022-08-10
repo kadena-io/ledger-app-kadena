@@ -203,7 +203,8 @@ const META_ACTION:
             }
         }));
 
-const SIGNERS_ACTION_OLD:
+#[cfg(target_device = "nanos")]
+const SIGNERS_ACTION:
   SubInterpM<
     Action<Preaction<
       SignerInterp
@@ -248,6 +249,7 @@ const SIGNERS_ACTION_OLD:
 
 pub const BIP32_PATH: [u32; 5] = nanos_sdk::ecc::make_bip32_path(b"m/44'/626'/0'/0/0");
 
+#[cfg(not(target_device = "nanos"))]
 const SIGNERS_ACTION:
   SubInterpM<
     Action< SignerDynInterpWrap
