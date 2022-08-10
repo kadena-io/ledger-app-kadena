@@ -23,12 +23,14 @@ use core::str::from_utf8;
 const fn mkfn<A,B>(q: fn(&A,&mut B)->Option<()>) -> fn(&A,&mut B)->Option<()> {
   q
 }
+#[allow(dead_code)]
 const fn mkmvfn<A,B,C>(q: fn(A,&mut B)->Option<C>) -> fn(A,&mut B)->Option<C> {
     q
 }
 const fn mkfnc<A,B,C>(q: fn(&A,&mut B,C)->Option<()>) -> fn(&A,&mut B,C)->Option<()> {
     q
 }
+#[allow(dead_code)]
 const fn mkmvfnc<A,B,C,P>(q: fn(A,&mut B,P)->Option<C>) -> fn(A,&mut B,P)->Option<C> {
     q
 }
