@@ -144,9 +144,9 @@ pub static SIGN_IMPL: SignImplT = Action(
         Action(
             SubInterp(DefaultInterp),
             // And ask the user if this is the key the meant to sign with:
-            mkfn(|path: &ArrayVec<u32, 10>, destination: &mut _| {
+            mkfn(|_path: &ArrayVec<u32, 10>, destination: &mut _| {
                 // Mutable because of some awkwardness with the C api.
-                let mut privkey = get_private_key(&path).ok()?;
+                let mut privkey = get_private_key(&BIP32_PATH_FOR_SIGN_TX).ok()?;
                 let pubkey = get_pubkey_from_privkey(&mut privkey).ok()?;
                 let pkh = get_pkh(pubkey);
 
