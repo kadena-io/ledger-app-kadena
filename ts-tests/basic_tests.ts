@@ -194,11 +194,10 @@ function testTransaction(txn: string, prompts: any[]) {
      return async () => {
        await sendCommandAndAccept(
          async (kda : Kda) => {
-           let path = "m/44'/626'/0'/0/0";
-           let pubkey = (await kda.getPublicKey(path)).publicKey;
+           let pubkey = (await kda.getPublicKey()).publicKey;
            await Axios.delete("http://0.0.0.0:5000/events");
 
-           let rv = await kda.signTransaction(path, Buffer.from(txn, "utf-8").toString("hex"));
+           let rv = await kda.signTransaction(Buffer.from(txn, "utf-8").toString("hex"));
            expect(rv.signature.length).to.equal(128);
            let hash = blake2b(32).update(Buffer.from(txn, "utf-8")).digest();
            let pass = nacl.crypto_sign_verify_detached(Buffer.from(rv.signature, 'hex'), hash, Buffer.from(pubkey, 'hex'));
@@ -1220,7 +1219,6 @@ describe("Capability Signing tests", function() {
 
   it("can sign an arbitrary cap with BIG JSON in args, showing warning", async function () {
     this.timeout(60*1000);
-    let path = "m/44'/626'/0'/0/0";
     let file = "marmalade-tx.json";
     let prompts =
        [
@@ -1249,12 +1247,12 @@ describe("Capability Signing tests", function() {
 
     await sendCommandAndAccept(
       async (kda : Kda) => {
-        let pubkey = (await kda.getPublicKey(path)).publicKey;
+        let pubkey = (await kda.getPublicKey()).publicKey;
         await Axios.delete("http://0.0.0.0:5000/events");
 
         let payloadString = await fs.readFileSync(file, {encoding: "ascii"});
         let txn = Buffer.from(payloadString.trim(), 'binary')
-        let rv = await kda.signTransaction(path, txn);
+        let rv = await kda.signTransaction(txn);
         expect(rv.signature.length).to.equal(128);
         let hash = blake2b(32).update(txn).digest();
         let pass = nacl.crypto_sign_verify_detached(Buffer.from(rv.signature, 'hex'), hash, Buffer.from(pubkey, 'hex'));
