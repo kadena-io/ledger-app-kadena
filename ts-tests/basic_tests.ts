@@ -58,6 +58,7 @@ let processPrompts = function(prompts: [any]) {
     }
     ({done, value} = i.next());
   }
+  if(header || prompt) rv.push({ header, prompt });
   return rv;
 }
 
