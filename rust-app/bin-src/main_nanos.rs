@@ -14,7 +14,7 @@ use kadena::*;
 
 // Pulling this out of sample_main to global const saves 24 bytes
 // But the SingleMessage::new fails to work with global const, therefore doing fill_idle_menu
-const IDLE_MENU: [&str; 3] = [ concat!("Kadena ", env!("CARGO_PKG_VERSION")), "Settings", "Quit" ];
+const IDLE_MENU: [&str; 3] = [ concat!("Kadena ", env!("CARGO_PKG_VERSION")), "Blind Signing", "Quit" ];
 fn fill_idle_menu(arr: &mut [&str; 3]) {
     for (i, s) in IDLE_MENU.iter().enumerate() {
         arr[i] = s;
@@ -41,11 +41,11 @@ extern "C" fn sample_main() {
             },
             ParsersState::SettingsState(0) => {
                 // Using arr is important here. `menu.show(&[ ... ])` doesn't work
-                let arr = [ "Enable Hash Signing", "Back" ];
+                let arr = [ "Enable Blind Signing", "Back" ];
                 menu.show(&arr);
             },
             ParsersState::SettingsState(1) => {
-                let arr = [ "Disable Hash Signing", "Back" ];
+                let arr = [ "Disable Blind Signing", "Back" ];
                 menu.show(&arr);
             },
             _ => {

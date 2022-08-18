@@ -14,7 +14,7 @@ import { instantiate, Nacl } from "js-nacl";
 
 let nacl : Nacl =null;
 
-let ignoredScreens = [ "W e l c o m e", "Cancel", "Working...", "Quit", "Kadena 0.2.1", "Back", "Settings", "Enable Hash Signing", "Disable Hash Signing"]
+let ignoredScreens = [ "W e l c o m e", "Cancel", "Working...", "Quit", "Kadena 0.2.1", "Back", "Blind Signing", "Enable Blind Signing", "Disable Blind Signing"]
 
 let setAcceptAutomationRules = async function() {
     await Axios.post("http://localhost:5000/automation", {
