@@ -972,7 +972,10 @@ describe('Hash Signing Tests', function() {
        "0/0",
        'ffd8cd79deb956fa3c7d9be0f836f20ac84b140168a087a842be4760e40e2b1c',
        [
-         { "header": "Signing", "prompt": "Transaction Hash" },
+         {
+           "header": "WARNING",
+           "prompt": "Blind Signing a Transaction Hash is a very unusual operation. Do not continue unless you know what you are doing",
+         },
          { "header": "Transaction hash", "prompt": "_9jNed65Vvo8fZvg-DbyCshLFAFooIeoQr5HYOQOKxw" },
          { "header": "Sign for Address", "prompt": "ffd8cd79deb956fa3c7d9be0f836f20ac84b140168a087a842be4760e40e2b1c" },
          {
@@ -992,7 +995,10 @@ describe('Hash Signing Tests', function() {
        "0/0",
        '_9jNed65Vvo8fZvg-DbyCshLFAFooIeoQr5HYOQOKxw',
        [
-         { "header": "Signing", "prompt": "Transaction Hash" },
+         {
+           "header": "WARNING",
+           "prompt": "Blind Signing a Transaction Hash is a very unusual operation. Do not continue unless you know what you are doing",
+         },
          { "header": "Transaction hash", "prompt": "_9jNed65Vvo8fZvg-DbyCshLFAFooIeoQr5HYOQOKxw" },
          { "header": "Sign for Address", "prompt": "ffd8cd79deb956fa3c7d9be0f836f20ac84b140168a087a842be4760e40e2b1c" },
          {
