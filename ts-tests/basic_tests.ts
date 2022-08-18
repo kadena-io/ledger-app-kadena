@@ -950,7 +950,6 @@ function testSignHashFail2(path: string, hash: string) {
 
 let toggleHashSettings = async function() {
   await Axios.post("http://localhost:5000/button/right", {"action":"press-and-release"});
-  await Axios.post("http://localhost:5000/button/right", {"action":"press-and-release"});
   await Axios.post("http://localhost:5000/button/both", {"action":"press-and-release"});
   await Axios.post("http://localhost:5000/button/both", {"action":"press-and-release"});
   await Axios.post("http://localhost:5000/button/right", {"action":"press-and-release"});

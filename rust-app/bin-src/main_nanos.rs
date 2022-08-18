@@ -14,7 +14,7 @@ use kadena::*;
 
 // Pulling this out of sample_main to global const saves 24 bytes
 // But the SingleMessage::new fails to work with global const, therefore doing fill_idle_menu
-const IDLE_MENU: [&str; 3] = [ concat!("Kadena ", env!("CARGO_PKG_VERSION")), "Exit", "Settings" ];
+const IDLE_MENU: [&str; 3] = [ concat!("Kadena ", env!("CARGO_PKG_VERSION")), "Settings", "Exit" ];
 fn fill_idle_menu(arr: &mut [&str; 3]) {
     for (i, s) in IDLE_MENU.iter().enumerate() {
         arr[i] = s;
@@ -72,10 +72,10 @@ extern "C" fn sample_main() {
                 }
                 Some(1) => match states {
                     ParsersState::SettingsState(_) => { menu.reset(); states = ParsersState::NoState; },
-                    ParsersState::NoState => { info!("Exiting app at user direction via root menu"); nanos_sdk::exit_app(0) },
+                    ParsersState::NoState => { menu.reset(); states = ParsersState::SettingsState(get_current_settings()); },
                     _ => { info!("Resetting at user direction via busy menu"); menu.reset(); set_from_thunk(&mut states, || ParsersState::NoState); }
                 }
-                Some(2) => { menu.reset(); states = ParsersState::SettingsState(get_current_settings()); },
+                Some(2) => { info!("Exiting app at user direction via root menu"); nanos_sdk::exit_app(0) },
                 _ => (),
             },
             io::Event::Ticker => {
