@@ -14,7 +14,7 @@ use kadena::*;
 
 // Pulling this out of sample_main to global const saves 24 bytes
 // But the SingleMessage::new fails to work with global const, therefore doing fill_idle_menu
-const IDLE_MENU: [&str; 3] = [ concat!("Kadena ", env!("CARGO_PKG_VERSION")), "Settings", "Exit" ];
+const IDLE_MENU: [&str; 3] = [ concat!("Kadena ", env!("CARGO_PKG_VERSION")), "Settings", "Quit" ];
 fn fill_idle_menu(arr: &mut [&str; 3]) {
     for (i, s) in IDLE_MENU.iter().enumerate() {
         arr[i] = s;
