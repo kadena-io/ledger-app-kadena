@@ -3,6 +3,9 @@ use kadena::interface::*;
 use kadena::settings::*;
 use ledger_parser_combinators::interp_parser::set_from_thunk;
 
+use core::fmt::Write;
+use ledger_prompts_ui::{write_scroller};
+
 use nanos_sdk::io;
 use nanos_sdk::buttons::{ButtonEvent};
 use nanos_ui::ui::{SingleMessage};
@@ -185,6 +188,7 @@ fn handle_apdu(comm: &mut io::Comm, ins: Ins, parser: &mut ParsersState) -> Resu
         }
         Ins::SignHash => {
             if get_current_settings() != 1 {
+                write_scroller("Blind Signing must", |w| Ok(write!(w, "be enabled")?));
                 return Err(io::SyscallError::NotSupported.into());
             } else {
                 run_parser_apdu::<_, SignHashParameters>(parser, get_sign_hash_state, &SIGN_HASH_IMPL, comm)?
