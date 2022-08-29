@@ -38,7 +38,7 @@ define_json_struct! { Payload 5 {
 
 define_json_struct! { KadenaCmd 16 {
   nonce: JsonString,
-  meta: MetaSchema,
+  meta: Alt<MetaSchema, JsonAny>,
   signers: JsonArray<SignerSchema>,
   payload: PayloadSchema,
   networkId: Alt<JsonString,JsonNull>
