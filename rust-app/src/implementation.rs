@@ -362,7 +362,9 @@ const CLIST_ACTION:
 pub type SignHashImplT = impl InterpParser<SignHashParameters, Returning = ArrayVec<u8, 128_usize>>;
 
 pub static SIGN_HASH_IMPL: SignHashImplT = Action(
-    Preaction( || -> Option<()> { write_scroller("Signing", |w| Ok(write!(w, "Transaction Hash")?)) } ,
+    Preaction( || -> Option<()> {
+        write_scroller("WARNING", |w| Ok(write!(w, "Blind Signing a Transaction Hash is a very unusual operation. Do not continue unless you know what you are doing")?))
+    } ,
     (
         Action(
             SubInterp(DefaultInterp),

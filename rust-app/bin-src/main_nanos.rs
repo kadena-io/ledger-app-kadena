@@ -3,6 +3,9 @@ use kadena::interface::*;
 use kadena::settings::*;
 use ledger_parser_combinators::interp_parser::set_from_thunk;
 
+use core::fmt::Write;
+use ledger_prompts_ui::{write_scroller};
+
 use nanos_sdk::io;
 use nanos_sdk::buttons::{ButtonEvent};
 use nanos_ui::ui::{SingleMessage};
@@ -14,7 +17,7 @@ use kadena::*;
 
 // Pulling this out of sample_main to global const saves 24 bytes
 // But the SingleMessage::new fails to work with global const, therefore doing fill_idle_menu
-const IDLE_MENU: [&str; 3] = [ concat!("Kadena ", env!("CARGO_PKG_VERSION")), "Exit", "Settings" ];
+const IDLE_MENU: [&str; 3] = [ concat!("Kadena ", env!("CARGO_PKG_VERSION")), "Blind Signing", "Quit" ];
 fn fill_idle_menu(arr: &mut [&str; 3]) {
     for (i, s) in IDLE_MENU.iter().enumerate() {
         arr[i] = s;
@@ -41,11 +44,11 @@ extern "C" fn sample_main() {
             },
             ParsersState::SettingsState(0) => {
                 // Using arr is important here. `menu.show(&[ ... ])` doesn't work
-                let arr = [ "Enable Hash Signing", "Back" ];
+                let arr = [ "Enable Blind Signing", "Back" ];
                 menu.show(&arr);
             },
             ParsersState::SettingsState(1) => {
-                let arr = [ "Disable Hash Signing", "Back" ];
+                let arr = [ "Disable Blind Signing", "Back" ];
                 menu.show(&arr);
             },
             _ => {
@@ -72,10 +75,10 @@ extern "C" fn sample_main() {
                 }
                 Some(1) => match states {
                     ParsersState::SettingsState(_) => { menu.reset(); states = ParsersState::NoState; },
-                    ParsersState::NoState => { info!("Exiting app at user direction via root menu"); nanos_sdk::exit_app(0) },
+                    ParsersState::NoState => { menu.reset(); states = ParsersState::SettingsState(get_current_settings()); },
                     _ => { info!("Resetting at user direction via busy menu"); menu.reset(); set_from_thunk(&mut states, || ParsersState::NoState); }
                 }
-                Some(2) => { menu.reset(); states = ParsersState::SettingsState(get_current_settings()); },
+                Some(2) => { info!("Exiting app at user direction via root menu"); nanos_sdk::exit_app(0) },
                 _ => (),
             },
             io::Event::Ticker => {
@@ -185,6 +188,7 @@ fn handle_apdu(comm: &mut io::Comm, ins: Ins, parser: &mut ParsersState) -> Resu
         }
         Ins::SignHash => {
             if get_current_settings() != 1 {
+                write_scroller("Blind Signing must", |w| Ok(write!(w, "be enabled")?));
                 return Err(io::SyscallError::NotSupported.into());
             } else {
                 run_parser_apdu::<_, SignHashParameters>(parser, get_sign_hash_state, &SIGN_HASH_IMPL, comm)?

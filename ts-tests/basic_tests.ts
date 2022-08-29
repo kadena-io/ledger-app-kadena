@@ -14,7 +14,7 @@ import { instantiate, Nacl } from "js-nacl";
 
 let nacl : Nacl =null;
 
-let ignoredScreens = [ "W e l c o m e", "Cancel", "Working...", "Exit", "Kadena 0.2.1", "Back", "Settings", "Enable Hash Signing", "Disable Hash Signing"]
+let ignoredScreens = [ "W e l c o m e", "Cancel", "Working...", "Quit", "Kadena 0.2.1", "Back", "Blind Signing", "Enable Blind Signing", "Disable Blind Signing"]
 
 let setAcceptAutomationRules = async function() {
     await Axios.post("http://localhost:5000/automation", {
@@ -979,7 +979,6 @@ function testSignHashFail2(path: string, hash: string) {
 
 let toggleHashSettings = async function() {
   await Axios.post("http://localhost:5000/button/right", {"action":"press-and-release"});
-  await Axios.post("http://localhost:5000/button/right", {"action":"press-and-release"});
   await Axios.post("http://localhost:5000/button/both", {"action":"press-and-release"});
   await Axios.post("http://localhost:5000/button/both", {"action":"press-and-release"});
   await Axios.post("http://localhost:5000/button/right", {"action":"press-and-release"});
@@ -1002,7 +1001,10 @@ describe('Hash Signing Tests', function() {
        "0/0",
        'ffd8cd79deb956fa3c7d9be0f836f20ac84b140168a087a842be4760e40e2b1c',
        [
-         { "header": "Signing", "prompt": "Transaction Hash" },
+         {
+           "header": "WARNING",
+           "prompt": "Blind Signing a Transaction Hash is a very unusual operation. Do not continue unless you know what you are doing",
+         },
          { "header": "Transaction hash", "prompt": "_9jNed65Vvo8fZvg-DbyCshLFAFooIeoQr5HYOQOKxw" },
          { "header": "Sign for Address", "prompt": "ffd8cd79deb956fa3c7d9be0f836f20ac84b140168a087a842be4760e40e2b1c" },
          {
@@ -1022,7 +1024,10 @@ describe('Hash Signing Tests', function() {
        "0/0",
        '_9jNed65Vvo8fZvg-DbyCshLFAFooIeoQr5HYOQOKxw',
        [
-         { "header": "Signing", "prompt": "Transaction Hash" },
+         {
+           "header": "WARNING",
+           "prompt": "Blind Signing a Transaction Hash is a very unusual operation. Do not continue unless you know what you are doing",
+         },
          { "header": "Transaction hash", "prompt": "_9jNed65Vvo8fZvg-DbyCshLFAFooIeoQr5HYOQOKxw" },
          { "header": "Sign for Address", "prompt": "ffd8cd79deb956fa3c7d9be0f836f20ac84b140168a087a842be4760e40e2b1c" },
          {
