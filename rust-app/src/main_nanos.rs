@@ -3,7 +3,7 @@ use crate::interface::*;
 use crate::settings::*;
 
 use core::fmt::Write;
-use ledger_parser_combinators::interp_parser::OOB;
+use ledger_parser_combinators::interp_parser::{OOB, set_from_thunk};
 use ledger_prompts_ui::{write_scroller};
 use ledger_log::{info, trace};
 
