@@ -51,6 +51,10 @@ fn scroller < F: for <'b> Fn(&mut PromptWrite<'b, 16>) -> Result<(), ScrollerErr
     ledger_prompts_ui::write_scroller(title, prompt_function)
 }
 
+fn mkstr(v: Option<&[u8]>) -> Result<&str, ScrollerError> {
+    Ok(from_utf8(v.ok_or(ScrollerError)?)?)
+}
+
 pub type GetAddressImplT = impl InterpParser<Bip32Key, Returning = ArrayVec<u8, 128_usize>>;
 pub const GET_ADDRESS_IMPL: GetAddressImplT =
     Action(SubInterp(DefaultInterp), mkfn(|path: &ArrayVec<u32, 10>, destination: &mut Option<ArrayVec<u8, 128>>| {
@@ -96,7 +100,7 @@ pub static SIGN_IMPL: SignImplT = Action(
             ObserveLengthedBytes(
                 Hasher::new,
                 Hasher::update,
-                Json(Action(Preaction( || -> Option<()> { write_scroller("Signing", |w| Ok(write!(w, "Transaction")?)) } , KadenaCmdInterp {
+                Json(Action(Preaction( || -> Option<()> { scroller("Signing", |w| Ok(write!(w, "Transaction")?)) } , KadenaCmdInterp {
                     field_nonce: DropInterp,
                     field_meta: META_ACTION,
                     field_payload: PayloadInterp {
@@ -106,12 +110,12 @@ pub static SIGN_IMPL: SignImplT = Action(
                         }},
                     field_signers: SubInterpM::<_, CapabilityCoverage>::new(Action(Preaction(
                             || -> Option<()> {
-                                write_scroller("Requiring", |w| Ok(write!(w, "Capabilities")?))
+                                scroller("Requiring", |w| Ok(write!(w, "Capabilities")?))
                             },
                             SignerInterp {
                         field_scheme: DropInterp,
                         field_pub_key: MoveAction(JsonStringAccumulate::<64>, mkmvfn(|key : ArrayVec<u8, 64>, dest: &mut Option<ArrayVec<u8, 64>>| -> Option<()> {
-                            write_scroller("Of Key", |w| Ok(write!(w, "{}", from_utf8(key.as_slice())?)?))?;
+                            scroller("Of Key", |w| Ok(write!(w, "{}", from_utf8(key.as_slice())?)?))?;
                             set_from_thunk(dest, || Some(key));
                             Some(())
                         })),
@@ -123,7 +127,7 @@ pub static SIGN_IMPL: SignImplT = Action(
                                 Some(AltResult::Second((CapCountData::CapCount{total_caps,..}, All(a)))) if total_caps > 0 => if a {CapabilityCoverage::Full} else {CapabilityCoverage::HasFallback},
                                 _ => {
                                     match from_utf8(signer.field_pub_key.as_ref()?.as_slice()) {
-                                        Ok(pub_key) => write_scroller("Unscoped Signer", |w| Ok(write!(w, "{}", pub_key)?)),
+                                        Ok(pub_key) => scroller("Unscoped Signer", |w| Ok(write!(w, "{}", pub_key)?)),
                                         _ => Some(()),
                                     };
                                     CapabilityCoverage::NoCaps
@@ -136,7 +140,7 @@ pub static SIGN_IMPL: SignImplT = Action(
                         *dest = Some(());
                         match mnet {
                             AltResult::First(net) => {
-                                write_scroller("On Network", |w| Ok(write!(w, "{}", from_utf8(net.as_slice())?)?))
+                                scroller("On Network", |w| Ok(write!(w, "{}", from_utf8(net.as_slice())?)?))
                             }
                             _ => { Some(())} // Ignore null
                         }
@@ -146,10 +150,10 @@ pub static SIGN_IMPL: SignImplT = Action(
                     match cmd.field_signers.as_ref() {
                         Some(CapabilityCoverage::Full) => { }
                         Some(CapabilityCoverage::HasFallback) => {
-                            write_scroller("WARNING", |w| Ok(write!(w, "Transaction too large for Ledger to display.  PROCEED WITH GREAT CAUTION.  Do you want to continue?")?))?;
+                            scroller("WARNING", |w| Ok(write!(w, "Transaction too large for Ledger to display.  PROCEED WITH GREAT CAUTION.  Do you want to continue?")?))?;
                         }
                         _ => {
-                            write_scroller("WARNING", |w| Ok(write!(w, "UNSAFE TRANSACTION. This transaction's code was not recognized and does not limit capabilities for all signers. Signing this transaction may make arbitrary actions on the chain including loss of all funds.")?))?;
+                            scroller("WARNING", |w| Ok(write!(w, "UNSAFE TRANSACTION. This transaction's code was not recognized and does not limit capabilities for all signers. Signing this transaction may make arbitrary actions on the chain including loss of all funds.")?))?;
                         }
                     }
                     Some(())
@@ -205,7 +209,7 @@ const META_ACTION:
     = Action(
         Alt(MetaInterp {
             field_chain_id: Action(JsonStringAccumulate::<32>, mkvfn(|chain: &ArrayVec<u8, 32>, _| -> Option<()> {
-                write_scroller("On Chain", |w| Ok(write!(w, "{}", from_utf8(chain.as_slice()).ok()?)?))
+                scroller("On Chain", |w| Ok(write!(w, "{}", from_utf8(chain.as_slice())?)?))
             })),
             field_sender: DropInterp,
             field_gas_limit: JsonStringAccumulate::<100>,
@@ -216,12 +220,12 @@ const META_ACTION:
         , mkvfn(|v , _| {
             match v {
                 AltResult::First(Meta { ref field_gas_limit, ref field_gas_price, .. }) => {
-                    write_scroller("Using Gas", |w| Ok(write!(w, "at most {} at price {}"
-                      , from_utf8(field_gas_limit.as_ref()?.as_slice()).ok()?
-                      , from_utf8(field_gas_price.as_ref()?.as_slice()).ok()?)?))
+                    scroller("Using Gas", |w| Ok(write!(w, "at most {} at price {}"
+                      , from_utf8(field_gas_limit.as_ref().ok_or(ScrollerError)?.as_slice())?
+                      , from_utf8(field_gas_price.as_ref().ok_or(ScrollerError)?.as_slice())?)?))
                 }
                 _ => {
-                    write_scroller("CAUTION", |w| Ok(write!(w, "'meta' field of transaction not recognized")?))
+                    scroller("CAUTION", |w| Ok(write!(w, "'meta' field of transaction not recognized")?))
                 }
             }
         }));
@@ -279,7 +283,7 @@ const CLIST_ACTION:
                   _ => 0,
               };
               let mut buffer: ArrayString<22> = ArrayString::new();
-              Ok(write!(mk_prompt_write(&mut buffer), "Unknown Capability {}", count + 1).ok()?)?;
+              write!(mk_prompt_write(&mut buffer), "Unknown Capability {}", count + 1).ok()?;
               Some(buffer)
           };
           let mk_transfer_title = || -> Option <_>{
@@ -288,7 +292,7 @@ const CLIST_ACTION:
                   _ => 0,
               };
               let mut buffer: ArrayString<22> = ArrayString::new();
-              Ok(write!(mk_prompt_write(&mut buffer), "Transfer {}", count + 1).ok()?)?;
+              write!(mk_prompt_write(&mut buffer), "Transfer {}", count + 1).ok()?;
               Some(buffer)
           };
 
@@ -297,76 +301,76 @@ const CLIST_ACTION:
           match cap.field_args.as_ref() {
               Some((None, _)) => {
                   if name == b"coin.GAS" {
-                      write_scroller("Paying Gas", |w| Ok(write!(w, " ")?))?;
+                      scroller("Paying Gas", |w| Ok(write!(w, " ")?))?;
                       *destination = Some((Summable::zero(), true));
                       trace!("Accepted gas");
                   } else {
-                      write_scroller(&mk_unknown_cap_title()?, |w| Ok(write!(w, "name: {}, no args", name_utf8)?))?;
+                      scroller(&mk_unknown_cap_title()?, |w| Ok(write!(w, "name: {}, no args", name_utf8)?))?;
                   }
               }
               Some((Some(Some(args)), arg_lengths)) => {
                   if arg_lengths[3] != 0 {
-                      write_scroller(&mk_unknown_cap_title()?, |w| Ok(
+                      scroller(&mk_unknown_cap_title()?, |w| Ok(
                           write!(w, "name: {}, arg 1: {}, arg 2: {}, arg 3: {}, arg 4: {}, arg 5: {}", name_utf8
-                                 , from_utf8(args.as_slice().get(0..arg_lengths[0])?)?
-                                 , from_utf8(args.as_slice().get(arg_lengths[0]..arg_lengths[1])?)?
-                                 , from_utf8(args.as_slice().get(arg_lengths[1]..arg_lengths[2])?)?
-                                 , from_utf8(args.as_slice().get(arg_lengths[2]..arg_lengths[3])?)?
-                                 , from_utf8(args.as_slice().get(arg_lengths[3]..args.len())?)?
+                                 , mkstr(args.as_slice().get(0..arg_lengths[0]))?
+                                 , mkstr(args.as_slice().get(arg_lengths[0]..arg_lengths[1]))?
+                                 , mkstr(args.as_slice().get(arg_lengths[1]..arg_lengths[2]))?
+                                 , mkstr(args.as_slice().get(arg_lengths[2]..arg_lengths[3]))?
+                                 , mkstr(args.as_slice().get(arg_lengths[3]..args.len()))?
                           )?))?;
                   } else if arg_lengths[2] != 0 {
                       if name == b"coin.TRANSFER_XCHAIN" {
-                          write_scroller(&mk_transfer_title()?, |w| Ok(
+                          scroller(&mk_transfer_title()?, |w| Ok(
                               write!(w, "Cross-chain {} from {} to {} to chain {}"
-                                     , from_utf8(args.as_slice().get(arg_lengths[1]..arg_lengths[2])?)?
-                                     , from_utf8(args.as_slice().get(0..arg_lengths[0])?)?
-                                     , from_utf8(args.as_slice().get(arg_lengths[0]..arg_lengths[1])?)?
-                                     , from_utf8(args.as_slice().get(arg_lengths[2]..args.len())?)?
+                                     , mkstr(args.as_slice().get(arg_lengths[1]..arg_lengths[2]))?
+                                     , mkstr(args.as_slice().get(0..arg_lengths[0]))?
+                                     , mkstr(args.as_slice().get(arg_lengths[0]..arg_lengths[1]))?
+                                     , mkstr(args.as_slice().get(arg_lengths[2]..args.len()))?
                               )?))?;
                           *destination = Some((CapCountData::IsTransfer, true));
                       } else {
-                          write_scroller(&mk_unknown_cap_title()?, |w| Ok(
+                          scroller(&mk_unknown_cap_title()?, |w| Ok(
                               write!(w, "name: {}, arg 1: {}, arg 2: {}, arg 3: {}, arg 4: {}", name_utf8
-                                     , from_utf8(args.as_slice().get(0..arg_lengths[0])?)?
-                                     , from_utf8(args.as_slice().get(arg_lengths[0]..arg_lengths[1])?)?
-                                     , from_utf8(args.as_slice().get(arg_lengths[1]..arg_lengths[2])?)?
-                                     , from_utf8(args.as_slice().get(arg_lengths[2]..args.len())?)?
+                                     , mkstr(args.as_slice().get(0..arg_lengths[0]))?
+                                     , mkstr(args.as_slice().get(arg_lengths[0]..arg_lengths[1]))?
+                                     , mkstr(args.as_slice().get(arg_lengths[1]..arg_lengths[2]))?
+                                     , mkstr(args.as_slice().get(arg_lengths[2]..args.len()))?
                               )?))?;
                       }
                   } else if arg_lengths[1] != 0 {
                       if name == b"coin.TRANSFER" {
-                          write_scroller(&mk_transfer_title()?, |w| Ok(
+                          scroller(&mk_transfer_title()?, |w| Ok(
                               write!(w, "{} from {} to {}"
-                                     , from_utf8(args.as_slice().get(arg_lengths[1]..args.len())?)?
-                                     , from_utf8(args.as_slice().get(0..arg_lengths[0])?)?
-                                     , from_utf8(args.as_slice().get(arg_lengths[0]..arg_lengths[1])?)?
+                                     , mkstr(args.as_slice().get(arg_lengths[1]..args.len()))?
+                                     , mkstr(args.as_slice().get(0..arg_lengths[0]))?
+                                     , mkstr(args.as_slice().get(arg_lengths[0]..arg_lengths[1]))?
                               )?))?;
                           *destination = Some((CapCountData::IsTransfer, true));
                       } else {
-                          write_scroller(&mk_unknown_cap_title()?, |w| Ok(
+                          scroller(&mk_unknown_cap_title()?, |w| Ok(
                               write!(w, "name: {}, arg 1: {}, arg 2: {}, arg 3: {}", name_utf8
-                                     , from_utf8(args.as_slice().get(0..arg_lengths[0])?)?
-                                     , from_utf8(args.as_slice().get(arg_lengths[0]..arg_lengths[1])?)?
-                                     , from_utf8(args.as_slice().get(arg_lengths[1]..args.len())?)?
+                                     , mkstr(args.as_slice().get(0..arg_lengths[0]))?
+                                     , mkstr(args.as_slice().get(arg_lengths[0]..arg_lengths[1]))?
+                                     , mkstr(args.as_slice().get(arg_lengths[1]..args.len()))?
                               )?))?;
                       }
                   } else if arg_lengths[0] != 0 {
-                      write_scroller(&mk_unknown_cap_title()?, |w| Ok(
+                      scroller(&mk_unknown_cap_title()?, |w| Ok(
                           write!(w, "name: {}, arg 1: {}, arg 2: {}", name_utf8
-                                 , from_utf8(args.as_slice().get(0..arg_lengths[0])?)?
-                                 , from_utf8(args.as_slice().get(arg_lengths[0]..args.len())?)?
+                                 , mkstr(args.as_slice().get(0..arg_lengths[0]))?
+                                 , mkstr(args.as_slice().get(arg_lengths[0]..args.len()))?
                       )?))?;
                   } else {
                       if name == b"coin.ROTATE" {
-                          write_scroller("Rotate for account", |w| Ok(write!(w, "{}", from_utf8(args.as_slice())?)?))?;
+                          scroller("Rotate for account", |w| Ok(write!(w, "{}", from_utf8(args.as_slice())?)?))?;
                           *destination = Some((Summable::zero(), true));
                       } else {
-                          write_scroller(&mk_unknown_cap_title()?, |w| Ok(write!(w, "name: {}, arg 1: {}", name_utf8, from_utf8(args.as_slice())?)?))?;
+                          scroller(&mk_unknown_cap_title()?, |w| Ok(write!(w, "name: {}, arg 1: {}", name_utf8, from_utf8(args.as_slice())?)?))?;
                       }
                   }
               }
               _ => {
-                  write_scroller(&mk_unknown_cap_title()?, |w| Ok(write!(w, "name: {}, args cannot be displayed on Ledger", name_utf8)?))?;
+                  scroller(&mk_unknown_cap_title()?, |w| Ok(write!(w, "name: {}, args cannot be displayed on Ledger", name_utf8)?))?;
                   set_from_thunk(destination, || Some((CapCountData::IsUnknownCap, false))); // Fallback case
               }
           }
@@ -378,7 +382,7 @@ pub type SignHashImplT = impl InterpParser<SignHashParameters, Returning = Array
 
 pub static SIGN_HASH_IMPL: SignHashImplT = Action(
     Preaction( || -> Option<()> {
-        write_scroller("WARNING", |w| Ok(write!(w, "Blind Signing a Transaction Hash is a very unusual operation. Do not continue unless you know what you are doing")?))
+        scroller("WARNING", |w| Ok(write!(w, "Blind Signing a Transaction Hash is a very unusual operation. Do not continue unless you know what you are doing")?))
     } ,
     (
         Action(
@@ -386,7 +390,7 @@ pub static SIGN_HASH_IMPL: SignHashImplT = Action(
             // Ask the user if they accept the transaction body's hash
             mkfn(|hash_val: &[u8; 32], destination: &mut Option<[u8; 32]>| {
                 let the_hash = Hash ( *hash_val );
-                write_scroller("Transaction hash", |w| Ok(write!(w, "{}", the_hash)?))?;
+                scroller("Transaction hash", |w| Ok(write!(w, "{}", the_hash)?))?;
                 *destination=Some(the_hash.0.into());
                 Some(())
             }),
@@ -395,10 +399,10 @@ pub static SIGN_HASH_IMPL: SignHashImplT = Action(
             SubInterp(DefaultInterp),
             // And ask the user if this is the key the meant to sign with:
             mkmvfn(|path: ArrayVec<u32, 10>, destination: &mut Option<ArrayVec<u32, 10>>| {
-                with_public_keys(&path, |_, pkh: &PubKey| {
-                    write_scroller("Sign for Address", |w| Ok(write!(w, "{}", pkh)?))?;
-                    Ok(())
-                }).ok();
+                with_public_keys(&path, |_, pkh: &PKH| { try_option(|| -> Option<()> {
+                    scroller("Sign for Address", |w| Ok(write!(w, "{}", pkh)?))?;
+                    Some(())
+                }())}).ok()?;
                 *destination = Some(path);
                 Some(())
             }),
@@ -408,7 +412,7 @@ pub static SIGN_HASH_IMPL: SignHashImplT = Action(
         final_accept_prompt(&[&"Sign Transaction Hash?"])?;
 
         // By the time we get here, we've approved and just need to do the signature.
-        let sig = eddsa_sign(path.as_ref()?, &hash.as_ref()?[..])?;
+        let sig = eddsa_sign(path.as_ref()?, &hash.as_ref()?[..]).ok()?;
         let mut rv = ArrayVec::<u8, 128>::new();
         rv.try_extend_from_slice(&sig.0[..]).ok()?;
         *destination = Some(rv);
