@@ -2,8 +2,6 @@
 #![allow(incomplete_features)]
 #![feature(adt_const_params)]
 #![feature(str_internals)]
-#![feature(const_fn_trait_bound)]
-#![feature(const_impl_trait)]
 #![feature(type_alias_impl_trait)]
 #![feature(const_mut_refs)]
 #![cfg_attr(all(target_family = "bolos", test), no_main)]
