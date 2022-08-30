@@ -4,7 +4,7 @@ use arrayvec::ArrayString;
 use arrayvec::ArrayVec;
 use core::fmt::Write;
 use ledger_crypto_helpers::hasher::{Hash, Hasher, Blake2b};
-use ledger_crypto_helpers::common::{try_option, Address};
+use ledger_crypto_helpers::common::{try_option};
 use ledger_crypto_helpers::eddsa::{eddsa_sign, with_public_keys, ed25519_public_key_bytes, Ed25519RawPubKeyAddress};
 use ledger_log::{info};
 use ledger_parser_combinators::interp_parser::{
