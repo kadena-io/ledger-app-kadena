@@ -24,7 +24,7 @@ pub mod utils;
 
 #[cfg(all(target_family = "bolos"))]
 pub mod implementation;
-#[cfg(all(target_os = "nanos"))]
+#[cfg(all(target_family = "bolos"))]
 pub mod settings;
 
 #[cfg(all(target_family = "bolos"))]
