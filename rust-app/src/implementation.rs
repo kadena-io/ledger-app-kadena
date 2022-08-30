@@ -1,18 +1,18 @@
-use ledger_crypto_helpers::hasher::{Hash, Hasher, Blake2b};
-use ledger_crypto_helpers::common::{with_public_keys, PubKey};
-use ledger_crypto_helpers::eddsa::eddsa_sign;
 use crate::interface::*;
 use crate::*;
 use arrayvec::ArrayString;
 use arrayvec::ArrayVec;
 use core::fmt::Write;
+use ledger_crypto_helpers::hasher::{Hash, Hasher, Blake2b};
+use ledger_crypto_helpers::common::{try_option, Address};
+use ledger_crypto_helpers::eddsa::{eddsa_sign, with_public_keys, ed25519_public_key_bytes, Ed25519RawPubKeyAddress};
 use ledger_log::{info};
 use ledger_parser_combinators::interp_parser::{
     Action, DefaultInterp, DropInterp, InterpParser, ObserveLengthedBytes, SubInterp, OOB, set_from_thunk
 };
 use ledger_parser_combinators::json::Json;
 use ledger_parser_combinators::core_parsers::Alt;
-use ledger_prompts_ui::{write_scroller, final_accept_prompt, mk_prompt_write};
+use ledger_prompts_ui::{final_accept_prompt, mk_prompt_write, ScrollerError, PromptWrite};
 
 use ledger_parser_combinators::define_json_struct_interp;
 use ledger_parser_combinators::json::*;
@@ -22,6 +22,8 @@ use core::convert::TryFrom;
 use core::str::from_utf8;
 use zeroize::{Zeroizing};
 use core::ops::Deref;
+
+type PKH = Ed25519RawPubKeyAddress;
 
 // A couple type ascription functions to help the compiler along.
 const fn mkfn<A,B>(q: fn(&A,&mut B)->Option<()>) -> fn(&A,&mut B)->Option<()> {
@@ -37,22 +39,34 @@ const fn mkvfn<A>(q: fn(&A,&mut Option<()>)->Option<()>) -> fn(&A,&mut Option<()
   q
 }
 
+#[cfg(not(target_os = "nanos"))]
+#[inline(never)]
+fn scroller < F: for <'b> Fn(&mut PromptWrite<'b, 16>) -> Result<(), ScrollerError> > (title: &str, prompt_function: F) -> Option<()> {
+    ledger_prompts_ui::write_scroller_three_rows(title, prompt_function)
+}
+
+#[cfg(target_os = "nanos")]
+#[inline(never)]
+fn scroller < F: for <'b> Fn(&mut PromptWrite<'b, 16>) -> Result<(), ScrollerError> > (title: &str, prompt_function: F) -> Option<()> {
+    ledger_prompts_ui::write_scroller(title, prompt_function)
+}
+
 pub type GetAddressImplT = impl InterpParser<Bip32Key, Returning = ArrayVec<u8, 128_usize>>;
 pub const GET_ADDRESS_IMPL: GetAddressImplT =
     Action(SubInterp(DefaultInterp), mkfn(|path: &ArrayVec<u32, 10>, destination: &mut Option<ArrayVec<u8, 128>>| {
-        with_public_keys(path, |key: &_, pkh: &PubKey| {
+        with_public_keys(path, |key: &_, pkh: &PKH| { try_option(|| -> Option<()> {
 
-        write_scroller("Provide Public Key", |w| Ok(write!(w, "{}", pkh)?))?;
+        scroller("Provide Public Key", |w| Ok(write!(w, "{}", pkh)?))?;
 
         final_accept_prompt(&[])?;
 
         *destination=Some(ArrayVec::new());
         // key without y parity
-        let key_x = &key.W[1..key.W_len as usize];
+        let key_x = ed25519_public_key_bytes(key);
         destination.as_mut()?.try_push(u8::try_from(key_x.len()).ok()?).ok()?;
         destination.as_mut()?.try_extend_from_slice(key_x).ok()?;
-        Ok(())
-        }).ok()
+        Some(())
+        }())}).ok()
     }));
 
 pub type SignImplT = impl InterpParser<SignParameters, Returning = ArrayVec<u8, 128_usize>>;
@@ -145,7 +159,7 @@ pub static SIGN_IMPL: SignImplT = Action(
             // Ask the user if they accept the transaction body's hash
             mkfn(|(_, mut hasher): &(_, Blake2b), destination: &mut Option<Zeroizing<Hash<32>>>| {
                 let the_hash = hasher.finalize();
-                write_scroller("Transaction hash", |w| Ok(write!(w, "{}", the_hash.deref())?))?;
+                scroller("Transaction hash", |w| Ok(write!(w, "{}", the_hash.deref())?))?;
                 *destination=Some(the_hash);
                 Some(())
             }),
@@ -154,10 +168,10 @@ pub static SIGN_IMPL: SignImplT = Action(
             SubInterp(DefaultInterp),
             // And ask the user if this is the key the meant to sign with:
             mkmvfn(|path: ArrayVec<u32, 10>, destination: &mut Option<ArrayVec<u32, 10>>| {
-                with_public_keys(&path, |_, pkh: &PubKey| {
-                    write_scroller("Sign for Address", |w| Ok(write!(w, "{}", pkh)?))?;
-                    Ok(())
-                }).ok();
+                with_public_keys(&path, |_, pkh: &PKH| { try_option(|| -> Option<()> {
+                    scroller("Sign for Address", |w| Ok(write!(w, "{}", pkh)?))?;
+                    Some(())
+                }())}).ok();
                 *destination = Some(path);
                 Some(())
             }),
@@ -167,7 +181,7 @@ pub static SIGN_IMPL: SignImplT = Action(
         final_accept_prompt(&[&"Sign Transaction?"])?;
 
         // By the time we get here, we've approved and just need to do the signature.
-        let sig = eddsa_sign(path.as_ref()?, &hash.as_ref()?.0[..])?;
+        let sig = eddsa_sign(path.as_ref()?, &hash.as_ref()?.0[..]).ok()?;
         let mut rv = ArrayVec::<u8, 128>::new();
         rv.try_extend_from_slice(&sig.0[..]).ok()?;
         *destination = Some(rv);
