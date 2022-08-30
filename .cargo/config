@@ -11,8 +11,9 @@ rustflags = [
   "-C", "codegen-units=1",
   "-C", "lto",
   "-C", "embed-bitcode",
-  "--emit=obj",
   "--cfg", "target_os=\"nanos\"",
+  "--cfg", "target_family=\"bolos\"",
+  "--emit=obj,llvm-ir,llvm-bc"
 ]
 linker = "armv6m-unknown-none-eabi-clang"
 runner = "./speculos-wrapper -k 2.0"
@@ -24,7 +25,3 @@ target = "thumbv6m-none-eabi"
 tt = "test --features extra_debug"
 br = "build --release"
 stackcheck = "stack-sizes --release --bin rust-app --target=thumbv6m-none-eabi"
-unit = "test --features=speculos -Z build-std=core --lib"
-
-[env]
-RUST_TEST_THREADS="1"
