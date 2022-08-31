@@ -11,71 +11,78 @@ use nanos_sdk::io;
 use nanos_sdk::buttons::{ButtonEvent};
 use nanos_ui::ui::{SingleMessage};
 
-
-// Pulling this out of sample_main to global const saves 24 bytes
-// But the SingleMessage::new fails to work with global const, therefore doing fill_idle_menu
-const IDLE_MENU: [&str; 3] = [ concat!("Kadena ", env!("CARGO_PKG_VERSION")), "Blind Signing", "Quit" ];
-fn fill_idle_menu(arr: &mut [&str; 3]) {
-    for (i, s) in IDLE_MENU.iter().enumerate() {
-        arr[i] = s;
-    }
-}
-
 #[allow(dead_code)]
 pub fn app_main() {
     let mut comm = io::Comm::new();
     let mut states = ParsersState::NoState;
-    let mut menu = Menu::new(&IDLE_MENU);
+    let mut menu = Menu::new(&[]);
 
     info!("Kadena app {}", env!("CARGO_PKG_VERSION"));
 
+    idle_menu(&mut menu);
     loop {
-        // Draw some 'welcome' screen
-        match states {
-            ParsersState::NoState => {
-                // Using IDLE_MENU here does not work, therefore using this to avoid duplication
-                let mut arr: [&str; 3] = ["", "", ""];
-                fill_idle_menu(&mut arr);
-                menu.show(&arr);
-            },
-            ParsersState::SettingsState(0) => {
-                // Using arr is important here. `menu.show(&[ ... ])` doesn't work
-                let arr = [ "Enable Blind Signing", "Back" ];
-                menu.show(&arr);
-            },
-            ParsersState::SettingsState(1) => {
-                let arr = [ "Disable Blind Signing", "Back" ];
-                menu.show(&arr);
-            },
-            _ => {
-                let arr = [ "Working...", "Cancel" ];
-                menu.show(&arr);
-            },
-        }
-
         info!("Fetching next event.");
         // Wait for either a specific button push to exit the app
         // or an APDU command
         match comm.next_event::<Ins>() {
             io::Event::Command(ins) => {
-                menu.reset();
+                match states {
+                    ParsersState::NoState => menu.reset(),
+                    _ => {},
+                };
+                {
+                    // Using arr is important here. `menu.show(&[ ... ])` doesn't work
+                    let arr = [ "Working...", "Cancel" ];
+                    menu.show(&arr);
+                }
                 match handle_apdu(&mut comm, ins, &mut states) {
                     Ok(()) => comm.reply_ok(),
                     Err(sw) => comm.reply(sw),
                 }
+                match states {
+                    ParsersState::NoState => { menu.reset(); idle_menu(&mut menu) },
+                    _ => {},
+                };
             } ,
             io::Event::Button(btn) => match menu.update(btn) {
                 Some(0) => match states {
-                    ParsersState::SettingsState(v) => { let new = match v { 0 => 1, _ => 0}; set_settings(&new); states = ParsersState::SettingsState(new); },
-                    _ => (),
+                    ParsersState::SettingsState(v) => {
+                        let new = match v { 0 => 1, _ => 0};
+                        set_settings(&new);
+                        set_from_thunk(&mut states, || ParsersState::SettingsState(new));
+                        settings_menu(&mut menu, new);
+                    },
+                    _ => {},
                 }
                 Some(1) => match states {
-                    ParsersState::SettingsState(_) => { menu.reset(); states = ParsersState::NoState; },
-                    ParsersState::NoState => { menu.reset(); states = ParsersState::SettingsState(get_current_settings()); },
-                    _ => { info!("Resetting at user direction via busy menu"); menu.reset(); set_from_thunk(&mut states, || ParsersState::NoState); }
+                    ParsersState::NoState => {
+                        let v = get_current_settings();
+                        set_from_thunk(&mut states, || ParsersState::SettingsState(v));
+                        menu.reset();
+                        settings_menu(&mut menu, v);
+                    },
+                    ParsersState::SettingsState(_) => {
+                        set_from_thunk(&mut states, || ParsersState::NoState);
+                        menu.reset();
+                        idle_menu(&mut menu);
+                    },
+                    _ => {
+                        info!("Resetting at user direction via busy menu");
+                        set_from_thunk(&mut states, || ParsersState::NoState);
+                        menu.reset();
+                        idle_menu(&mut menu);
+                    }
                 }
                 Some(2) => { info!("Exiting app at user direction via root menu"); nanos_sdk::exit_app(0) },
-                _ => (),
+                _ => match states {
+                    ParsersState::SettingsState(v) => {
+                        settings_menu(&mut menu, v);
+                    },
+                    ParsersState::NoState => {
+                        idle_menu(&mut menu);
+                    },
+                    _ => {}
+                },
             },
             io::Event::Ticker => {
                 trace!("Ignoring ticker event");
@@ -83,6 +90,28 @@ pub fn app_main() {
         }
 
         // info!("Event handled.");
+    }
+}
+
+#[inline(never)]
+fn idle_menu (menu: &mut Menu) {
+    let arr: [&str; 3] = [ concat!("Kadena ", env!("CARGO_PKG_VERSION")), "Blind Signing", "Quit" ];
+    menu.show(&arr);
+}
+
+#[inline(never)]
+fn settings_menu (menu: &mut Menu, v: u8) {
+    match v {
+        0 => {
+            // Using arr is important here. `menu.show(&[ ... ])` doesn't work
+            let arr = [ "Enable Blind Signing", "Back" ];
+            menu.show(&arr);
+        }
+        1 => {
+            let arr = [ "Disable Blind Signing", "Back" ];
+            menu.show(&arr);
+        }
+        _ => {}
     }
 }
 

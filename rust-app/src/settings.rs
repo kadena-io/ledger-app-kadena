@@ -32,11 +32,14 @@ static mut SETTINGS: Pic<AtomicStorage<u8>> =
 // translated: this is enforced by the [`Pic`](crate::Pic) wrapper.
 //
 
+#[inline(never)]
 pub fn get_current_settings() -> u8 {
     let settings = unsafe { SETTINGS.get_mut() };
     return *settings.get_ref();
 }
 
+// The inline(never) is important. Otherwise weird segmentation faults happen on speculos.
+#[inline(never)]
 pub fn set_settings(v: &u8) {
     let settings = unsafe { SETTINGS.get_mut() };
     settings.update(&v);
