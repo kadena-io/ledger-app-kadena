@@ -36,6 +36,7 @@ let processPrompts = function(prompts: any[]) {
   let header = "";
   let prompt = "";
   let rv = [];
+  let working_screen = "Working...";
   while(!done) {
     if(value["y"] == 1) {
       if(value["text"] != header) {
@@ -43,6 +44,10 @@ let processPrompts = function(prompts: any[]) {
         header = value["text"];
         prompt = "";
       }
+    } else if(value["y"] == 11 && value["text"].startsWith(working_screen) && value["text"] != working_screen) {
+      if(header || prompt) rv.push({ header, prompt });
+      header = value["text"].substring(working_screen.length);
+      prompt = "";
     } else if(value["y"] == 16) {
       prompt += value["text"];
     } else if((value["y"] == 31)) {
