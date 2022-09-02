@@ -16,6 +16,7 @@ pub fn app_main() {
     let mut comm = io::Comm::new();
     let mut states = ParsersState::NoState;
     let mut menu = Menu::new(&[]);
+    let mut settings = Settings::new();
 
     info!("Kadena app {}", env!("CARGO_PKG_VERSION"));
 
@@ -35,7 +36,7 @@ pub fn app_main() {
                     let arr = [ "Working...", "Cancel" ];
                     menu.show(&arr);
                 }
-                match handle_apdu(&mut comm, ins, &mut states) {
+                match handle_apdu(&mut comm, ins, &mut states, &mut settings) {
                     Ok(()) => comm.reply_ok(),
                     Err(sw) => comm.reply(sw),
                 }
@@ -48,7 +49,7 @@ pub fn app_main() {
                 Some(0) => match states {
                     ParsersState::SettingsState(v) => {
                         let new = match v { 0 => 1, _ => 0};
-                        set_settings(&new);
+                        settings.set(&new);
                         set_from_thunk(&mut states, || ParsersState::SettingsState(new));
                         settings_menu(&mut menu, new);
                     },
@@ -56,7 +57,7 @@ pub fn app_main() {
                 }
                 Some(1) => match states {
                     ParsersState::NoState => {
-                        let v = get_current_settings();
+                        let v = settings.get();
                         set_from_thunk(&mut states, || ParsersState::SettingsState(v));
                         menu.reset();
                         settings_menu(&mut menu, v);
@@ -194,7 +195,7 @@ fn run_parser_apdu<P: InterpParser<A, Returning = ArrayVec<u8, 128>>, A>(
 }
 
 #[inline(never)]
-fn handle_apdu(comm: &mut io::Comm, ins: Ins, parser: &mut ParsersState) -> Result<(), Reply> {
+fn handle_apdu(comm: &mut io::Comm, ins: Ins, parser: &mut ParsersState, settings: &mut Settings) -> Result<(), Reply> {
     info!("entering handle_apdu with command {:?}", ins);
     if comm.rx == 0 {
         return Err(io::StatusWords::NothingReceived.into());
@@ -212,7 +213,7 @@ fn handle_apdu(comm: &mut io::Comm, ins: Ins, parser: &mut ParsersState) -> Resu
             run_parser_apdu::<_, SignParameters>(parser, get_sign_state, &SIGN_IMPL, comm)?
         }
         Ins::SignHash => {
-            if get_current_settings() != 1 {
+            if settings.get() != 1 {
                 write_scroller("Blind Signing must", |w| Ok(write!(w, "be enabled")?));
                 return Err(io::SyscallError::NotSupported.into());
             } else {
