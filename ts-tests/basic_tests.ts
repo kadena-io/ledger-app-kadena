@@ -14,7 +14,10 @@ import { instantiate, Nacl } from "js-nacl";
 
 let nacl : Nacl =null;
 
-let ignoredScreens = [ "W e l c o m e", "Cancel", "Working...", "Quit", "Kadena 0.2.1", "Back", "Blind Signing", "Enable Blind Signing", "Disable Blind Signing"]
+let ignoredScreens = [ "W e l c o m e", "Cancel", "Working...", "Quit", "Kadena 0.2.1", "Back"
+  , "Blind Signing", "Enable Blind Signing", "Disable Blind Signing"
+  /* The next ones are specifically for S+ in which OCR is broken */
+  , "Blind igning", "Enable Blind igning", "Disable Blind igning", "Blind igningQuit", "QuitQuit" ];
 
 let setAcceptAutomationRules = async function() {
     await Axios.post("http://0.0.0.0:5000/automation", {
