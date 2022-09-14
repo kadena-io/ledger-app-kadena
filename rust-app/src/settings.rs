@@ -1,4 +1,6 @@
+#[cfg(target_os = "nanos")]
 use nanos_sdk::Pic;
+#[cfg(target_os = "nanos")]
 use nanos_sdk::nvm::*;
 // use bitflags::bitflags;
 
@@ -16,6 +18,7 @@ use nanos_sdk::nvm::*;
 // }
 
 // This is necessary to store the object in NVM and not in RAM
+#[cfg(target_os = "nanos")]
 #[link_section=".nvm_data"]
 static mut SETTINGS: Pic<AtomicStorage<u8>> =
     Pic::new(AtomicStorage::new(&0));
@@ -32,15 +35,40 @@ static mut SETTINGS: Pic<AtomicStorage<u8>> =
 // translated: this is enforced by the [`Pic`](crate::Pic) wrapper.
 //
 
-#[inline(never)]
-pub fn get_current_settings() -> u8 {
-    let settings = unsafe { SETTINGS.get_mut() };
-    return *settings.get_ref();
+
+#[cfg(target_os = "nanos")]
+pub struct Settings;
+
+#[cfg(target_os = "nanos")]
+impl Settings {
+    pub fn new() -> Settings { Settings}
+
+    #[inline(never)]
+    pub fn get(&self) -> u8 {
+        let settings = unsafe { SETTINGS.get_mut() };
+        return *settings.get_ref();
+    }
+
+    // The inline(never) is important. Otherwise weird segmentation faults happen on speculos.
+    #[inline(never)]
+    pub fn set(&mut self, v: &u8) {
+        let settings = unsafe { SETTINGS.get_mut() };
+        settings.update(&v);
+    }
 }
 
-// The inline(never) is important. Otherwise weird segmentation faults happen on speculos.
-#[inline(never)]
-pub fn set_settings(v: &u8) {
-    let settings = unsafe { SETTINGS.get_mut() };
-    settings.update(&v);
+#[cfg(not(target_os = "nanos"))]
+pub struct Settings (u8);
+
+#[cfg(not(target_os = "nanos"))]
+impl Settings {
+    pub fn new() -> Settings { Settings(0)}
+
+    pub fn get(&self) -> u8 {
+        return self.0;
+    }
+
+    pub fn set(&mut self, v: &u8) {
+        self.0 = *v;
+    }
 }
