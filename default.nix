@@ -54,11 +54,14 @@ rec {
     cargo-ledger --use-prebuilt ${appExe} --hex-next-to-json ledger ${device}
 
     mkdir -p $out/kadena
-    cp app_${device}.json app.hex $out/kadena
+    # Create a file to indicate what device this is for
+    echo ${device} > $out/kadena/device
+    cp app_${device}.json $out/kadena/app.json
+    cp app.hex $out/kadena
     cp ${./tarball-default.nix} $out/kadena/default.nix
     cp ${./tarball-shell.nix} $out/kadena/shell.nix
     cp ${./rust-app/kadena.gif} $out/kadena/kadena.gif
-    cp ${./rust-app/kadena_small.gif} $out/kadena/kadena_small.gif
+    cp ${./rust-app/kadena-small.gif} $out/kadena/kadena-small.gif
   '');
 
   testPackage = (import ./ts-tests/override.nix { inherit pkgs; }).package;
