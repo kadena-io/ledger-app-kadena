@@ -33,14 +33,14 @@ let setAcceptAutomationRules = async function() {
     });
 }
 
-let processPrompts = function(prompts: any[]) {
-  let i = prompts.filter((a : any) => !ignoredScreens.includes(a["text"])).values();
-  let {done, value} = i.next();
+let processPrompts = function(prompts: [any]) {
+  let i = prompts.filter((a : any) => !ignoredScreens.includes(a["text"])); // .values();
   let header = "";
   let prompt = "";
   let rv = [];
   let working_screen = "Working...";
-  while(!done) {
+  for (var ii in i) {
+    let value = i[ii];
     if(value["y"] == 1) {
       if(value["text"] != header) {
         if(header || prompt) rv.push({ header, prompt });
@@ -63,8 +63,8 @@ let processPrompts = function(prompts: any[]) {
       header = "";
       prompt = "";
     }
-    ({done, value} = i.next());
   }
+  if (header || prompt) rv.push({ header, prompt });
   return rv;
 }
 
