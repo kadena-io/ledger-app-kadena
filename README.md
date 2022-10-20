@@ -57,8 +57,8 @@ The following command demonstrates signing a big transaction specified in the fi
 
 ## Building the app from source
 
-**Note**: the latest release branch for NanoS+ is `main` and for NanoS is `nano-s`, but the default branch in the git repo is `develop`.
-If you want to use the latest release, make sure you have the correct branch checked out before doing the build.
+**Note**: the latest release branch is `main`, but the default branch in the git repo is `develop`.
+If you want to use the latest release, make sure you have the `main` branch checked out before doing the build.
 
 This application has been packaged up with [Nix](https://nixos.org/).
 
@@ -66,25 +66,14 @@ This application has been packaged up with [Nix](https://nixos.org/).
 
 Using Nix, from the root level of this repo, run:
 
-For NanoS+
-
 ```bash
 nix-shell -A alamgu.rustShell
 cd rust-app/
-# It is possible to build Nano X app by replacing 'nanosplus' with 'nanox'
-# but currently it not possible to load the app on Nano X devices.
-cargo-ledger ledger -l nanosplus
+# For NanoS+, replace nanos with nanosplus. It is currently not possible to load the app on Nano X
+cargo-ledger ledger -l nanos
 ````
 
-For NanoS (on 'nano-s' branch)
-
-```bash
-nix-shell -A alamgu.rustShell
-cd rust-app/
-cargo-ledger load
-````
-
-The [cargo-ledger](https://github.com/LedgerHQ/cargo-ledger.git) builds, outputs a `hex` file and a manifest file for `ledgerctl`, and loads it on a device in a single `cargo-ledger ledger -l nanosplus` command in the rust-app folder within app directory.
+The [cargo-ledger](https://github.com/LedgerHQ/cargo-ledger.git) builds, outputs a `hex` file and a manifest file for `ledgerctl`, and loads it on a device in a single `cargo-ledger ledger -l nanos` command in the rust-app folder within app directory.
 
 You do not need to install cargo-ledger outside of the nix-shell.
 
@@ -93,20 +82,10 @@ Before installing, please ensure that your device is plugged, unlocked, and on t
 ## Running tests
 
 Using Nix, from the root level of this repo, run:
-
-For NanoS+ / NanoX
-
 ```bash
 nix-shell -A alamgu.rustShell
 cd rust-app/
+cargo test --target=nanos.json
 cargo test --target=nanosplus.json
 cargo test --target=nanox.json
-````
-
-For NanoS (on 'nano-s' branch)
-
-```bash
-nix-shell -A alamgu.rustShell
-cd rust-app/
-cargo test
 ````
