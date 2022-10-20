@@ -260,9 +260,9 @@ impl Summable<CapCountData> for CapCountData {
 
 const CLIST_ACTION:
   SubInterpMFold::<
-    Action< KadenaCapabilityInterp<KadenaCapabilityArgsInterp, JsonStringAccumulate<128_usize>>
+    Action< KadenaCapabilityInterp<KadenaCapabilityArgsInterp, JsonStringAccumulate<32>>
           , fn( &KadenaCapability< Option<<KadenaCapabilityArgsInterp as ParserCommon<JsonArray<JsonAny>>>::Returning>
-                                , Option<ArrayVec<u8, 128_usize>>>
+                                , Option<ArrayVec<u8, 32>>>
               , &mut Option<(CapCountData, bool)>
               , (CapCountData, All)
               ) -> Option<()>
@@ -272,9 +272,9 @@ const CLIST_ACTION:
   SubInterpMFold::new(Action(
       KadenaCapabilityInterp {
           field_args: KadenaCapabilityArgsInterp,
-          field_name: JsonStringAccumulate::<128>
+          field_name: JsonStringAccumulate::<32>
       },
-      mkfnc(|cap : &KadenaCapability<Option<<KadenaCapabilityArgsInterp as ParserCommon<JsonArray<JsonAny>>>::Returning>, Option<ArrayVec<u8, 128>>>, destination: &mut Option<(CapCountData, bool)>, v: (CapCountData, All)| {
+      mkfnc(|cap : &KadenaCapability<Option<<KadenaCapabilityArgsInterp as ParserCommon<JsonArray<JsonAny>>>::Returning>, Option<ArrayVec<u8, 32>>>, destination: &mut Option<(CapCountData, bool)>, v: (CapCountData, All)| {
           let name = cap.field_name.as_ref()?.as_slice();
           let name_utf8 = from_utf8(name).ok()?;
           let mk_unknown_cap_title = || -> Option <_>{
