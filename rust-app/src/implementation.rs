@@ -5,7 +5,7 @@ use arrayvec::ArrayVec;
 use core::fmt::Write;
 use ledger_crypto_helpers::hasher::{Hash, Hasher, Blake2b};
 use ledger_crypto_helpers::common::{try_option};
-use ledger_crypto_helpers::eddsa::{eddsa_sign, with_public_keys, ed25519_public_key_bytes, Ed25519RawPubKeyAddress};
+use ledger_crypto_helpers::eddsa::{eddsa_sign, eddsa_sign_int, with_public_keys, with_public_keys_int, ed25519_public_key_bytes, Ed25519RawPubKeyAddress};
 use ledger_log::{info};
 use ledger_parser_combinators::interp_parser::{
     Action, DefaultInterp, DropInterp, InterpParser, ObserveLengthedBytes, SubInterp, OOB, set_from_thunk
@@ -22,6 +22,8 @@ use core::convert::TryFrom;
 use core::str::from_utf8;
 use zeroize::{Zeroizing};
 use core::ops::Deref;
+
+use nanos_sdk::ecc::{ECPrivateKey, Ed25519};
 
 type PKH = Ed25519RawPubKeyAddress;
 
@@ -260,9 +262,9 @@ impl Summable<CapCountData> for CapCountData {
 
 const CLIST_ACTION:
   SubInterpMFold::<
-    Action< KadenaCapabilityInterp<KadenaCapabilityArgsInterp, JsonStringAccumulate<128_usize>>
+    Action< KadenaCapabilityInterp<KadenaCapabilityArgsInterp, JsonStringAccumulate<32>>
           , fn( &KadenaCapability< Option<<KadenaCapabilityArgsInterp as ParserCommon<JsonArray<JsonAny>>>::Returning>
-                                , Option<ArrayVec<u8, 128_usize>>>
+                                , Option<ArrayVec<u8, 32>>>
               , &mut Option<(CapCountData, bool)>
               , (CapCountData, All)
               ) -> Option<()>
@@ -272,9 +274,9 @@ const CLIST_ACTION:
   SubInterpMFold::new(Action(
       KadenaCapabilityInterp {
           field_args: KadenaCapabilityArgsInterp,
-          field_name: JsonStringAccumulate::<128>
+          field_name: JsonStringAccumulate::<32>
       },
-      mkfnc(|cap : &KadenaCapability<Option<<KadenaCapabilityArgsInterp as ParserCommon<JsonArray<JsonAny>>>::Returning>, Option<ArrayVec<u8, 128>>>, destination: &mut Option<(CapCountData, bool)>, v: (CapCountData, All)| {
+      mkfnc(|cap : &KadenaCapability<Option<<KadenaCapabilityArgsInterp as ParserCommon<JsonArray<JsonAny>>>::Returning>, Option<ArrayVec<u8, 32>>>, destination: &mut Option<(CapCountData, bool)>, v: (CapCountData, All)| {
           let name = cap.field_name.as_ref()?.as_slice();
           let name_utf8 = from_utf8(name).ok()?;
           let mk_unknown_cap_title = || -> Option <_>{
@@ -425,7 +427,7 @@ pub struct KadenaCapabilityArgsInterp;
 // The Caps list is parsed and the args are stored in a single common ArrayVec of this size.
 // (This may be as large as the stack allows)
 #[cfg(target_os = "nanos")]
-const ARG_ARRAY_SIZE: usize = 328;
+const ARG_ARRAY_SIZE: usize = 184;
 #[cfg(not(target_os = "nanos"))]
 const ARG_ARRAY_SIZE: usize = 2048;
 const MAX_ARG_COUNT: usize = 5;
@@ -513,6 +515,285 @@ impl JsonInterp<JsonArray<JsonAny>> for KadenaCapabilityArgsInterp {
     }
 }
 
+// ----------------------------------------------------------------------------------
+
+// tx_type
+// 0 -> Transfer
+// 1 -> Transfer create
+// 2 -> Transfer cross-chain
+
+#[inline(never)]
+fn handle_tx_param_1 (
+    pkh_str: &ArrayString<64>, hasher: &mut Blake2b
+        , tx_type: u8
+        , recipient: &ArrayVec<u8, PARAM_RECIPIENT_SIZE>
+        , recipient_chain: &ArrayVec<u8, PARAM_RECIPIENT_CHAIN_SIZE>
+        , amount: &ArrayVec<u8, PARAM_AMOUNT_SIZE>
+        , network: &ArrayVec<u8, PARAM_NETWORK_SIZE>
+) -> Option<()>
+{
+    // TODO: clist amount in decimal
+    let amount_str = from_utf8(amount).ok()?;
+    let recipient_str = from_utf8(recipient).ok()?;
+    let recipient_chain_str = from_utf8(recipient_chain).ok()?;
+    let network_str = from_utf8(network).ok()?;
+
+    // curly braces are escaped like '{{', '}}'
+    // The JSON struct begins here, and ends in handle_tx_params_2
+    write!(hasher, "{{").ok()?;
+    write!(hasher, "\"networkId\":\"{}\"", network_str).ok()?;
+    match tx_type {
+        0 => {
+            write!(hasher, ",\"payload\":{{\"exec\":{{\"data\":{{}},\"code\":\"").ok()?;
+            write!(hasher, "(coin.transfer \\\"k:{}\\\"", pkh_str).ok()?;
+            write!(hasher, " \\\"k:{}\\\"", recipient_str).ok()?;
+            write!(hasher, " {})\"}}}}", amount_str).ok()?;
+            write!(hasher, ",\"signers\":[{{\"pubKey\":").ok()?;
+            write!(hasher, "\"{}\"", pkh_str).ok()?;
+            write!(hasher, ",\"clist\":[{{\"args\":[").ok()?;
+            write!(hasher, "\"k:{}\",", pkh_str).ok()?;
+            write!(hasher, "\"k:{}\",", recipient_str).ok()?;
+            write!(hasher, "{}]", amount_str).ok()?;
+            write!(hasher, ",\"name\":\"coin.TRANSFER\"}},{{\"args\":[],\"name\":\"coin.GAS\"}}]}}]").ok()?;
+        },
+        1 => {
+            write!(hasher, ",\"payload\":{{\"exec\":{{\"data\":{{").ok()?;
+            write!(hasher, "\"ks\":{{\"pred\":\"keys-all\",\"keys\":[").ok()?;
+            write!(hasher, "\"{}\"]}}}}", recipient_str).ok()?;
+            write!(hasher, ",\"code\":\"").ok()?;
+            write!(hasher, "(coin.transfer-create \\\"k:{}\\\"", pkh_str).ok()?;
+            write!(hasher, " \\\"k:{}\\\"", recipient_str).ok()?;
+            write!(hasher, " (read-keyset \\\"ks\\\")").ok()?;
+            write!(hasher, " {})\"}}}}", amount_str).ok()?;
+            write!(hasher, ",\"signers\":[{{\"pubKey\":").ok()?;
+            write!(hasher, "\"{}\"", pkh_str).ok()?;
+            write!(hasher, ",\"clist\":[{{\"args\":[").ok()?;
+            write!(hasher, "\"k:{}\",", pkh_str).ok()?;
+            write!(hasher, "\"k:{}\",", recipient_str).ok()?;
+            write!(hasher, "{}]", amount_str).ok()?;
+            write!(hasher, ",\"name\":\"coin.TRANSFER\"}},{{\"args\":[],\"name\":\"coin.GAS\"}}]}}]").ok()?;
+        },
+        2 => {
+            write!(hasher, ",\"payload\":{{\"exec\":{{\"data\":{{").ok()?;
+            write!(hasher, "\"ks\":{{\"pred\":\"keys-all\",\"keys\":[").ok()?;
+            write!(hasher, "\"{}\"]}}}}", recipient_str).ok()?;
+            write!(hasher, ",\"code\":\"").ok()?;
+            write!(hasher, "(coin.transfer-crosschain \\\"k:{}\\\"", pkh_str).ok()?;
+            write!(hasher, " \\\"k:{}\\\"", recipient_str).ok()?;
+            write!(hasher, " (read-keyset \\\"ks\\\")").ok()?;
+            write!(hasher, " \\\"{}\\\"", recipient_chain_str).ok()?;
+            write!(hasher, " {})\"}}}}", amount_str).ok()?;
+            write!(hasher, ",\"signers\":[{{\"pubKey\":").ok()?;
+            write!(hasher, "\"{}\"", pkh_str).ok()?;
+            write!(hasher, ",\"clist\":[{{\"args\":[").ok()?;
+            write!(hasher, "\"k:{}\",", pkh_str).ok()?;
+            write!(hasher, "\"k:{}\",", recipient_str).ok()?;
+            write!(hasher, "{},", amount_str).ok()?;
+            write!(hasher, "\"{}\"]", recipient_chain_str).ok()?;
+            write!(hasher, ",\"name\":\"coin.TRANSFER_XCHAIN\"}},{{\"args\":[],\"name\":\"coin.GAS\"}}]}}]").ok()?;
+        }
+        _ => {}
+    }
+
+    match tx_type {
+        0 | 1 => {
+            scroller("Transfer", |w| Ok(write!(w
+              , "{} from k:{} to k:{} on network {}"
+              , amount_str, pkh_str, recipient_str, network_str)?))?;
+        },
+        2 => {
+            scroller("Transfer", |w| Ok(write!(w
+              , "Cross-chain {} from k:{} to k:{} to chain {} on network {}"
+              , amount_str, pkh_str, recipient_str, recipient_chain_str, network_str)?))?;
+        }
+        _ => {}
+    }
+    Some(())
+}
+
+fn handle_tx_params_2 (
+    pkh_str: &ArrayString<64>, hasher: &mut Blake2b
+        , gas_price: &ArrayVec<u8, PARAM_GAS_PRICE_SIZE>
+        , gas_limit: &ArrayVec<u8, PARAM_GAS_LIMIT_SIZE>
+        , creation_time: &ArrayVec<u8, PARAM_CREATION_TIME_SIZE>
+        , chain_id: &ArrayVec<u8, PARAM_CHAIN_SIZE>
+        , nonce: &ArrayVec<u8, PARAM_NOONCE_SIZE>
+        , ttl: &ArrayVec<u8, PARAM_TTL_SIZE>
+) -> Option<()>
+{
+    write!(hasher, ",\"meta\":{{").ok()?;
+    write!(hasher, "\"creationTime\":{}", from_utf8(creation_time).ok()?).ok()?;
+    write!(hasher, ",\"ttl\":{}", from_utf8(ttl).ok()?).ok()?;
+    write!(hasher, ",\"gasLimit\":{}", from_utf8(gas_limit).ok()?).ok()?;
+    write!(hasher, ",\"chainId\":\"{}\"", from_utf8(chain_id).ok()?).ok()?;
+    write!(hasher, ",\"gasPrice\":{}", from_utf8(gas_price).ok()?).ok()?;
+    write!(hasher, ",\"sender\":\"k:{}\"", pkh_str).ok()?;
+    write!(hasher, "}}").ok()?;
+    write!(hasher, ",\"nonce\":\"{}\"", from_utf8(nonce).ok()?).ok()?;
+    // The JSON struct ends here
+    write!(hasher, "}}").ok()?;
+
+    scroller("Paying Gas", |w| Ok(write!(w, "at most {} at price {}", from_utf8(gas_limit)?, from_utf8(gas_price)?)?))?;
+    Some(())
+}
+
+// Define some useful type aliases
+pub type OptionByteVec<const N: usize> = Option<ArrayVec<u8, N>>;
+type SubDefT = SubInterp<DefaultInterp>;
+const SUB_DEF: SubDefT = SubInterp(DefaultInterp);
+
+// This is kept in State to avoid passing it in-between the sub-parsers
+// via parameters / DynBind
+type HasherAndPrivKey = (Blake2b, ECPrivateKey<32, 'E'>);
+
+pub type PathParserT = impl InterpParser<Bip32Key, Returning = HasherAndPrivKey>;
+
+const PATH_PARSER: PathParserT
+  = MoveAction (SUB_DEF
+  , mkmvfn(|path: <SubDefT as ParserCommon<Bip32Key>>::Returning
+             , destination:&mut Option<HasherAndPrivKey>| {
+        set_from_thunk(destination, || Some((Hasher::new(), Ed25519::from_bip32(&path))));
+        Some(())
+    }));
+
+type TxParams1ParserT = (DefaultInterp, (SubDefT, (SubDefT, (SubDefT, SubDefT))));
+const TX_PARAMS1_PARSER: TxParams1ParserT
+    = (DefaultInterp, (SUB_DEF, (SUB_DEF, (SUB_DEF, SUB_DEF))));
+
+pub type RecipientAmountT = impl InterpParser<MakeTransferTxParameters1, Returning = HasherAndPrivKey>;
+
+const RECIPIENT_AMOUNT_PARSER: RecipientAmountT
+  = MoveAction(
+      TX_PARAMS1_PARSER
+    , mkmvfn(|(tx_type, optv1): <TxParams1ParserT as ParserCommon<MakeTransferTxParameters1>>::Returning
+             , destination:&mut Option<HasherAndPrivKey>| {
+        let (recipient, optv2) = optv1?;
+        let (recipient_chain, optv3) = optv2?;
+        let (network, amount) = optv3?;
+        match destination {
+            Some((ref mut hasher, privkey)) => {
+                let mut pkh_str: ArrayString<64> = ArrayString::new();
+                {
+                    with_public_keys_int(&privkey, |_: &_, pkh: &PKH| { try_option(|| -> Option<()> {
+                        write!(mk_prompt_write(&mut pkh_str), "{}", pkh).ok()
+                    }())}).ok()?;
+                }
+                handle_tx_param_1(&pkh_str, hasher, tx_type?, recipient.as_ref()?, recipient_chain.as_ref()?, amount.as_ref()?, network.as_ref()?)?;
+
+            }
+            _ => { panic!("should have been set") }
+        }
+        Some(())
+    }),
+    );
+
+type TxParams2ParserT = (SubDefT, (SubDefT, (SubDefT, (SubDefT, (SubDefT, SubDefT)))));
+const TX_PARAMS2_PARSER: TxParams2ParserT
+    = ( SUB_DEF, (SUB_DEF, (SUB_DEF, (SUB_DEF, (SUB_DEF, SUB_DEF)))));
+
+pub type MetaNonceT = impl InterpParser<MakeTransferTxParameters2, Returning = HasherAndPrivKey>;
+
+const META_NONCE_PARSER: MetaNonceT
+  = MoveAction(
+      TX_PARAMS2_PARSER
+    , mkmvfn(|(gas_price, optv1): <TxParams2ParserT as ParserCommon<MakeTransferTxParameters2>>::Returning
+             , destination:&mut Option<HasherAndPrivKey>| {
+        let (gas_limit, optv2) = optv1?;
+        let (creation_time, optv3) = optv2?;
+        let (chain_id, optv4) = optv3?;
+        let (nonce, ttl) = optv4?;
+        match destination {
+            Some((ref mut hasher, privkey)) => {
+                let mut pkh_str: ArrayString<64> = ArrayString::new();
+                {
+                    with_public_keys_int(&privkey, |_: &_, pkh: &PKH| { try_option(|| -> Option<()> {
+                        write!(mk_prompt_write(&mut pkh_str), "{}", pkh).ok()
+                    }())}).ok()?;
+                }
+                handle_tx_params_2(&pkh_str, hasher, &gas_price?, &gas_limit?, &creation_time?, &chain_id?, &nonce? ,&ttl?)?;
+            }
+            _ => {
+                panic!("destination should have been set")
+            }
+        }
+        Some(())
+    }),
+    );
+
+pub type MakeTransferTxImplT = impl InterpParser<MakeTransferTxParameters, Returning = ArrayVec<u8, 128_usize>>;
+
+pub struct MakeTx;
+pub static MAKE_TRANSFER_TX_IMPL: MakeTransferTxImplT = MakeTx;
+
+pub enum MakeTxSubState {
+    Init,
+    Path(<PathParserT as ParserCommon<Bip32Key>>::State),
+    RecipientAmount(<RecipientAmountT as ParserCommon<MakeTransferTxParameters1>>::State),
+    MetaNonce(<MetaNonceT as ParserCommon<MakeTransferTxParameters2>>::State),
+    Done,
+}
+
+impl ParserCommon<MakeTransferTxParameters> for MakeTx {
+    type State = (Option<HasherAndPrivKey>, MakeTxSubState);
+    type Returning = ArrayVec<u8, 128_usize>;
+    fn init(&self) -> Self::State {
+        (None, MakeTxSubState::Init)
+    }
+}
+
+impl InterpParser<MakeTransferTxParameters> for MakeTx {
+    #[inline(never)]
+    fn parse<'a, 'b>(&self, (ref mut hasher_and_privkey, ref mut state): &'b mut Self::State, chunk: &'a [u8], destination: &mut Option<Self::Returning>) -> ParseResult<'a> {
+        let mut cursor = chunk;
+        loop {
+            match state {
+                MakeTxSubState::Init => {
+                    info!("State sizes \nMakeTx: {}\n", core::mem::size_of::<MakeTxSubState>());
+                    init_with_default(destination);
+                    set_from_thunk(state, || MakeTxSubState::Path(<PathParserT as ParserCommon<Bip32Key>>::init(&PATH_PARSER)))
+                }
+                MakeTxSubState::Path(ref mut sub) => {
+                    cursor = <PathParserT as InterpParser<Bip32Key>>::parse(&PATH_PARSER, sub, cursor, hasher_and_privkey)?;
+                    set_from_thunk(state, || MakeTxSubState::RecipientAmount(<RecipientAmountT as ParserCommon<MakeTransferTxParameters1>>::init(&RECIPIENT_AMOUNT_PARSER)))
+                }
+                MakeTxSubState::RecipientAmount(ref mut sub) => {
+                    cursor = <RecipientAmountT as InterpParser<MakeTransferTxParameters1>>::parse(&RECIPIENT_AMOUNT_PARSER, sub, cursor, hasher_and_privkey)?;
+                    set_from_thunk(state, || MakeTxSubState::MetaNonce(<MetaNonceT as ParserCommon<MakeTransferTxParameters2>>::init(&META_NONCE_PARSER)))
+                }
+                MakeTxSubState::MetaNonce(ref mut sub) => {
+                    cursor = <MetaNonceT as InterpParser<MakeTransferTxParameters2>>::parse(&META_NONCE_PARSER, sub, cursor, hasher_and_privkey)?;
+                    set_from_thunk(state, || MakeTxSubState::Done);
+                }
+                MakeTxSubState::Done => {
+                    match hasher_and_privkey {
+                        Some((ref mut hasher, privkey)) => {
+                            final_accept_prompt(&[&"Sign Transaction?"]).ok_or((Some(OOB::Reject), cursor))?;
+                            *destination=Some(ArrayVec::new());
+
+                            let mut add_sig = || -> Option<()> {
+                                let hash = hasher.finalize();
+                                let sig = eddsa_sign_int(&privkey, &hash.0).ok()?;
+                                destination.as_mut()?.try_extend_from_slice(&sig.0[..]).ok()?;
+                                Some(())
+                            };
+                            add_sig().ok_or((Some(OOB::Reject), cursor))?;
+
+                            with_public_keys_int(&privkey, |key: &_, _: &PKH| { try_option(|| -> Option<()> {
+                                let key_x = ed25519_public_key_bytes(key);
+                                destination.as_mut()?.try_extend_from_slice(key_x).ok()
+                            }())}).or(Err((Some(OOB::Reject), cursor)))?;
+                            break Ok(cursor)
+                        }
+                        _ => {
+                            panic!("should have been set")
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
 // The global parser state enum; any parser above that'll be used as the implementation for an APDU
 // must have a field here.
 
@@ -522,6 +803,7 @@ pub enum ParsersState {
     GetAddressState(<GetAddressImplT as ParserCommon<Bip32Key>>::State),
     SignState(<SignImplT as ParserCommon<SignParameters>>::State),
     SignHashState(<SignHashImplT as ParserCommon<SignHashParameters>>::State),
+    MakeTransferTxState(<MakeTransferTxImplT as ParserCommon<MakeTransferTxParameters>>::State),
 }
 
 pub fn reset_parsers_state(state: &mut ParsersState) {
@@ -592,6 +874,27 @@ pub fn get_sign_hash_state(
     }
     match s {
         ParsersState::SignHashState(ref mut a) => a,
+        _ => {
+            panic!("")
+        }
+    }
+}
+
+#[inline(never)]
+pub fn get_make_transfer_tx_state(
+    s: &mut ParsersState,
+) -> &mut <MakeTransferTxImplT as ParserCommon<MakeTransferTxParameters>>::State {
+    match s {
+        ParsersState::MakeTransferTxState(_) => {}
+        _ => {
+            info!("Non-same state found; initializing state.");
+            *s = ParsersState::MakeTransferTxState(<MakeTransferTxImplT as ParserCommon<MakeTransferTxParameters>>::init(
+                &MAKE_TRANSFER_TX_IMPL,
+            ));
+        }
+    }
+    match s {
+        ParsersState::MakeTransferTxState(ref mut a) => a,
         _ => {
             panic!("")
         }
