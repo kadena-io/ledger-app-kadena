@@ -146,9 +146,9 @@ rec {
       };
       "base64" = rec {
         crateName = "base64";
-        version = "0.13.0";
+        version = "0.13.1";
         edition = "2018";
-        sha256 = "1z82g23mbzjgijkpcrilc7nljpxpvpf7zxf6iyiapkgka2ngwkch";
+        sha256 = "1s494mqmzjb766fy1kqlccgfg2sdcjb6hzbvzqv2jw65fdi5h6wy";
         authors = [
           "Alice Maz <alice@alicemaz.com>"
           "Marshall Pierce <marshall@mpierce.org>"
@@ -356,8 +356,8 @@ rec {
         workspace_member = null;
         src = pkgs.fetchgit {
           url = "https://github.com/alamgu/ledger-crypto-helpers";
-          rev = "dd0ca96f3884ae4b237a777736811a4af1ad4ce6";
-          sha256 = "07ypmwiwycg82b45zrr83xfpiya2nj7ida7qxg74izbm7073lnm9";
+          rev = "22a454e9b81615053928fb6b21d59b45c2a1e498";
+          sha256 = "0fagq3kqmarkr7pnbd15d56nm3xpsgfrfqkywxladihym87dzdxm";
         };
         dependencies = [
           {
@@ -513,9 +513,9 @@ rec {
       };
       "libc" = rec {
         crateName = "libc";
-        version = "0.2.132";
+        version = "0.2.137";
         edition = "2015";
-        sha256 = "199vm5mz5gmd73lx07g06g2d9kl1qrd4dcky2bdrcfhw6kjy8wc3";
+        sha256 = "12dz2lk4a7lm03k079n2rkm1l6cpdhvy6nrngbfprzrv19icqzzw";
         authors = [
           "The Rust Project Developers"
         ];
@@ -551,8 +551,8 @@ rec {
         workspace_member = null;
         src = pkgs.fetchgit {
           url = "https://github.com/alamgu/ledger-nanos-sdk.git";
-          rev = "a31eef1fbc4cad5ed4df51390cb8b648fc55d0b4";
-          sha256 = "1kvyjmwbj6dmq79nvy5k5m3v9kn4xhxvb8008whkv3jg6bmv484q";
+          rev = "c6e7314029593a5caa40b9df5a78bb54d308d161";
+          sha256 = "1iami49s435anrycwx2r20vl11xmxarl9l32gn9sic4hg5v45saz";
         };
         authors = [
           "yhql"
@@ -561,6 +561,11 @@ rec {
           {
             name = "num-traits";
             packageId = "num-traits";
+            usesDefaultFeatures = false;
+          }
+          {
+            name = "rand_core";
+            packageId = "rand_core";
             usesDefaultFeatures = false;
           }
         ];
@@ -617,9 +622,9 @@ rec {
       };
       "paste" = rec {
         crateName = "paste";
-        version = "1.0.8";
+        version = "1.0.9";
         edition = "2018";
-        sha256 = "08jv4b10pjdzxqgcn2id9216m30yjlhnylvs50lkc13s5yry48wl";
+        sha256 = "1q8q3ygjcdm90ai29yjywfkhsjnby3rfsyizyy1sq1dr3xajxpmi";
         procMacro = true;
         authors = [
           "David Tolnay <dtolnay@gmail.com>"
@@ -628,9 +633,9 @@ rec {
       };
       "proc-macro2" = rec {
         crateName = "proc-macro2";
-        version = "1.0.43";
+        version = "1.0.47";
         edition = "2018";
-        sha256 = "1avvpf4qki8mg2na60yr3afbsfl5p6vllac6516xgwy93g3a4b0a";
+        sha256 = "09g7alc7mlbycsadfh7lwskr1qfxbiic9qp9z751cqz3n04dk8sy";
         authors = [
           "David Tolnay <dtolnay@gmail.com>"
           "Alex Crichton <alex@alexcrichton.com>"
@@ -666,6 +671,22 @@ rec {
           "proc-macro" = [ "proc-macro2/proc-macro" ];
         };
         resolvedDefaultFeatures = [ "default" "proc-macro" ];
+      };
+      "rand_core" = rec {
+        crateName = "rand_core";
+        version = "0.6.4";
+        edition = "2018";
+        sha256 = "0b4j2v4cb5krak1pv6kakv4sz6xcwbrmy2zckc32hsigbrwy82zc";
+        authors = [
+          "The Rand Project Developers"
+          "The Rust Project Developers"
+        ];
+        features = {
+          "getrandom" = [ "dep:getrandom" ];
+          "serde" = [ "dep:serde" ];
+          "serde1" = [ "serde" ];
+          "std" = [ "alloc" "getrandom" "getrandom/std" ];
+        };
       };
       "regex" = rec {
         crateName = "regex";
@@ -714,9 +735,9 @@ rec {
       };
       "syn" = rec {
         crateName = "syn";
-        version = "1.0.99";
+        version = "1.0.103";
         edition = "2018";
-        sha256 = "04xba78p559nl737llv7nqcwm723dp6ah5bbp0h5w1amqrpfznsq";
+        sha256 = "0pa4b6g938drphblgdhmjnzclp7gcbf4zdgkmfaxlfhk54i08r58";
         authors = [
           "David Tolnay <dtolnay@gmail.com>"
         ];
@@ -826,9 +847,9 @@ rec {
       };
       "unicode-ident" = rec {
         crateName = "unicode-ident";
-        version = "1.0.3";
+        version = "1.0.5";
         edition = "2018";
-        sha256 = "1bqswc96ws8l6k7xx56dg521a3l5imi3mhlcz7rsi6a92mxb7xf4";
+        sha256 = "1wznr6ax3jl09vxkvj4a62vip2avfgif13js9sflkjg4b6fv7skc";
         authors = [
           "David Tolnay <dtolnay@gmail.com>"
         ];
