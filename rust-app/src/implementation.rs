@@ -532,11 +532,20 @@ fn handle_tx_param_1 (
         , network: &ArrayVec<u8, PARAM_NETWORK_SIZE>
 ) -> Option<()>
 {
-    // TODO: clist amount in decimal
     let amount_str = from_utf8(amount).ok()?;
     let recipient_str = from_utf8(recipient).ok()?;
     let recipient_chain_str = from_utf8(recipient_chain).ok()?;
     let network_str = from_utf8(network).ok()?;
+
+    // recipient_str should be hex
+    if recipient_str.len() != 64 { return None; }
+    for (_, c) in recipient_str.char_indices() {
+        if !matches!(c, '0'..='9' | 'A'..='F' | 'a'..='f') {
+            return None;
+        }
+    }
+    check_positive_integer(recipient_chain_str)?;
+    check_decimal(amount_str)?;
 
     // curly braces are escaped like '{{', '}}'
     // The JSON struct begins here, and ends in handle_tx_params_2
@@ -621,12 +630,49 @@ fn handle_tx_params_2 (
         , ttl: &ArrayVec<u8, PARAM_TTL_SIZE>
 ) -> Option<()>
 {
+    let gas_price_str = from_utf8(gas_price).ok()?;
+    let gas_limit_str = from_utf8(gas_limit).ok()?;
+    let chain_id_str = from_utf8(chain_id).ok()?;
+    let ttl_str = from_utf8(ttl).ok()?;
+    let creation_time_str = from_utf8(creation_time).ok()?;
+    { // gas_price_str should be positive integer, decimal or exponential value
+        if gas_price_str.is_empty() { return None; }
+        let mut decimal = false;
+        let mut exp = false;
+        let mut should_be_minus = false;
+        for (_, c) in gas_price_str.char_indices() {
+            if should_be_minus {
+                if c == '-' {
+                    should_be_minus = false;
+                    continue
+                } else {
+                    return None;
+                }
+            }
+            if !matches!(c, '0'..='9') {
+                if c == '.' && !decimal {
+                    decimal = true;
+                    continue;
+                }
+                if c == 'e' && !exp && decimal {
+                    exp = true;
+                    should_be_minus = true;
+                    continue;
+                }
+                return None;
+            }
+        }
+    }
+    check_positive_integer(gas_limit_str)?;
+    check_positive_integer(chain_id_str)?;
+    check_positive_integer(creation_time_str)?;
+    check_decimal(ttl_str)?;
     write!(hasher, ",\"meta\":{{").ok()?;
-    write!(hasher, "\"creationTime\":{}", from_utf8(creation_time).ok()?).ok()?;
-    write!(hasher, ",\"ttl\":{}", from_utf8(ttl).ok()?).ok()?;
-    write!(hasher, ",\"gasLimit\":{}", from_utf8(gas_limit).ok()?).ok()?;
-    write!(hasher, ",\"chainId\":\"{}\"", from_utf8(chain_id).ok()?).ok()?;
-    write!(hasher, ",\"gasPrice\":{}", from_utf8(gas_price).ok()?).ok()?;
+    write!(hasher, "\"creationTime\":{}", creation_time_str).ok()?;
+    write!(hasher, ",\"ttl\":{}", ttl_str ).ok()?;
+    write!(hasher, ",\"gasLimit\":{}", gas_limit_str).ok()?;
+    write!(hasher, ",\"chainId\":\"{}\"", chain_id_str).ok()?;
+    write!(hasher, ",\"gasPrice\":{}", gas_price_str).ok()?;
     write!(hasher, ",\"sender\":\"k:{}\"", pkh_str).ok()?;
     write!(hasher, "}}").ok()?;
     write!(hasher, ",\"nonce\":\"{}\"", from_utf8(nonce).ok()?).ok()?;
@@ -634,6 +680,33 @@ fn handle_tx_params_2 (
     write!(hasher, "}}").ok()?;
 
     scroller("Paying Gas", |w| Ok(write!(w, "at most {} at price {}", from_utf8(gas_limit)?, from_utf8(gas_price)?)?))?;
+    Some(())
+}
+
+fn check_decimal(s: &str) -> Option<()>
+{
+    if s.is_empty() { return None; }
+    let mut decimal = false;
+    for (_, c) in s.char_indices() {
+        if !matches!(c, '0'..='9') {
+            if c == '.' && !decimal {
+                decimal = true;
+                continue;
+            }
+            return None;
+        }
+    }
+    Some(())
+}
+
+fn check_positive_integer(s: &str) -> Option<()>
+{
+    if s.is_empty() { return None; }
+    for (_, c) in s.char_indices() {
+        if !matches!(c, '0'..='9') {
+            return None;
+        }
+    }
     Some(())
 }
 
