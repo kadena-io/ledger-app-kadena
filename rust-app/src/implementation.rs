@@ -530,12 +530,17 @@ fn handle_tx_param_1 (
         , recipient_chain: &ArrayVec<u8, PARAM_RECIPIENT_CHAIN_SIZE>
         , amount: &ArrayVec<u8, PARAM_AMOUNT_SIZE>
         , network: &ArrayVec<u8, PARAM_NETWORK_SIZE>
+        , namespace: &ArrayVec<u8, PARAM_NAMESPACE_SIZE>
+        , mod_name: &ArrayVec<u8, PARAM_MOD_NAME_SIZE>
 ) -> Option<()>
 {
     let amount_str = from_utf8(amount).ok()?;
     let recipient_str = from_utf8(recipient).ok()?;
     let recipient_chain_str = from_utf8(recipient_chain).ok()?;
     let network_str = from_utf8(network).ok()?;
+    let namespace_str = from_utf8(namespace).ok()?;
+    let mod_name_str = from_utf8(mod_name).ok()?;
+    if !namespace_str.is_empty() && mod_name_str.is_empty() { return None;}
 
     // recipient_str should be hex
     if recipient_str.len() != 64 { return None; }
@@ -554,7 +559,12 @@ fn handle_tx_param_1 (
     match tx_type {
         0 => {
             write!(hasher, ",\"payload\":{{\"exec\":{{\"data\":{{}},\"code\":\"").ok()?;
-            write!(hasher, "(coin.transfer \\\"k:{}\\\"", pkh_str).ok()?;
+            if namespace_str.is_empty() {
+                write!(hasher, "(coin.transfer").ok()?;
+            } else {
+                write!(hasher, "({}.{}.transfer", namespace_str, mod_name_str).ok()?;
+            }
+            write!(hasher, " \\\"k:{}\\\"", pkh_str).ok()?;
             write!(hasher, " \\\"k:{}\\\"", recipient_str).ok()?;
             write!(hasher, " {})\"}}}}", amount_str).ok()?;
             write!(hasher, ",\"signers\":[{{\"pubKey\":").ok()?;
@@ -563,14 +573,23 @@ fn handle_tx_param_1 (
             write!(hasher, "\"k:{}\",", pkh_str).ok()?;
             write!(hasher, "\"k:{}\",", recipient_str).ok()?;
             write!(hasher, "{}]", amount_str).ok()?;
-            write!(hasher, ",\"name\":\"coin.TRANSFER\"}},{{\"args\":[],\"name\":\"coin.GAS\"}}]}}]").ok()?;
+            if namespace_str.is_empty() {
+                write!(hasher, ",\"name\":\"coin.TRANSFER\"}},{{\"args\":[],\"name\":\"coin.GAS\"}}]}}]").ok()?;
+            } else {
+                write!(hasher, ",\"name\":\"{}.{}.TRANSFER\"}},{{\"args\":[],\"name\":\"coin.GAS\"}}]}}]", namespace_str, mod_name_str).ok()?;
+            }
         },
         1 => {
             write!(hasher, ",\"payload\":{{\"exec\":{{\"data\":{{").ok()?;
             write!(hasher, "\"ks\":{{\"pred\":\"keys-all\",\"keys\":[").ok()?;
             write!(hasher, "\"{}\"]}}}}", recipient_str).ok()?;
             write!(hasher, ",\"code\":\"").ok()?;
-            write!(hasher, "(coin.transfer-create \\\"k:{}\\\"", pkh_str).ok()?;
+            if namespace_str.is_empty() {
+                write!(hasher, "(coin.transfer-create").ok()?;
+            } else {
+                write!(hasher, "({}.{}.transfer-create", namespace_str, mod_name_str).ok()?;
+            }
+            write!(hasher, " \\\"k:{}\\\"", pkh_str).ok()?;
             write!(hasher, " \\\"k:{}\\\"", recipient_str).ok()?;
             write!(hasher, " (read-keyset \\\"ks\\\")").ok()?;
             write!(hasher, " {})\"}}}}", amount_str).ok()?;
@@ -580,14 +599,23 @@ fn handle_tx_param_1 (
             write!(hasher, "\"k:{}\",", pkh_str).ok()?;
             write!(hasher, "\"k:{}\",", recipient_str).ok()?;
             write!(hasher, "{}]", amount_str).ok()?;
-            write!(hasher, ",\"name\":\"coin.TRANSFER\"}},{{\"args\":[],\"name\":\"coin.GAS\"}}]}}]").ok()?;
+            if namespace_str.is_empty() {
+                write!(hasher, ",\"name\":\"coin.TRANSFER\"}},{{\"args\":[],\"name\":\"coin.GAS\"}}]}}]").ok()?;
+            } else {
+                write!(hasher, ",\"name\":\"{}.{}.TRANSFER\"}},{{\"args\":[],\"name\":\"coin.GAS\"}}]}}]", namespace_str, mod_name_str).ok()?;
+            }
         },
         2 => {
             write!(hasher, ",\"payload\":{{\"exec\":{{\"data\":{{").ok()?;
             write!(hasher, "\"ks\":{{\"pred\":\"keys-all\",\"keys\":[").ok()?;
             write!(hasher, "\"{}\"]}}}}", recipient_str).ok()?;
             write!(hasher, ",\"code\":\"").ok()?;
-            write!(hasher, "(coin.transfer-crosschain \\\"k:{}\\\"", pkh_str).ok()?;
+            if namespace_str.is_empty() {
+                write!(hasher, "(coin.transfer-crosschain").ok()?;
+            } else {
+                write!(hasher, "({}.{}.transfer-crosschain", namespace_str, mod_name_str).ok()?;
+            }
+            write!(hasher, " \\\"k:{}\\\"", pkh_str).ok()?;
             write!(hasher, " \\\"k:{}\\\"", recipient_str).ok()?;
             write!(hasher, " (read-keyset \\\"ks\\\")").ok()?;
             write!(hasher, " \\\"{}\\\"", recipient_chain_str).ok()?;
@@ -599,9 +627,19 @@ fn handle_tx_param_1 (
             write!(hasher, "\"k:{}\",", recipient_str).ok()?;
             write!(hasher, "{},", amount_str).ok()?;
             write!(hasher, "\"{}\"]", recipient_chain_str).ok()?;
-            write!(hasher, ",\"name\":\"coin.TRANSFER_XCHAIN\"}},{{\"args\":[],\"name\":\"coin.GAS\"}}]}}]").ok()?;
+            if namespace_str.is_empty() {
+                write!(hasher, ",\"name\":\"coin.TRANSFER_XCHAIN\"}},{{\"args\":[],\"name\":\"coin.GAS\"}}]}}]").ok()?;
+            } else {
+                write!(hasher, ",\"name\":\"{}.{}.TRANSFER_XCHAIN\"}},{{\"args\":[],\"name\":\"coin.GAS\"}}]}}]", namespace_str, mod_name_str).ok()?;
+            }
         }
         _ => {}
+    }
+
+    if namespace_str.is_empty() {
+        scroller("Token:", |w| Ok(write!(w, "KDA")?))?;
+    } else {
+        scroller("Token:", |w| Ok(write!(w, "{}.{}", namespace_str, mod_name_str)?))?;
     }
 
     match tx_type {
@@ -729,9 +767,9 @@ const PATH_PARSER: PathParserT
         Some(())
     }));
 
-type TxParams1ParserT = (DefaultInterp, (SubDefT, (SubDefT, (SubDefT, SubDefT))));
+type TxParams1ParserT = (DefaultInterp, (SubDefT, (SubDefT, (SubDefT, (SubDefT, (SubDefT, SubDefT))))));
 const TX_PARAMS1_PARSER: TxParams1ParserT
-    = (DefaultInterp, (SUB_DEF, (SUB_DEF, (SUB_DEF, SUB_DEF))));
+    = (DefaultInterp, (SUB_DEF, (SUB_DEF, (SUB_DEF, (SUB_DEF, (SUB_DEF, SUB_DEF))))));
 
 pub type RecipientAmountT = impl InterpParser<MakeTransferTxParameters1, Returning = HasherAndPrivKey>;
 
@@ -742,7 +780,9 @@ const RECIPIENT_AMOUNT_PARSER: RecipientAmountT
              , destination:&mut Option<HasherAndPrivKey>| {
         let (recipient, optv2) = optv1?;
         let (recipient_chain, optv3) = optv2?;
-        let (network, amount) = optv3?;
+        let (network, optv4) = optv3?;
+        let (amount, optv5) = optv4?;
+        let (namespace, mod_name) = optv5?;
         match destination {
             Some((ref mut hasher, privkey)) => {
                 let mut pkh_str: ArrayString<64> = ArrayString::new();
@@ -751,7 +791,7 @@ const RECIPIENT_AMOUNT_PARSER: RecipientAmountT
                         write!(mk_prompt_write(&mut pkh_str), "{}", pkh).ok()
                     }())}).ok()?;
                 }
-                handle_tx_param_1(&pkh_str, hasher, tx_type?, recipient.as_ref()?, recipient_chain.as_ref()?, amount.as_ref()?, network.as_ref()?)?;
+                handle_tx_param_1(&pkh_str, hasher, tx_type?, recipient.as_ref()?, recipient_chain.as_ref()?, amount.as_ref()?, network.as_ref()?, namespace.as_ref()?, mod_name.as_ref()?)?;
 
             }
             _ => { panic!("should have been set") }

@@ -61,6 +61,8 @@ pub const PARAM_AMOUNT_SIZE: usize = 50;
 pub const PARAM_RECIPIENT_SIZE: usize = 64;
 pub const PARAM_RECIPIENT_CHAIN_SIZE: usize = 2;
 pub const PARAM_NETWORK_SIZE: usize = 20;
+pub const PARAM_NAMESPACE_SIZE: usize = 16;
+pub const PARAM_MOD_NAME_SIZE: usize = 16;
 
 pub const PARAM_GAS_PRICE_SIZE: usize = 20;
 pub const PARAM_GAS_LIMIT_SIZE: usize = 10;
@@ -76,8 +78,10 @@ pub type MakeTransferTxParameters1 =
     , (ByteDArray<PARAM_RECIPIENT_SIZE>
     , (ByteDArray<PARAM_RECIPIENT_CHAIN_SIZE>
     , (ByteDArray<PARAM_NETWORK_SIZE>
-    , ByteDArray<PARAM_AMOUNT_SIZE>
-    ))));
+    , (ByteDArray<PARAM_AMOUNT_SIZE>
+    , (ByteDArray<PARAM_NAMESPACE_SIZE>
+    , ByteDArray<PARAM_MOD_NAME_SIZE>
+    ))))));
 
 pub type MakeTransferTxParameters2 =
     (ByteDArray<PARAM_GAS_PRICE_SIZE>
