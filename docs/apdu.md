@@ -176,8 +176,12 @@ All other parameters  are specified as utf8 encoding string in the input data.
 | `<variable>` | `recipient_chain`     | Recipient Chain Id (utf8 encoded string) |
 | `1`          | `network_len`         | Network length (<= 20)                   |
 | `<variable>` | `network`             | Network (utf8 encoded string)            |
-| `1`          | `amount_len`          | Amount length (<= 50)                    |
+| `1`          | `amount_len`          | Amount length (<= 32)                    |
 | `<variable>` | `amount`              | Amount (utf8 encoded string)             |
+| `1`          | `namespace_len`       | Namespace length (<= 16)                 |
+| `<variable>` | `namespace`           | Namespace (utf8 encoded string)          |
+| `1`          | `module_len`          | Module name length (<= 32)               |
+| `<variable>` | `module`              | Module name (utf8 encoded string)        |
 | `1`          | `gas_price_len`       | Gas price length (<= 20)                 |
 | `<variable>` | `gas_price`           | Gas price (utf8 encoded string)          |
 | `1`          | `gas_limit_len`       | Gas limit length (<= 10)                 |
@@ -186,7 +190,7 @@ All other parameters  are specified as utf8 encoding string in the input data.
 | `<variable>` | `creation_time`       | Creation time (utf8 encoded string)      |
 | `1`          | `chain_id_len`        | Chain id length (<= 2)                   |
 | `<variable>` | `chain_id`            | Chain id (utf8 encoded string)           |
-| `1`          | `nonce_len`           | Nonce length (<= 64)                     |
+| `1`          | `nonce_len`           | Nonce length (<= 32)                     |
 | `<variable>` | `nonce`               | Nonce (utf8 encoded string)              |
 | `1`          | `ttl_len`             | TTL length (<= 20)                       |
 | `<variable>` | `ttl`                 | TTL (utf8 encoded string)                |

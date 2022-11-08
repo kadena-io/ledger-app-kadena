@@ -57,18 +57,18 @@ pub type SignHashParameters = (
 
 pub type ByteDArray<const N: usize> = DArray<Byte, Byte, N>;
 
-pub const PARAM_AMOUNT_SIZE: usize = 50;
+pub const PARAM_AMOUNT_SIZE: usize = 32;
 pub const PARAM_RECIPIENT_SIZE: usize = 64;
 pub const PARAM_RECIPIENT_CHAIN_SIZE: usize = 2;
 pub const PARAM_NETWORK_SIZE: usize = 20;
 pub const PARAM_NAMESPACE_SIZE: usize = 16;
-pub const PARAM_MOD_NAME_SIZE: usize = 16;
+pub const PARAM_MOD_NAME_SIZE: usize = 32;
 
 pub const PARAM_GAS_PRICE_SIZE: usize = 20;
 pub const PARAM_GAS_LIMIT_SIZE: usize = 10;
 pub const PARAM_CREATION_TIME_SIZE: usize = 12;
 pub const PARAM_CHAIN_SIZE: usize = 2;
-pub const PARAM_NOONCE_SIZE: usize = 64;
+pub const PARAM_NOONCE_SIZE: usize = 32;
 pub const PARAM_TTL_SIZE: usize = 20;
 
 pub type MakeTransferTxParameters = (Bip32Key, MakeTransferTxParameters1, MakeTransferTxParameters2);
