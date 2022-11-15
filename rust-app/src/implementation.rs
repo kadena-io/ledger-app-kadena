@@ -530,13 +530,36 @@ fn handle_tx_param_1 (
         , recipient_chain: &ArrayVec<u8, PARAM_RECIPIENT_CHAIN_SIZE>
         , amount: &ArrayVec<u8, PARAM_AMOUNT_SIZE>
         , network: &ArrayVec<u8, PARAM_NETWORK_SIZE>
+        , namespace: &ArrayVec<u8, PARAM_NAMESPACE_SIZE>
+        , mod_name: &ArrayVec<u8, PARAM_MOD_NAME_SIZE>
 ) -> Option<()>
 {
-    // TODO: clist amount in decimal
     let amount_str = from_utf8(amount).ok()?;
     let recipient_str = from_utf8(recipient).ok()?;
     let recipient_chain_str = from_utf8(recipient_chain).ok()?;
     let network_str = from_utf8(network).ok()?;
+    let namespace_str = from_utf8(namespace).ok()?;
+    let mod_name_str = from_utf8(mod_name).ok()?;
+    if !namespace_str.is_empty() && mod_name_str.is_empty() { return None;}
+
+    // recipient_str should be hex
+    if recipient_str.len() != 64 { return None; }
+    for (_, c) in recipient_str.char_indices() {
+        if !matches!(c, '0'..='9' | 'A'..='F' | 'a'..='f') {
+            return None;
+        }
+    }
+    check_positive_integer(recipient_chain_str)?;
+    check_decimal(amount_str)?;
+
+    let coin_or_namespace = |hasher: &mut Blake2b| -> Option <()> {
+        if namespace_str.is_empty() {
+            write!(hasher, "coin").ok()?;
+        } else {
+            write!(hasher, "{}.{}", namespace_str, mod_name_str).ok()?;
+        }
+        Some(())
+    };
 
     // curly braces are escaped like '{{', '}}'
     // The JSON struct begins here, and ends in handle_tx_params_2
@@ -544,8 +567,10 @@ fn handle_tx_param_1 (
     write!(hasher, "\"networkId\":\"{}\"", network_str).ok()?;
     match tx_type {
         0 => {
-            write!(hasher, ",\"payload\":{{\"exec\":{{\"data\":{{}},\"code\":\"").ok()?;
-            write!(hasher, "(coin.transfer \\\"k:{}\\\"", pkh_str).ok()?;
+            write!(hasher, ",\"payload\":{{\"exec\":{{\"data\":{{}},\"code\":\"(").ok()?;
+            coin_or_namespace(hasher)?;
+            write!(hasher, ".transfer").ok()?;
+            write!(hasher, " \\\"k:{}\\\"", pkh_str).ok()?;
             write!(hasher, " \\\"k:{}\\\"", recipient_str).ok()?;
             write!(hasher, " {})\"}}}}", amount_str).ok()?;
             write!(hasher, ",\"signers\":[{{\"pubKey\":").ok()?;
@@ -554,14 +579,18 @@ fn handle_tx_param_1 (
             write!(hasher, "\"k:{}\",", pkh_str).ok()?;
             write!(hasher, "\"k:{}\",", recipient_str).ok()?;
             write!(hasher, "{}]", amount_str).ok()?;
-            write!(hasher, ",\"name\":\"coin.TRANSFER\"}},{{\"args\":[],\"name\":\"coin.GAS\"}}]}}]").ok()?;
+            write!(hasher, ",\"name\":\"").ok()?;
+            coin_or_namespace(hasher)?;
+            write!(hasher, ".TRANSFER\"}},{{\"args\":[],\"name\":\"coin.GAS\"}}]}}]").ok()?;
         },
         1 => {
             write!(hasher, ",\"payload\":{{\"exec\":{{\"data\":{{").ok()?;
             write!(hasher, "\"ks\":{{\"pred\":\"keys-all\",\"keys\":[").ok()?;
             write!(hasher, "\"{}\"]}}}}", recipient_str).ok()?;
-            write!(hasher, ",\"code\":\"").ok()?;
-            write!(hasher, "(coin.transfer-create \\\"k:{}\\\"", pkh_str).ok()?;
+            write!(hasher, ",\"code\":\"(").ok()?;
+            coin_or_namespace(hasher)?;
+            write!(hasher, ".transfer-create").ok()?;
+            write!(hasher, " \\\"k:{}\\\"", pkh_str).ok()?;
             write!(hasher, " \\\"k:{}\\\"", recipient_str).ok()?;
             write!(hasher, " (read-keyset \\\"ks\\\")").ok()?;
             write!(hasher, " {})\"}}}}", amount_str).ok()?;
@@ -571,14 +600,18 @@ fn handle_tx_param_1 (
             write!(hasher, "\"k:{}\",", pkh_str).ok()?;
             write!(hasher, "\"k:{}\",", recipient_str).ok()?;
             write!(hasher, "{}]", amount_str).ok()?;
-            write!(hasher, ",\"name\":\"coin.TRANSFER\"}},{{\"args\":[],\"name\":\"coin.GAS\"}}]}}]").ok()?;
+            write!(hasher, ",\"name\":\"").ok()?;
+            coin_or_namespace(hasher)?;
+            write!(hasher, ".TRANSFER\"}},{{\"args\":[],\"name\":\"coin.GAS\"}}]}}]").ok()?;
         },
         2 => {
             write!(hasher, ",\"payload\":{{\"exec\":{{\"data\":{{").ok()?;
             write!(hasher, "\"ks\":{{\"pred\":\"keys-all\",\"keys\":[").ok()?;
             write!(hasher, "\"{}\"]}}}}", recipient_str).ok()?;
-            write!(hasher, ",\"code\":\"").ok()?;
-            write!(hasher, "(coin.transfer-crosschain \\\"k:{}\\\"", pkh_str).ok()?;
+            write!(hasher, ",\"code\":\"(").ok()?;
+            coin_or_namespace(hasher)?;
+            write!(hasher, ".transfer-crosschain").ok()?;
+            write!(hasher, " \\\"k:{}\\\"", pkh_str).ok()?;
             write!(hasher, " \\\"k:{}\\\"", recipient_str).ok()?;
             write!(hasher, " (read-keyset \\\"ks\\\")").ok()?;
             write!(hasher, " \\\"{}\\\"", recipient_chain_str).ok()?;
@@ -590,9 +623,17 @@ fn handle_tx_param_1 (
             write!(hasher, "\"k:{}\",", recipient_str).ok()?;
             write!(hasher, "{},", amount_str).ok()?;
             write!(hasher, "\"{}\"]", recipient_chain_str).ok()?;
-            write!(hasher, ",\"name\":\"coin.TRANSFER_XCHAIN\"}},{{\"args\":[],\"name\":\"coin.GAS\"}}]}}]").ok()?;
+            write!(hasher, ",\"name\":\"").ok()?;
+            coin_or_namespace(hasher)?;
+            write!(hasher, ".TRANSFER_XCHAIN\"}},{{\"args\":[],\"name\":\"coin.GAS\"}}]}}]").ok()?;
         }
         _ => {}
+    }
+
+    if namespace_str.is_empty() {
+        scroller("Token:", |w| Ok(write!(w, "KDA")?))?;
+    } else {
+        scroller("Token:", |w| Ok(write!(w, "{}.{}", namespace_str, mod_name_str)?))?;
     }
 
     match tx_type {
@@ -621,12 +662,49 @@ fn handle_tx_params_2 (
         , ttl: &ArrayVec<u8, PARAM_TTL_SIZE>
 ) -> Option<()>
 {
+    let gas_price_str = from_utf8(gas_price).ok()?;
+    let gas_limit_str = from_utf8(gas_limit).ok()?;
+    let chain_id_str = from_utf8(chain_id).ok()?;
+    let ttl_str = from_utf8(ttl).ok()?;
+    let creation_time_str = from_utf8(creation_time).ok()?;
+    { // gas_price_str should be positive integer, decimal or exponential value
+        if gas_price_str.is_empty() { return None; }
+        let mut decimal = false;
+        let mut exp = false;
+        let mut should_be_minus = false;
+        for (_, c) in gas_price_str.char_indices() {
+            if should_be_minus {
+                if c == '-' {
+                    should_be_minus = false;
+                    continue
+                } else {
+                    return None;
+                }
+            }
+            if !matches!(c, '0'..='9') {
+                if c == '.' && !decimal {
+                    decimal = true;
+                    continue;
+                }
+                if c == 'e' && !exp && decimal {
+                    exp = true;
+                    should_be_minus = true;
+                    continue;
+                }
+                return None;
+            }
+        }
+    }
+    check_positive_integer(gas_limit_str)?;
+    check_positive_integer(chain_id_str)?;
+    check_positive_integer(creation_time_str)?;
+    check_decimal(ttl_str)?;
     write!(hasher, ",\"meta\":{{").ok()?;
-    write!(hasher, "\"creationTime\":{}", from_utf8(creation_time).ok()?).ok()?;
-    write!(hasher, ",\"ttl\":{}", from_utf8(ttl).ok()?).ok()?;
-    write!(hasher, ",\"gasLimit\":{}", from_utf8(gas_limit).ok()?).ok()?;
-    write!(hasher, ",\"chainId\":\"{}\"", from_utf8(chain_id).ok()?).ok()?;
-    write!(hasher, ",\"gasPrice\":{}", from_utf8(gas_price).ok()?).ok()?;
+    write!(hasher, "\"creationTime\":{}", creation_time_str).ok()?;
+    write!(hasher, ",\"ttl\":{}", ttl_str ).ok()?;
+    write!(hasher, ",\"gasLimit\":{}", gas_limit_str).ok()?;
+    write!(hasher, ",\"chainId\":\"{}\"", chain_id_str).ok()?;
+    write!(hasher, ",\"gasPrice\":{}", gas_price_str).ok()?;
     write!(hasher, ",\"sender\":\"k:{}\"", pkh_str).ok()?;
     write!(hasher, "}}").ok()?;
     write!(hasher, ",\"nonce\":\"{}\"", from_utf8(nonce).ok()?).ok()?;
@@ -634,6 +712,33 @@ fn handle_tx_params_2 (
     write!(hasher, "}}").ok()?;
 
     scroller("Paying Gas", |w| Ok(write!(w, "at most {} at price {}", from_utf8(gas_limit)?, from_utf8(gas_price)?)?))?;
+    Some(())
+}
+
+fn check_decimal(s: &str) -> Option<()>
+{
+    if s.is_empty() { return None; }
+    let mut decimal = false;
+    for (_, c) in s.char_indices() {
+        if !matches!(c, '0'..='9') {
+            if c == '.' && !decimal {
+                decimal = true;
+                continue;
+            }
+            return None;
+        }
+    }
+    Some(())
+}
+
+fn check_positive_integer(s: &str) -> Option<()>
+{
+    if s.is_empty() { return None; }
+    for (_, c) in s.char_indices() {
+        if !matches!(c, '0'..='9') {
+            return None;
+        }
+    }
     Some(())
 }
 
@@ -656,9 +761,9 @@ const PATH_PARSER: PathParserT
         Some(())
     }));
 
-type TxParams1ParserT = (DefaultInterp, (SubDefT, (SubDefT, (SubDefT, SubDefT))));
+type TxParams1ParserT = (DefaultInterp, (SubDefT, (SubDefT, (SubDefT, (SubDefT, (SubDefT, SubDefT))))));
 const TX_PARAMS1_PARSER: TxParams1ParserT
-    = (DefaultInterp, (SUB_DEF, (SUB_DEF, (SUB_DEF, SUB_DEF))));
+    = (DefaultInterp, (SUB_DEF, (SUB_DEF, (SUB_DEF, (SUB_DEF, (SUB_DEF, SUB_DEF))))));
 
 pub type RecipientAmountT = impl InterpParser<MakeTransferTxParameters1, Returning = HasherAndPrivKey>;
 
@@ -669,7 +774,9 @@ const RECIPIENT_AMOUNT_PARSER: RecipientAmountT
              , destination:&mut Option<HasherAndPrivKey>| {
         let (recipient, optv2) = optv1?;
         let (recipient_chain, optv3) = optv2?;
-        let (network, amount) = optv3?;
+        let (network, optv4) = optv3?;
+        let (amount, optv5) = optv4?;
+        let (namespace, mod_name) = optv5?;
         match destination {
             Some((ref mut hasher, privkey)) => {
                 let mut pkh_str: ArrayString<64> = ArrayString::new();
@@ -678,7 +785,7 @@ const RECIPIENT_AMOUNT_PARSER: RecipientAmountT
                         write!(mk_prompt_write(&mut pkh_str), "{}", pkh).ok()
                     }())}).ok()?;
                 }
-                handle_tx_param_1(&pkh_str, hasher, tx_type?, recipient.as_ref()?, recipient_chain.as_ref()?, amount.as_ref()?, network.as_ref()?)?;
+                handle_tx_param_1(&pkh_str, hasher, tx_type?, recipient.as_ref()?, recipient_chain.as_ref()?, amount.as_ref()?, network.as_ref()?, namespace.as_ref()?, mod_name.as_ref()?)?;
 
             }
             _ => { panic!("should have been set") }
