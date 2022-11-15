@@ -2,6 +2,7 @@
 
 Added support for the following
 
+* Added support for building and signing transfer, transfer-create, and transfer-crosschain transactions on the Ledger device.
 * Signing arbitrary hash. This must be enabled from the 'Settings' menu.
 * Signing transaction containing arbitrary number of capabilities, with arbitrary number of arguments.
 * A 'Cross-transfer' message is displayed for 'coin.TRANSFER_XCHAIN' capability.
