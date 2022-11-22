@@ -1,6 +1,7 @@
 #![no_std]
 #![allow(incomplete_features)]
 #![feature(adt_const_params)]
+#![feature(stmt_expr_attributes)]
 #![feature(str_internals)]
 #![feature(type_alias_impl_trait)]
 #![feature(const_mut_refs)]

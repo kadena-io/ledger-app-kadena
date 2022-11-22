@@ -53,7 +53,7 @@ impl Settings {
     #[inline(never)]
     pub fn set(&mut self, v: &u8) {
         let settings = unsafe { SETTINGS.get_mut() };
-        settings.update(&v);
+        settings.update(v);
     }
 }
 

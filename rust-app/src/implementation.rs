@@ -25,6 +25,7 @@ use core::ops::Deref;
 
 use nanos_sdk::ecc::{ECPrivateKey, Ed25519};
 
+#[allow(clippy::upper_case_acronyms)]
 type PKH = Ed25519RawPubKeyAddress;
 
 // A couple type ascription functions to help the compiler along.
@@ -175,7 +176,7 @@ pub static SIGN_IMPL: SignImplT = Action(
             // And ask the user if this is the key the meant to sign with:
             mkmvfn(|path: ArrayVec<u32, 10>, destination: &mut Option<ArrayVec<u32, 10>>| {
                 with_public_keys(&path, |_, pkh: &PKH| { try_option(|| -> Option<()> {
-                    scroller("Sign for Address", |w| Ok(write!(w, "{}", pkh)?))?;
+                    scroller("Sign for Address", |w| Ok(write!(w, "{pkh}")?))?;
                     Some(())
                 }())}).ok()?;
                 *destination = Some(path);
@@ -184,7 +185,7 @@ pub static SIGN_IMPL: SignImplT = Action(
         ),
     ),
     mkfn(|(hash, path): &(Option<Zeroizing<Hash<32>>>, Option<ArrayVec<u32, 10>>), destination: &mut _| {
-        final_accept_prompt(&[&"Sign Transaction?"])?;
+        final_accept_prompt(&["Sign Transaction?"])?;
 
         // By the time we get here, we've approved and just need to do the signature.
         let sig = eddsa_sign(path.as_ref()?, &hash.as_ref()?.0[..]).ok()?;
@@ -362,13 +363,11 @@ const CLIST_ACTION:
                                  , mkstr(args.as_slice().get(0..arg_lengths[0]))?
                                  , mkstr(args.as_slice().get(arg_lengths[0]..args.len()))?
                       )?))?;
+                  } else if name == b"coin.ROTATE" {
+                      scroller("Rotate for account", |w| Ok(write!(w, "{}", from_utf8(args.as_slice())?)?))?;
+                      *destination = Some((Summable::zero(), true));
                   } else {
-                      if name == b"coin.ROTATE" {
-                          scroller("Rotate for account", |w| Ok(write!(w, "{}", from_utf8(args.as_slice())?)?))?;
-                          *destination = Some((Summable::zero(), true));
-                      } else {
-                          scroller(&mk_unknown_cap_title()?, |w| Ok(write!(w, "name: {}, arg 1: {}", name_utf8, from_utf8(args.as_slice())?)?))?;
-                      }
+                      scroller(&mk_unknown_cap_title()?, |w| Ok(write!(w, "name: {}, arg 1: {}", name_utf8, from_utf8(args.as_slice())?)?))?;
                   }
               }
               _ => {
@@ -393,7 +392,7 @@ pub static SIGN_HASH_IMPL: SignHashImplT = Action(
             mkfn(|hash_val: &[u8; 32], destination: &mut Option<[u8; 32]>| {
                 let the_hash = Hash ( *hash_val );
                 scroller("Transaction hash", |w| Ok(write!(w, "{}", the_hash)?))?;
-                *destination=Some(the_hash.0.into());
+                *destination=Some(the_hash.0);
                 Some(())
             }),
         ),
@@ -411,7 +410,7 @@ pub static SIGN_HASH_IMPL: SignHashImplT = Action(
         ),
     )),
     mkfn(|(hash, path): &(Option<[u8; 32]>, Option<ArrayVec<u32, 10>>), destination: &mut _| {
-        final_accept_prompt(&[&"Sign Transaction Hash?"])?;
+        final_accept_prompt(&["Sign Transaction Hash?"])?;
 
         // By the time we get here, we've approved and just need to do the signature.
         let sig = eddsa_sign(path.as_ref()?, &hash.as_ref()?[..]).ok()?;
@@ -781,7 +780,7 @@ const RECIPIENT_AMOUNT_PARSER: RecipientAmountT
             Some((ref mut hasher, privkey)) => {
                 let mut pkh_str: ArrayString<64> = ArrayString::new();
                 {
-                    with_public_keys_int(&privkey, |_: &_, pkh: &PKH| { try_option(|| -> Option<()> {
+                    with_public_keys_int(privkey, |_: &_, pkh: &PKH| { try_option(|| -> Option<()> {
                         write!(mk_prompt_write(&mut pkh_str), "{}", pkh).ok()
                     }())}).ok()?;
                 }
@@ -813,7 +812,7 @@ const META_NONCE_PARSER: MetaNonceT
             Some((ref mut hasher, privkey)) => {
                 let mut pkh_str: ArrayString<64> = ArrayString::new();
                 {
-                    with_public_keys_int(&privkey, |_: &_, pkh: &PKH| { try_option(|| -> Option<()> {
+                    with_public_keys_int(privkey, |_: &_, pkh: &PKH| { try_option(|| -> Option<()> {
                         write!(mk_prompt_write(&mut pkh_str), "{}", pkh).ok()
                     }())}).ok()?;
                 }
@@ -874,18 +873,18 @@ impl InterpParser<MakeTransferTxParameters> for MakeTx {
                 MakeTxSubState::Done => {
                     match hasher_and_privkey {
                         Some((ref mut hasher, privkey)) => {
-                            final_accept_prompt(&[&"Sign Transaction?"]).ok_or((Some(OOB::Reject), cursor))?;
+                            final_accept_prompt(&["Sign Transaction?"]).ok_or((Some(OOB::Reject), cursor))?;
                             *destination=Some(ArrayVec::new());
 
                             let mut add_sig = || -> Option<()> {
                                 let hash = hasher.finalize();
-                                let sig = eddsa_sign_int(&privkey, &hash.0).ok()?;
+                                let sig = eddsa_sign_int(privkey, &hash.0).ok()?;
                                 destination.as_mut()?.try_extend_from_slice(&sig.0[..]).ok()?;
                                 Some(())
                             };
                             add_sig().ok_or((Some(OOB::Reject), cursor))?;
 
-                            with_public_keys_int(&privkey, |key: &_, _: &PKH| { try_option(|| -> Option<()> {
+                            with_public_keys_int(privkey, |key: &_, _: &PKH| { try_option(|| -> Option<()> {
                                 let key_x = ed25519_public_key_bytes(key);
                                 destination.as_mut()?.try_extend_from_slice(key_x).ok()
                             }())}).or(Err((Some(OOB::Reject), cursor)))?;
@@ -903,7 +902,7 @@ impl InterpParser<MakeTransferTxParameters> for MakeTx {
 
 // The global parser state enum; any parser above that'll be used as the implementation for an APDU
 // must have a field here.
-
+#[allow(clippy::large_enum_variant)]
 pub enum ParsersState {
     NoState,
     SettingsState(u8),
