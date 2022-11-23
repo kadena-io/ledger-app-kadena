@@ -72,3 +72,9 @@ impl Settings {
         self.0 = *v;
     }
 }
+
+impl Default for Settings {
+    fn default() -> Self {
+        Self::new()
+    }
+}
