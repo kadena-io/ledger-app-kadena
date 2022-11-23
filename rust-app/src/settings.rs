@@ -65,7 +65,7 @@ impl Settings {
     pub fn new() -> Settings { Settings(0)}
 
     pub fn get(&self) -> u8 {
-        return self.0;
+        self.0
     }
 
     pub fn set(&mut self, v: &u8) {
