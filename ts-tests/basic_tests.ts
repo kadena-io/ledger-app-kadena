@@ -19,8 +19,12 @@ let ignoredScreens = [ "W e l c o m e", "Cancel", "Working...", "Quit", "Kadena 
   /* The next ones are specifically for S+ in which OCR is broken */
   , "Blind igning", "Enable Blind igning", "Disable Blind igning", "Blind igningQuit", "QuitQuit" ];
 
+const API_PORT: number = 5000;
+
+const BASE_URL: string = `http://127.0.0.1:${API_PORT}`;
+
 let setAcceptAutomationRules = async function() {
-    await Axios.post("http://127.0.0.1:5000/automation", {
+    await Axios.post(BASE_URL + "/automation", {
       version: 1,
       rules: [
         ... ignoredScreens.map(txt => { return { "text": txt, "actions": [] } }),
@@ -96,9 +100,9 @@ let fixRefPromptsForSPlus = function(prompts: any[]) {
 
 let sendCommandAndAccept = async function(command : any, prompts : any) {
     await setAcceptAutomationRules();
-    await Axios.delete("http://127.0.0.1:5000/events");
+    await Axios.delete(BASE_URL + "/events");
 
-    let transport = await Transport.open("http://127.0.0.1:5000/apdu");
+    let transport = await Transport.open(BASE_URL + "/apdu");
     let kda = new Kda(transport);
 
     //await new Promise(resolve => setTimeout(resolve, 100));
@@ -111,7 +115,7 @@ let sendCommandAndAccept = async function(command : any, prompts : any) {
 
     //await new Promise(resolve => setTimeout(resolve, 100));
 
-    let actual_prompts = processPrompts((await Axios.get("http://127.0.0.1:5000/events")).data["events"] as [any]);
+    let actual_prompts = processPrompts((await Axios.get(BASE_URL + "/events")).data["events"] as [any]);
     try {
       expect(actual_prompts).to.deep.equal(prompts);
     } catch(e) {
@@ -149,8 +153,8 @@ describe('basic tests', async function() {
   })
 
   afterEach( async function() {
-    await Axios.post("http://127.0.0.1:5000/automation", {version: 1, rules: []});
-    await Axios.delete("http://127.0.0.1:5000/events");
+    await Axios.post(BASE_URL + "/automation", {version: 1, rules: []});
+    await Axios.delete(BASE_URL + "/events");
   });
 
   it('provides a public key', async () => {
@@ -235,7 +239,7 @@ function testTransaction(path: string, txn: string, prompts: any[]) {
        await sendCommandAndAccept(
          async (kda : Kda) => {
            let pubkey = (await kda.getPublicKey(path)).publicKey;
-           await Axios.delete("http://127.0.0.1:5000/events");
+           await Axios.delete(BASE_URL + "/events");
 
            let rv = await kda.signTransaction(path, Buffer.from(txn, "utf-8").toString("hex"));
            expect(rv.signature.length).to.equal(128);
