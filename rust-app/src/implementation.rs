@@ -185,7 +185,8 @@ pub static SIGN_IMPL: SignImplT = Action(
         ),
     ),
     mkfn(|(hash, path): &(Option<Zeroizing<Hash<32>>>, Option<ArrayVec<u32, 10>>), destination: &mut _| {
-        final_accept_prompt(&["Sign Transaction?"])?;
+        #[allow(clippy::needless_borrow)] // Needed for nanos
+        final_accept_prompt(&[&"Sign Transaction?"])?;
 
         // By the time we get here, we've approved and just need to do the signature.
         let sig = eddsa_sign(path.as_ref()?, &hash.as_ref()?.0[..]).ok()?;
@@ -410,7 +411,8 @@ pub static SIGN_HASH_IMPL: SignHashImplT = Action(
         ),
     )),
     mkfn(|(hash, path): &(Option<[u8; 32]>, Option<ArrayVec<u32, 10>>), destination: &mut _| {
-        final_accept_prompt(&["Sign Transaction Hash?"])?;
+        #[allow(clippy::needless_borrow)] // Needed for nanos
+        final_accept_prompt(&[&"Sign Transaction Hash?"])?;
 
         // By the time we get here, we've approved and just need to do the signature.
         let sig = eddsa_sign(path.as_ref()?, &hash.as_ref()?[..]).ok()?;
@@ -873,7 +875,8 @@ impl InterpParser<MakeTransferTxParameters> for MakeTx {
                 MakeTxSubState::Done => {
                     match hasher_and_privkey {
                         Some((ref mut hasher, privkey)) => {
-                            final_accept_prompt(&["Sign Transaction?"]).ok_or((Some(OOB::Reject), cursor))?;
+                            #[allow(clippy::needless_borrow)] // Needed for nanos
+                            final_accept_prompt(&[&"Sign Transaction?"]).ok_or((Some(OOB::Reject), cursor))?;
                             *destination=Some(ArrayVec::new());
 
                             let mut add_sig = || -> Option<()> {
