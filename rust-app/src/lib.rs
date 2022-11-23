@@ -21,7 +21,6 @@ extern "C" fn sample_main() {
 }
 
 pub mod interface;
-pub mod utils;
 
 #[cfg(all(target_family = "bolos"))]
 pub mod implementation;
