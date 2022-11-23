@@ -28,10 +28,7 @@ pub fn app_main() {
         // or an APDU command
         match comm.next_event::<Ins>() {
             io::Event::Command(ins) => {
-                match states {
-                    ParsersState::NoState => menu.reset(),
-                    _ => {},
-                };
+                if let ParsersState::NoState = states { menu.reset() };
                 {
                     // Using arr is important here. `menu.show(&[ ... ])` doesn't work
                     let arr = [ "Working...", "Cancel" ];
@@ -41,10 +38,7 @@ pub fn app_main() {
                     Ok(()) => comm.reply_ok(),
                     Err(sw) => comm.reply(sw),
                 }
-                match states {
-                    ParsersState::NoState => { menu.reset(); idle_menu(&mut menu) },
-                    _ => {},
-                };
+                if let ParsersState::NoState = states { menu.reset(); idle_menu(&mut menu) };
             } ,
             io::Event::Button(btn) => match menu.update(btn) {
                 Some(0) =>

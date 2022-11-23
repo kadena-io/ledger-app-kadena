@@ -247,16 +247,13 @@ enum CapCountData {
 
 impl Summable<CapCountData> for CapCountData {
     fn add_and_set(&mut self, other: &CapCountData) {
-        match self {
-            CapCountData::CapCount {total_caps, total_transfers, total_unknown} => {
-                *total_caps += 1;
-                match other {
-                    CapCountData::IsTransfer => *total_transfers += 1,
-                    CapCountData::IsUnknownCap => *total_unknown += 1,
-                    _ => {},
-                }
-            },
-            _ => {}
+        if let CapCountData::CapCount {total_caps, total_transfers, total_unknown} = self {
+            *total_caps += 1;
+            match other {
+                CapCountData::IsTransfer => *total_transfers += 1,
+                CapCountData::IsUnknownCap => *total_unknown += 1,
+                _ => {},
+            }
         }
     }
     fn zero() -> Self { CapCountData::CapCount { total_caps: 0, total_transfers: 0, total_unknown: 0} }
