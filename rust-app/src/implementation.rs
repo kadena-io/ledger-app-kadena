@@ -1,3 +1,4 @@
+#![allow(clippy::type_complexity)]
 use crate::interface::*;
 use crate::*;
 use arrayvec::ArrayString;
@@ -520,6 +521,7 @@ impl JsonInterp<JsonArray<JsonAny>> for KadenaCapabilityArgsInterp {
 // 1 -> Transfer create
 // 2 -> Transfer cross-chain
 
+#[allow(clippy::too_many_arguments)]
 #[inline(never)]
 fn handle_tx_param_1 (
     pkh_str: &ArrayString<64>, hasher: &mut Blake2b
@@ -650,6 +652,7 @@ fn handle_tx_param_1 (
     Some(())
 }
 
+#[allow(clippy::too_many_arguments)]
 fn handle_tx_params_2 (
     pkh_str: &ArrayString<64>, hasher: &mut Blake2b
         , gas_price: &ArrayVec<u8, PARAM_GAS_PRICE_SIZE>
