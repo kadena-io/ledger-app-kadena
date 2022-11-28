@@ -132,7 +132,7 @@ let sendCommandAndAccept = async function(command : any, prompts : any) {
 
 let sendCommandExpectFail = async function(command : any) {
   await setAcceptAutomationRules();
-  await Axios.delete("http://127.0.0.1:5000/events");
+  await Axios.delete(BASE_URL + "/events");
 
   let transport = await Transport.open("http://127.0.0.1:5000/apdu");
   let kda = new Kda(transport);
@@ -953,7 +953,7 @@ function testSignHash(path: string, hash: string, prompts: any[]) {
          async (kda : Kda) => {
            let pubkey = (await kda.getPublicKey(path)).publicKey;
            await toggleHashSettings();
-           await Axios.delete("http://127.0.0.1:5000/events");
+           await Axios.delete(BASE_URL + "/events");
            let rv = await kda.signHash(path, hash);
            expect(rv.signature.length).to.equal(128);
            const rawHash = hash.length == 64 ? Buffer.from(hash, "hex") : Buffer.from(hash, "base64");
@@ -981,18 +981,18 @@ function testSignHashFail2(path: string, hash: string) {
         // Enable and then disable
         await toggleHashSettings();
         await toggleHashSettings();
-        await Axios.delete("http://127.0.0.1:5000/events");
+        await Axios.delete(BASE_URL + "/events");
         await kda.signHash(path, hash);
       });
   }
 }
 
 let toggleHashSettings = async function() {
-  await Axios.post("http://127.0.0.1:5000/button/right", {"action":"press-and-release"});
-  await Axios.post("http://127.0.0.1:5000/button/both", {"action":"press-and-release"});
-  await Axios.post("http://127.0.0.1:5000/button/both", {"action":"press-and-release"});
-  await Axios.post("http://127.0.0.1:5000/button/right", {"action":"press-and-release"});
-  await Axios.post("http://127.0.0.1:5000/button/both", {"action":"press-and-release"});
+  await Axios.post(BASE_URL + "/button/right", {"action":"press-and-release"});
+  await Axios.post(BASE_URL + "/button/both", {"action":"press-and-release"});
+  await Axios.post(BASE_URL + "/button/both", {"action":"press-and-release"});
+  await Axios.post(BASE_URL + "/button/right", {"action":"press-and-release"});
+  await Axios.post(BASE_URL + "/button/both", {"action":"press-and-release"});
 }
 
 describe('Hash Signing Tests', function() {
@@ -1322,7 +1322,7 @@ describe("Capability Signing tests", function() {
     await sendCommandAndAccept(
       async (kda : Kda) => {
         let pubkey = (await kda.getPublicKey(path)).publicKey;
-        await Axios.delete("http://127.0.0.1:5000/events");
+        await Axios.delete(BASE_URL + "/events");
 
         let txn = await fs.readFileSync(file);
         let rv = await kda.signTransaction(path, txn);
@@ -1342,7 +1342,7 @@ function checkSignTransferTxAPIs(apiName: any,
     await sendCommandAndAccept(
       async (kda : Kda) => {
         let pubkey = (await kda.getPublicKey(params.path)).publicKey;
-        await Axios.delete("http://127.0.0.1:5000/events");
+        await Axios.delete(BASE_URL + "/events");
         try {
           let rv = await kda[apiName](params);
           let signature = rv.pact_command.sigs[0].sig;
