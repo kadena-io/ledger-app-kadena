@@ -145,13 +145,6 @@ let sendCommandExpectFail = async function(command : any) {
 instantiate(n => { nacl=n; });
 describe('basic tests', async function() {
 
-  before( async function() {
-    while(!nacl) await new Promise(r => setTimeout(r, 100));
-    let transport = await Transport.open("http://127.0.0.1:5000/apdu");
-    let version_string = (await transport.send(0,0xfe,0,0,Buffer.alloc(0))).slice(0,-2).toString();
-    ignoredScreens.push(version_string);
-  })
-
   afterEach( async function() {
     await Axios.post(BASE_URL + "/automation", {version: 1, rules: []});
     await Axios.delete(BASE_URL + "/events");
