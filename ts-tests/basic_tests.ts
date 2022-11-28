@@ -190,40 +190,6 @@ describe('basic tests', async function() {
     ]);
   });
 
-  /*
-  it.skip('runs a test', async () => {
-
-    await setAcceptAutomationRules();
-    await Axios.delete("http://127.0.0.1:5000/events");
-
-    let transport = await Transport.open("http://127.0.0.1:5000/apdu");
-    let kda = new Kda(transport);
-
-    let rv = await kda.getPublicKey("0/0");
-
-    await Axios.post("http://127.0.0.1:5000/automation", {version: 1, rules: []});
-
-    expect(((await Axios.get("http://127.0.0.1:5000/events")).data["events"] as [any]).filter((a : any) => a["text"] != "W e l c o m e")).to.deep.equal([
-        {
-          "text": "Provide Public Key",
-          "x": 16,
-          "y": 11
-        },
-        {
-          "text": "pkh-929B536E11497F4EF573A22680528E1785AEA757D9D3C29A5D4CDCBA9E2BF",
-          "x": -50,
-          "y": 11
-        },
-        {
-          "text": "Confirm",
-          "x": 43,
-          "y": 11
-        }
-    ]);
-    expect(rv.publicKey).to.equal("04e96341109fdba54691303553ee95b371d9745410f1090055fb7c0aa9e564445483f78cb81526e27ab7869fcd996eb8bd39add229b41f9e30bccccdc00a9d6c4c");
-    await Axios.delete("http://127.0.0.1:5000/events");
-  });
- */
 });
 
 
