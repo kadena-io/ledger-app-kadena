@@ -1,6 +1,7 @@
 #![no_std]
 #![allow(incomplete_features)]
 #![feature(adt_const_params)]
+#![feature(stmt_expr_attributes)]
 #![feature(str_internals)]
 #![feature(type_alias_impl_trait)]
 #![feature(const_mut_refs)]
@@ -20,7 +21,6 @@ extern "C" fn sample_main() {
 }
 
 pub mod interface;
-pub mod utils;
 
 #[cfg(all(target_family = "bolos"))]
 pub mod implementation;

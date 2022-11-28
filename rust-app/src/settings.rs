@@ -53,7 +53,7 @@ impl Settings {
     #[inline(never)]
     pub fn set(&mut self, v: &u8) {
         let settings = unsafe { SETTINGS.get_mut() };
-        settings.update(&v);
+        settings.update(v);
     }
 }
 
@@ -65,10 +65,16 @@ impl Settings {
     pub fn new() -> Settings { Settings(0)}
 
     pub fn get(&self) -> u8 {
-        return self.0;
+        self.0
     }
 
     pub fn set(&mut self, v: &u8) {
         self.0 = *v;
+    }
+}
+
+impl Default for Settings {
+    fn default() -> Self {
+        Self::new()
     }
 }
