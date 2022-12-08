@@ -19,7 +19,7 @@ let ignoredScreens = [ "W e l c o m e", "Cancel", "Working...", "Quit", "Kadena 
   /* The next ones are specifically for S+ in which OCR is broken */
   , "Blind igning", "Enable Blind igning", "Disable Blind igning", "Blind igningQuit", "QuitQuit" ];
 
-const API_PORT: number = 5000;
+const API_PORT: number = 5005;
 
 const BASE_URL: string = `http://127.0.0.1:${API_PORT}`;
 

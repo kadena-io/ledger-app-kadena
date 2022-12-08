@@ -551,8 +551,8 @@ rec {
         workspace_member = null;
         src = pkgs.fetchgit {
           url = "https://github.com/alamgu/ledger-nanos-sdk.git";
-          rev = "c6e7314029593a5caa40b9df5a78bb54d308d161";
-          sha256 = "1iami49s435anrycwx2r20vl11xmxarl9l32gn9sic4hg5v45saz";
+          rev = "708757bf37a006f9f54c738caeafc5edee3964fa";
+          sha256 = "1zxx83q4qq7q0m4i2abrbd57xk9k91zrdvq7z29nhsp755id38ky";
         };
         authors = [
           "yhql"
@@ -933,20 +933,7 @@ rec {
     */
     os = pkgs.rust.lib.toTargetOs platform;
     arch = pkgs.rust.lib.toTargetArch platform;
-    family =
-      if platform ? rustc.platform.target-family
-      then
-        (
-          /* Since https://github.com/rust-lang/rust/pull/84072
-             `target-family` is a list instead of single value.
-           */
-          let
-            f = platform.rustc.platform.target-family;
-          in
-          if builtins.isList f then f else [ f ]
-        )
-      else lib.optional platform.isUnix "unix"
-        ++ lib.optional platform.isWindows "windows";
+    family = pkgs.rust.lib.toTargetFamily platform;
     env = "gnu";
     endian =
       if platform.parsed.cpu.significantByte.name == "littleEndian"
