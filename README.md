@@ -26,14 +26,14 @@ There is a separate tarball for each device.
 #### Build one yourself, with Nix
 
 There is a separate tarball for each device.
-To build one, do:
+To build one, run:
 ```bash
 nix-build -A $DEVICE.tarball
 ```
 where `DEVICE` is one of
- - `nanos` for Nano S
- - `nanox` for Nano X
- - `nanosplus` for Nano S+
+ - `nanos`, for Nano S
+ - `nanox`, for Nano X
+ - `nanosplus`, for Nano S+
 
 The last line printed out will be the path of the tarball.
 
@@ -47,11 +47,14 @@ Installing the app from a tarball can be done using [`ledgerctl`](https://github
 By using Nix, this can be done simply by using the `load-app` command, without manually installing the `ledgerctl` on your system.
 
 ```bash
-tar xzf release.tar.gz
+tar xzf /path/to/release.tar.gz
 cd kadena
 nix-shell
 load-app
 ```
+
+`/path/to/release.tar.gz` you should replace with the actual path to the tarball.
+For example, it might be `~/Downloads/release.tar.gz` if you downloaded a pre-built official release from GitHub, or `/nix/store/adsfijadslifjaslif-release.tar.gz` if you built it yourself with Nix.
 
 #### Without Nix
 
@@ -73,24 +76,30 @@ To use this tool using Nix, from the root level of this repo, run this command t
 nix-shell -A $DEVICE.appShell
 ```
 where `DEVICE` is one of
- - `nanos` for Nano S
- - `nanox` for Nano X
- - `nanosplus` for Nano S+
+ - `nanos`, for Nano S
+ - `nanox`, for Nano X
+ - `nanosplus`, for Nano S+
 
 Then, one can use `generic-cli` like this:
-```bash
-generic-cli getAddress "44'/626'/0'/0/0"
 
-generic-cli sign --json "44'/626'/0'/0/0" '{"networkId":"mainnet01","payload":{"exec":{"data":{"ks":{"pred":"keys-all","keys":["368820f80c324bbc7c2b0610688a7da43e39f91d118732671cd9c7500ff43cca"]}},"code":"(coin.transfer-create \"alice\" \"bob\" (read-keyset \"ks\") 100.1)\n(coin.transfer \"bob\" \"alice\" 0.1)"}},"signers":[{"pubKey":"6be2f485a7af75fedb4b7f153a903f7e6000ca4aa501179c91a2450b777bd2a7","clist":[{"args":["alice","bob",100.1],"name":"coin.TRANSFER"},{"args":[],"name":"coin.GAS"}]},{"pubKey":"368820f80c324bbc7c2b0610688a7da43e39f91d118732671cd9c7500ff43cca","clist":[{"args":["bob","alice",0.1],"name":"coin.TRANSFER"}]}],"meta":{"creationTime":1580316382,"ttl":7200,"gasLimit":1200,"chainId":"0","gasPrice":1.0e-5,"sender":"alice"},"nonce":"2020-01-29 16:46:22.916695 UTC"}'
-```
+- Get a public key for a BIP-32 derivation:
+  ```shell-session
+  $ generic-cli getAddress "44'/626'/0'/0/0"
+  a42e71c004770d1a48956090248a8d7d86ee02726b5aab2a5cd15ca9f57cbd71
+  ```
+
+- Sign a transaction:
+  ```shell-session
+  $ generic-cli sign --json "44'/626'/0'/0/0" '{"networkId":"mainnet01","payload":{"exec":{"data":{"ks":{"pred":"keys-all","keys":["368820f80c324bbc7c2b0610688a7da43e39f91d118732671cd9c7500ff43cca"]}},"code":"(coin.transfer-create \"alice\" \"bob\" (read-keyset \"ks\") 100.1)\n(coin.transfer \"bob\" \"alice\" 0.1)"}},"signers":[{"pubKey":"6be2f485a7af75fedb4b7f153a903f7e6000ca4aa501179c91a2450b777bd2a7","clist":[{"args":["alice","bob",100.1],"name":"coin.TRANSFER"},{"args":[],"name":"coin.GAS"}]},{"pubKey":"368820f80c324bbc7c2b0610688a7da43e39f91d118732671cd9c7500ff43cca","clist":[{"args":["bob","alice",0.1],"name":"coin.TRANSFER"}]}],"meta":{"creationTime":1580316382,"ttl":7200,"gasLimit":1200,"chainId":"0","gasPrice":1.0e-5,"sender":"alice"},"nonce":"2020-01-29 16:46:22.916695 UTC"}'
+  ```
 
 Alternatively the contents of JSON could be copied to a file, and the name of the file could be used in the command-line instead. This is necessary when the size of the JSON being signed is very big, as the command-line has limits to the length.
 
 The following command demonstrates signing a big transaction specified in the file `./ts-tests/marmalade-tx.json`
 
-```bash
-generic-cli sign --file --json "44'/626'/0'/0/0" ./ts-tests/marmalade-tx.json
-```
+  ```shell-session
+  $ generic-cli sign --file --json "44'/626'/0'/0/0" ./ts-tests/marmalade-tx.json
+  ```
 
 ## Development
 
