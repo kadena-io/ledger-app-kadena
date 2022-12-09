@@ -1,7 +1,7 @@
 #[cfg(target_os = "nanos")]
-use nanos_sdk::Pic;
-#[cfg(target_os = "nanos")]
 use nanos_sdk::nvm::*;
+#[cfg(target_os = "nanos")]
+use nanos_sdk::Pic;
 // use bitflags::bitflags;
 
 // TODO: use bitflags, and better types for Settings
@@ -19,9 +19,8 @@ use nanos_sdk::nvm::*;
 
 // This is necessary to store the object in NVM and not in RAM
 #[cfg(target_os = "nanos")]
-#[link_section=".nvm_data"]
-static mut SETTINGS: Pic<AtomicStorage<u8>> =
-    Pic::new(AtomicStorage::new(&0));
+#[link_section = ".nvm_data"]
+static mut SETTINGS: Pic<AtomicStorage<u8>> = Pic::new(AtomicStorage::new(&0));
 
 // In the program, `SETTINGS` must not be used directly. It is a static variable
 // and using it would require unsafe everytime. Instead, a reference must be
@@ -35,13 +34,14 @@ static mut SETTINGS: Pic<AtomicStorage<u8>> =
 // translated: this is enforced by the [`Pic`](crate::Pic) wrapper.
 //
 
-
 #[cfg(target_os = "nanos")]
 pub struct Settings;
 
 #[cfg(target_os = "nanos")]
 impl Settings {
-    pub fn new() -> Settings { Settings}
+    pub fn new() -> Settings {
+        Settings
+    }
 
     #[inline(never)]
     pub fn get(&self) -> u8 {
@@ -53,22 +53,30 @@ impl Settings {
     #[inline(never)]
     pub fn set(&mut self, v: &u8) {
         let settings = unsafe { SETTINGS.get_mut() };
-        settings.update(&v);
+        settings.update(v);
     }
 }
 
 #[cfg(not(target_os = "nanos"))]
-pub struct Settings (u8);
+pub struct Settings(u8);
 
 #[cfg(not(target_os = "nanos"))]
 impl Settings {
-    pub fn new() -> Settings { Settings(0)}
+    pub fn new() -> Settings {
+        Settings(0)
+    }
 
     pub fn get(&self) -> u8 {
-        return self.0;
+        self.0
     }
 
     pub fn set(&mut self, v: &u8) {
         self.0 = *v;
+    }
+}
+
+impl Default for Settings {
+    fn default() -> Self {
+        Self::new()
     }
 }

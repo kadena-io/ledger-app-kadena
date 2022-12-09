@@ -1,0 +1,71 @@
+name: Rust
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  workflow_dispatch:
+    inputs: 
+      name: 
+        description: 'Manually triggered'
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  fmt:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - run: rustup component add rustfmt
+      - name: Cargo fmt
+        uses: actions-rs/cargo@v1
+        with:
+          command: fmt
+          args: --manifest-path rust-app/Cargo.toml --all -- --check
+  build_clippy:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        device: [nanos, nanox, nanosplus]
+    env:
+      OBJCOPY: arm-none-eabi-objcopy
+      NM: arm-none-eabi-nm
+    steps:
+      - name: arm-none-eabi-gcc
+        uses: fiam/arm-none-eabi-gcc@v1.0.3
+        with:
+          release: '9-2019-q4'
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Checkout SDK (targets)
+        uses: actions/checkout@v3
+        with:
+          repository: 'obsidiansystems/ledger-nanos-sdk'
+          ref: memory-fixes
+          path: rsdk
+      - name: Install clang
+        run: sudo apt-get update && sudo apt install -y clang
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: nightly
+          override: true
+          components: rust-src, rustfmt, clippy
+      - run: echo "$PWD/rsdk/scripts" >> $GITHUB_PATH
+      - name: Cargo build
+        uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --manifest-path rust-app/Cargo.toml -Z build-std=core -Z build-std-features=compiler-builtins-mem --target ./rsdk/${{ matrix.device }}.json
+
+      - run: rustup component add clippy
+      - name: Remove --emit from config before clippy
+        # otherwise it does not work
+        run: sed -i '/--emit/d' ./.cargo/config
+      - name: Cargo clippy
+        uses: actions-rs/cargo@v1
+        with:
+          command: clippy
+          args: --manifest-path rust-app/Cargo.toml -Z build-std=core -Z build-std-features=compiler-builtins-mem --target ./rsdk/${{ matrix.device }}.json
