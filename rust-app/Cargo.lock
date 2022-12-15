@@ -100,7 +100,7 @@ dependencies = [
 [[package]]
 name = "ledger-crypto-helpers"
 version = "0.2.0"
-source = "git+https://github.com/alamgu/ledger-crypto-helpers#22a454e9b81615053928fb6b21d59b45c2a1e498"
+source = "git+https://github.com/alamgu/ledger-crypto-helpers?branch=dn-hash-stack-fix#9fdebe4d062375ade88ee8ed4d8817d73e7faa48"
 dependencies = [
  "arrayvec",
  "base64",
