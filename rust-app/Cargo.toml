@@ -9,7 +9,7 @@ resolver = "2"
 [dependencies]
 arrayvec = { version = "0.7.2", default-features = false }
 base64 = { version = "0.13.0", default-features = false }
-ledger-crypto-helpers = { git = "https://github.com/alamgu/ledger-crypto-helpers" }
+ledger-crypto-helpers = { git = "https://github.com/alamgu/ledger-crypto-helpers", branch = "dn-hash-stack-fix" }
 ledger-log = { git = "https://github.com/alamgu/ledger-log" }
 ledger-parser-combinators = { git = "https://github.com/alamgu/ledger-parser-combinators" }
 zeroize = { version = "1.5.2", default-features = false }
