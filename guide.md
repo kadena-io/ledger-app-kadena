@@ -34,9 +34,7 @@ The Kadena app is developed and supported by [Obsidian Systems](https://obsidian
 
   Confirm 'Provide Public Key' prompt on your Ledger device to allow the web app to obtain it.
 
-- The Ledger Account will be displayed in the 'Sender' field.
-
-- You can confirm that the account shown on the 'Sender' field matches the
+- You can confirm that the account shown on the web app matches the
   account shown on the Ledger device by clicking the 'Show Ledger Account Name'
   again.
 
@@ -50,17 +48,19 @@ The Kadena app is developed and supported by [Obsidian Systems](https://obsidian
 
 ### **4. Send Coins from Ledger Account**
 
-- Click the 'Show Ledger Account Name' (if not done already)
-  This should fill in the 'Sender' field of the form.
+- Fill the form fields: Sender ChainId, Receiver, Receiver ChainId and Amount, and click 'Sign with Ledger and Transfer'.
 
-- Fill the other form fields: Sender ChainId, Receiver, Receiver ChainId, Amount.
+- Verify the details on your device display.
 
-- Click 'Sign with Ledger' to initiate the signing.
+  - Token name: KDA
 
-- Verify and confirm all transaction details on your device display.
+  - Amount, receiver's address, and receiver chainID (in case of cross-chain transfer)
+  
+  - Gas fees
 
 - Press both buttons when asked to 'Confirm' to sign the transaction.
 
+- After this the web app will initiate the tranfer and show the progress.
 
 ### **5. Contact info**
 
@@ -70,5 +70,3 @@ The Kadena app is developed and supported by [Obsidian Systems](https://obsidian
 - Legal Entity: Obsidian Systems
 - URL: https://obsidian.systems
 - Phone number: +1 (888) 611-7759
-
-https://explorer.chainweb.com/testnet/tx/Quu5jgBqKPXs0fsoC8Noqmmafex7pB9-G2_5wo716dM
