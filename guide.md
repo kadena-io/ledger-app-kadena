@@ -1,7 +1,6 @@
 # How to use Kadena app on your Ledger device
 
-Install the Kadena app on your Ledger device to manage KDA Coins with the [Kadena Coin Transfer](https://transfer.chainweb.com/) web wallet.
-The Kadena app is developed and supported by [Obsidian Systems](https://obsidian.systems).
+Install the Kadena app on your Ledger device to manage KDA Tokens with the [Kadena Coin Transfer](https://transfer.chainweb.com/) web wallet.
 
 ### 1. Before you start
 
@@ -38,15 +37,15 @@ The Kadena app is developed and supported by [Obsidian Systems](https://obsidian
   account shown on the Ledger device by clicking the 'Show Ledger Account Name'
   again.
 
-- You can use this account to receive KDA coins.
+- You can use this account to receive KDA tokens.
 
-### **4. View Balance of Ledger Account**
+### **4. View Balance of a Ledger Account**
 
 - Obtain the Ledger Account Name as described above.
 
 - Use the [Kadena Balance Checker](https://balance.chainweb.com/) to check the balance.
 
-### **4. Send Coins from Ledger Account**
+### **5. Send Tokens from a Ledger Account**
 
 - Fill the form fields: Sender ChainId, Receiver, Receiver ChainId and Amount, and click 'Sign with Ledger and Transfer'.
 
@@ -62,11 +61,11 @@ The Kadena app is developed and supported by [Obsidian Systems](https://obsidian
 
 - After this the web app will initiate the tranfer and show the progress.
 
-### **5. Contact info**
+### **6. Contact info**
 
 - Support:
 - Name:
 - Surname:
-- Legal Entity: Obsidian Systems
-- URL: https://obsidian.systems
-- Phone number: +1 (888) 611-7759
+- Legal Entity: 
+- URL: 
+- Phone number: 
