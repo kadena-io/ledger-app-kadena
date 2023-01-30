@@ -246,7 +246,7 @@ rec {
       };
       "kadena" = rec {
         crateName = "kadena";
-        version = "0.2.1";
+        version = "0.2.2";
         edition = "2018";
         crateBin = [
           {
