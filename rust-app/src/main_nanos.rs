@@ -246,7 +246,9 @@ fn handle_apdu(
         }
         Ins::SignHash => {
             if settings.get() != 1 {
-                write_scroller("Blind Signing must", |w| Ok(write!(w, "be enabled")?));
+                write_scroller(false, "Blind Signing must", |w| {
+                    Ok(write!(w, "be enabled")?)
+                });
                 return Err(io::SyscallError::NotSupported.into());
             } else {
                 run_parser_apdu::<_, SignHashParameters>(

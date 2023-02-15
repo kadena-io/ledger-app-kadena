@@ -51,20 +51,38 @@ const fn mkvfn<A>(
 
 #[cfg(not(target_os = "nanos"))]
 #[inline(never)]
-fn scroller<F: for<'b> Fn(&mut PromptWrite<'b, 16>) -> Result<(), ScrollerError>>(
+pub fn scroller<F: for<'b> Fn(&mut PromptWrite<'b, 16>) -> Result<(), ScrollerError>>(
     title: &str,
     prompt_function: F,
 ) -> Option<()> {
-    ledger_prompts_ui::write_scroller_three_rows(title, prompt_function)
+    ledger_prompts_ui::write_scroller_three_rows(false, title, prompt_function)
 }
 
 #[cfg(target_os = "nanos")]
 #[inline(never)]
-fn scroller<F: for<'b> Fn(&mut PromptWrite<'b, 16>) -> Result<(), ScrollerError>>(
+pub fn scroller<F: for<'b> Fn(&mut PromptWrite<'b, 16>) -> Result<(), ScrollerError>>(
     title: &str,
     prompt_function: F,
 ) -> Option<()> {
-    ledger_prompts_ui::write_scroller(title, prompt_function)
+    ledger_prompts_ui::write_scroller(false, title, prompt_function)
+}
+
+#[cfg(not(target_os = "nanos"))]
+#[inline(never)]
+pub fn scroller_paginated<F: for<'b> Fn(&mut PromptWrite<'b, 16>) -> Result<(), ScrollerError>>(
+    title: &str,
+    prompt_function: F,
+) -> Option<()> {
+    ledger_prompts_ui::write_scroller_three_rows(true, title, prompt_function)
+}
+
+#[cfg(target_os = "nanos")]
+#[inline(never)]
+pub fn scroller_paginated<F: for<'b> Fn(&mut PromptWrite<'b, 16>) -> Result<(), ScrollerError>>(
+    title: &str,
+    prompt_function: F,
+) -> Option<()> {
+    ledger_prompts_ui::write_scroller(true, title, prompt_function)
 }
 
 fn mkstr(v: Option<&[u8]>) -> Result<&str, ScrollerError> {
@@ -816,34 +834,20 @@ fn handle_tx_param_1(
     }
 
     if namespace_str.is_empty() {
-        scroller("Token:", |w| Ok(write!(w, "KDA")?))?;
+        scroller("Transfer", |w| Ok(write!(w, "KDA")?))?;
     } else {
-        scroller("Token:", |w| {
+        scroller("Transfer", |w| {
             Ok(write!(w, "{}.{}", namespace_str, mod_name_str)?)
         })?;
     }
 
-    match tx_type {
-        0 | 1 => {
-            scroller("Transfer", |w| {
-                Ok(write!(
-                    w,
-                    "{} from k:{} to k:{} on network {}",
-                    amount_str, pkh_str, recipient_str, network_str
-                )?)
-            })?;
-        }
-        2 => {
-            scroller("Transfer", |w| {
-                Ok(write!(
-                    w,
-                    "Cross-chain {} from k:{} to k:{} to chain {} on network {}",
-                    amount_str, pkh_str, recipient_str, recipient_chain_str, network_str
-                )?)
-            })?;
-        }
-        _ => {}
+    scroller_paginated("From", |w| Ok(write!(w, "k:{}", pkh_str)?))?;
+    scroller_paginated("To", |w| Ok(write!(w, "k:{}", recipient_str)?))?;
+    if tx_type == 2 {
+        scroller("To Chain", |w| Ok(write!(w, "{}", recipient_chain_str)?))?;
     }
+    scroller("Amount", |w| Ok(write!(w, "{}", amount_str)?))?;
+    scroller("Network", |w| Ok(write!(w, "{}", network_str)?))?;
     Some(())
 }
 
@@ -910,13 +914,11 @@ fn handle_tx_params_2(
     // The JSON struct ends here
     write!(hasher, "}}").ok()?;
 
-    scroller("Paying Gas", |w| {
-        Ok(write!(
-            w,
-            "at most {} at price {}",
-            from_utf8(gas_limit)?,
-            from_utf8(gas_price)?
-        )?)
+    scroller("Paying Gas (1/2)", |w| {
+        Ok(write!(w, "At most {}", from_utf8(gas_limit)?,)?)
+    })?;
+    scroller("Paying Gas (2/2)", |w| {
+        Ok(write!(w, "Price {}", from_utf8(gas_price)?)?)
     })?;
     Some(())
 }
