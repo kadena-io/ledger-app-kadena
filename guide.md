@@ -51,9 +51,13 @@ Install the Kadena app on your Ledger device to manage KDA Tokens with the [Kade
 
 - Verify the details on your device display.
 
-  - Token name: KDA
+  - Transfer KDA
 
-  - Amount, receiver's address, and receiver chainID (in case of cross-chain transfer)
+  - Sender's address
+
+  - Receiver's address
+
+  - Amount
   
   - Gas fees
 
@@ -63,9 +67,6 @@ Install the Kadena app on your Ledger device to manage KDA Tokens with the [Kade
 
 ### **6. Contact info**
 
-- Support:
-- Name:
-- Surname:
-- Legal Entity: 
-- URL: 
-- Phone number: 
+- Legal Entity: Kadena Public LLC
+- Email: gtm-ops@kadena.io
+- Web/Support link: [Discord | Help Desk](https://discord.com/channels/502858632178958377/1051826238693593108Support)
