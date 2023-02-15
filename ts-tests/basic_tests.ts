@@ -1402,9 +1402,13 @@ describe('Create Tx tests', function() {
        },
        "{\"networkId\":\"testnet04\",\"payload\":{\"exec\":{\"data\":{},\"code\":\"(coin.transfer \\\"k:9ed54a1020ebbbf8bbe425346498434edd79e4cd36fe874ea58853e78eab4995\\\" \\\"k:83934c0f9b005f378ba3520f9dea952fb0a90e5aa36f1b5ff837d9b30c471790\\\" 1.23)\"}},\"signers\":[{\"pubKey\":\"9ed54a1020ebbbf8bbe425346498434edd79e4cd36fe874ea58853e78eab4995\",\"clist\":[{\"args\":[\"k:9ed54a1020ebbbf8bbe425346498434edd79e4cd36fe874ea58853e78eab4995\",\"k:83934c0f9b005f378ba3520f9dea952fb0a90e5aa36f1b5ff837d9b30c471790\",1.23],\"name\":\"coin.TRANSFER\"},{\"args\":[],\"name\":\"coin.GAS\"}]}],\"meta\":{\"creationTime\":1665647810,\"ttl\":600,\"gasLimit\":2300,\"chainId\":\"0\",\"gasPrice\":1.0e-6,\"sender\":\"k:9ed54a1020ebbbf8bbe425346498434edd79e4cd36fe874ea58853e78eab4995\"},\"nonce\":\"2022-10-13 07:56:50.893257 UTC\"}",
        [
-         { "header": "Token:", "prompt": "KDA" },
-         { "header": "Transfer", "prompt": "1.23 from k:9ed54a1020ebbbf8bbe425346498434edd79e4cd36fe874ea58853e78eab4995 to k:83934c0f9b005f378ba3520f9dea952fb0a90e5aa36f1b5ff837d9b30c471790 on network testnet04" },
-         { "header": "Paying Gas", "prompt": "at most 2300 at price 1.0e-6" },
+         { "header": "Transfer", "prompt": "KDA" },
+         { "header": "From", "prompt": "k:9ed54a1020ebbbf8bbe425346498434edd79e4cd36fe874ea58853e78eab4995", "paginate": true },
+         { "header": "To", "prompt": "k:83934c0f9b005f378ba3520f9dea952fb0a90e5aa36f1b5ff837d9b30c471790", "paginate": true },
+         { "header": "Amount", "prompt": "1.23" },
+         { "header": "Network", "prompt": "testnet04" },
+         { "header": "Paying Gas (1/2)", "prompt": "At most 2300" },
+         { "header": "Paying Gas (2/2)", "prompt": "Price 1.0e-6" },
          {"text": "Sign Transaction?", "x": 19, "y": 11,},
          {"text": "Confirm", "x": 43, "y": 11,}
        ]
@@ -1426,9 +1430,13 @@ describe('Create Tx tests', function() {
        },
        "{\"networkId\":\"testnet04\",\"payload\":{\"exec\":{\"data\":{\"ks\":{\"pred\":\"keys-all\",\"keys\":[\"83934c0f9b005f378ba3520f9dea952fb0a90e5aa36f1b5ff837d9b30c471790\"]}},\"code\":\"(coin.transfer-create \\\"k:9ed54a1020ebbbf8bbe425346498434edd79e4cd36fe874ea58853e78eab4995\\\" \\\"k:83934c0f9b005f378ba3520f9dea952fb0a90e5aa36f1b5ff837d9b30c471790\\\" (read-keyset \\\"ks\\\") 23.67)\"}},\"signers\":[{\"pubKey\":\"9ed54a1020ebbbf8bbe425346498434edd79e4cd36fe874ea58853e78eab4995\",\"clist\":[{\"args\":[\"k:9ed54a1020ebbbf8bbe425346498434edd79e4cd36fe874ea58853e78eab4995\",\"k:83934c0f9b005f378ba3520f9dea952fb0a90e5aa36f1b5ff837d9b30c471790\",23.67],\"name\":\"coin.TRANSFER\"},{\"args\":[],\"name\":\"coin.GAS\"}]}],\"meta\":{\"creationTime\":1665722463,\"ttl\":600,\"gasLimit\":2300,\"chainId\":\"1\",\"gasPrice\":1.0e-6,\"sender\":\"k:9ed54a1020ebbbf8bbe425346498434edd79e4cd36fe874ea58853e78eab4995\"},\"nonce\":\"2022-10-14 04:41:03.193557 UTC\"}",
        [
-         { "header": "Token:", "prompt": "KDA" },
-         { "header": "Transfer", "prompt": "23.67 from k:9ed54a1020ebbbf8bbe425346498434edd79e4cd36fe874ea58853e78eab4995 to k:83934c0f9b005f378ba3520f9dea952fb0a90e5aa36f1b5ff837d9b30c471790 on network testnet04" },
-         { "header": "Paying Gas", "prompt": "at most 2300 at price 1.0e-6" },
+         { "header": "Transfer", "prompt": "KDA" },
+         { "header": "From", "prompt": "k:9ed54a1020ebbbf8bbe425346498434edd79e4cd36fe874ea58853e78eab4995", "paginate": true },
+         { "header": "To", "prompt": "k:83934c0f9b005f378ba3520f9dea952fb0a90e5aa36f1b5ff837d9b30c471790", "paginate": true },
+         { "header": "Amount", "prompt": "23.67" },
+         { "header": "Network", "prompt": "testnet04" },
+         { "header": "Paying Gas (1/2)", "prompt": "At most 2300" },
+         { "header": "Paying Gas (2/2)", "prompt": "Price 1.0e-6" },
          {"text": "Sign Transaction?", "x": 19, "y": 11,},
          {"text": "Confirm", "x": 43, "y": 11,}
        ]
@@ -1451,9 +1459,14 @@ describe('Create Tx tests', function() {
        },
        "{\"networkId\":\"testnet04\",\"payload\":{\"exec\":{\"data\":{\"ks\":{\"pred\":\"keys-all\",\"keys\":[\"83934c0f9b005f378ba3520f9dea952fb0a90e5aa36f1b5ff837d9b30c471790\"]}},\"code\":\"(coin.transfer-crosschain \\\"k:9ed54a1020ebbbf8bbe425346498434edd79e4cd36fe874ea58853e78eab4995\\\" \\\"k:83934c0f9b005f378ba3520f9dea952fb0a90e5aa36f1b5ff837d9b30c471790\\\" (read-keyset \\\"ks\\\") \\\"2\\\" 23.67)\"}},\"signers\":[{\"pubKey\":\"9ed54a1020ebbbf8bbe425346498434edd79e4cd36fe874ea58853e78eab4995\",\"clist\":[{\"args\":[\"k:9ed54a1020ebbbf8bbe425346498434edd79e4cd36fe874ea58853e78eab4995\",\"k:83934c0f9b005f378ba3520f9dea952fb0a90e5aa36f1b5ff837d9b30c471790\",23.67,\"2\"],\"name\":\"coin.TRANSFER_XCHAIN\"},{\"args\":[],\"name\":\"coin.GAS\"}]}],\"meta\":{\"creationTime\":1665722463,\"ttl\":600,\"gasLimit\":2300,\"chainId\":\"1\",\"gasPrice\":1.0e-6,\"sender\":\"k:9ed54a1020ebbbf8bbe425346498434edd79e4cd36fe874ea58853e78eab4995\"},\"nonce\":\"2022-10-14 04:41:03.193557 UTC\"}",
        [
-         { "header": "Token:", "prompt": "KDA" },
-         { "header": "Transfer", "prompt": "Cross-chain 23.67 from k:9ed54a1020ebbbf8bbe425346498434edd79e4cd36fe874ea58853e78eab4995 to k:83934c0f9b005f378ba3520f9dea952fb0a90e5aa36f1b5ff837d9b30c471790 to chain 2 on network testnet04" },
-         { "header": "Paying Gas", "prompt": "at most 2300 at price 1.0e-6" },
+         { "header": "Transfer", "prompt": "KDA" },
+         { "header": "From", "prompt": "k:9ed54a1020ebbbf8bbe425346498434edd79e4cd36fe874ea58853e78eab4995", "paginate": true },
+         { "header": "To", "prompt": "k:83934c0f9b005f378ba3520f9dea952fb0a90e5aa36f1b5ff837d9b30c471790", "paginate": true },
+         { "header": "To Chain", "prompt": "2" },
+         { "header": "Amount", "prompt": "23.67" },
+         { "header": "Network", "prompt": "testnet04" },
+         { "header": "Paying Gas (1/2)", "prompt": "At most 2300" },
+         { "header": "Paying Gas (2/2)", "prompt": "Price 1.0e-6" },
          {"text": "Sign Transaction?", "x": 19, "y": 11,},
          {"text": "Confirm", "x": 43, "y": 11,}
        ]
@@ -1478,9 +1491,13 @@ describe('Create Tx tests', function() {
        },
        "{\"networkId\":\"testnet04\",\"payload\":{\"exec\":{\"data\":{},\"code\":\"(free.mytoken-123.transfer \\\"k:9ed54a1020ebbbf8bbe425346498434edd79e4cd36fe874ea58853e78eab4995\\\" \\\"k:83934c0f9b005f378ba3520f9dea952fb0a90e5aa36f1b5ff837d9b30c471790\\\" 1.23)\"}},\"signers\":[{\"pubKey\":\"9ed54a1020ebbbf8bbe425346498434edd79e4cd36fe874ea58853e78eab4995\",\"clist\":[{\"args\":[\"k:9ed54a1020ebbbf8bbe425346498434edd79e4cd36fe874ea58853e78eab4995\",\"k:83934c0f9b005f378ba3520f9dea952fb0a90e5aa36f1b5ff837d9b30c471790\",1.23],\"name\":\"free.mytoken-123.TRANSFER\"},{\"args\":[],\"name\":\"coin.GAS\"}]}],\"meta\":{\"creationTime\":1665647810,\"ttl\":600,\"gasLimit\":2300,\"chainId\":\"0\",\"gasPrice\":1.0e-6,\"sender\":\"k:9ed54a1020ebbbf8bbe425346498434edd79e4cd36fe874ea58853e78eab4995\"},\"nonce\":\"2022-10-13 07:56:50.893257 UTC\"}",
        [
-         { "header": "Token:", "prompt": "free.mytoken-123" },
-         { "header": "Transfer", "prompt": "1.23 from k:9ed54a1020ebbbf8bbe425346498434edd79e4cd36fe874ea58853e78eab4995 to k:83934c0f9b005f378ba3520f9dea952fb0a90e5aa36f1b5ff837d9b30c471790 on network testnet04" },
-         { "header": "Paying Gas", "prompt": "at most 2300 at price 1.0e-6" },
+         { "header": "Transfer", "prompt": "free.mytoken-123" },
+         { "header": "From", "prompt": "k:9ed54a1020ebbbf8bbe425346498434edd79e4cd36fe874ea58853e78eab4995", "paginate": true },
+         { "header": "To", "prompt": "k:83934c0f9b005f378ba3520f9dea952fb0a90e5aa36f1b5ff837d9b30c471790", "paginate": true },
+         { "header": "Amount", "prompt": "1.23" },
+         { "header": "Network", "prompt": "testnet04" },
+         { "header": "Paying Gas (1/2)", "prompt": "At most 2300" },
+         { "header": "Paying Gas (2/2)", "prompt": "Price 1.0e-6" },
          {"text": "Sign Transaction?", "x": 19, "y": 11,},
          {"text": "Confirm", "x": 43, "y": 11,}
        ]
@@ -1505,9 +1522,13 @@ describe('Create Tx tests', function() {
        },
        "{\"networkId\":\"testnet04\",\"payload\":{\"exec\":{\"data\":{\"ks\":{\"pred\":\"keys-all\",\"keys\":[\"83934c0f9b005f378ba3520f9dea952fb0a90e5aa36f1b5ff837d9b30c471790\"]}},\"code\":\"(free.mytoken-123.transfer-create \\\"k:9ed54a1020ebbbf8bbe425346498434edd79e4cd36fe874ea58853e78eab4995\\\" \\\"k:83934c0f9b005f378ba3520f9dea952fb0a90e5aa36f1b5ff837d9b30c471790\\\" (read-keyset \\\"ks\\\") 23.67)\"}},\"signers\":[{\"pubKey\":\"9ed54a1020ebbbf8bbe425346498434edd79e4cd36fe874ea58853e78eab4995\",\"clist\":[{\"args\":[\"k:9ed54a1020ebbbf8bbe425346498434edd79e4cd36fe874ea58853e78eab4995\",\"k:83934c0f9b005f378ba3520f9dea952fb0a90e5aa36f1b5ff837d9b30c471790\",23.67],\"name\":\"free.mytoken-123.TRANSFER\"},{\"args\":[],\"name\":\"coin.GAS\"}]}],\"meta\":{\"creationTime\":1665722463,\"ttl\":600,\"gasLimit\":2300,\"chainId\":\"1\",\"gasPrice\":1.0e-6,\"sender\":\"k:9ed54a1020ebbbf8bbe425346498434edd79e4cd36fe874ea58853e78eab4995\"},\"nonce\":\"2022-10-14 04:41:03.193557 UTC\"}",
        [
-         { "header": "Token:", "prompt": "free.mytoken-123" },
-         { "header": "Transfer", "prompt": "23.67 from k:9ed54a1020ebbbf8bbe425346498434edd79e4cd36fe874ea58853e78eab4995 to k:83934c0f9b005f378ba3520f9dea952fb0a90e5aa36f1b5ff837d9b30c471790 on network testnet04" },
-         { "header": "Paying Gas", "prompt": "at most 2300 at price 1.0e-6" },
+         { "header": "Transfer", "prompt": "free.mytoken-123" },
+         { "header": "From", "prompt": "k:9ed54a1020ebbbf8bbe425346498434edd79e4cd36fe874ea58853e78eab4995", "paginate": true },
+         { "header": "To", "prompt": "k:83934c0f9b005f378ba3520f9dea952fb0a90e5aa36f1b5ff837d9b30c471790", "paginate": true },
+         { "header": "Amount", "prompt": "23.67" },
+         { "header": "Network", "prompt": "testnet04" },
+         { "header": "Paying Gas (1/2)", "prompt": "At most 2300" },
+         { "header": "Paying Gas (2/2)", "prompt": "Price 1.0e-6" },
          {"text": "Sign Transaction?", "x": 19, "y": 11,},
          {"text": "Confirm", "x": 43, "y": 11,}
        ]
@@ -1532,9 +1553,14 @@ describe('Create Tx tests', function() {
        },
        "{\"networkId\":\"testnet04\",\"payload\":{\"exec\":{\"data\":{\"ks\":{\"pred\":\"keys-all\",\"keys\":[\"83934c0f9b005f378ba3520f9dea952fb0a90e5aa36f1b5ff837d9b30c471790\"]}},\"code\":\"(free.mytoken-123.transfer-crosschain \\\"k:9ed54a1020ebbbf8bbe425346498434edd79e4cd36fe874ea58853e78eab4995\\\" \\\"k:83934c0f9b005f378ba3520f9dea952fb0a90e5aa36f1b5ff837d9b30c471790\\\" (read-keyset \\\"ks\\\") \\\"2\\\" 23.67)\"}},\"signers\":[{\"pubKey\":\"9ed54a1020ebbbf8bbe425346498434edd79e4cd36fe874ea58853e78eab4995\",\"clist\":[{\"args\":[\"k:9ed54a1020ebbbf8bbe425346498434edd79e4cd36fe874ea58853e78eab4995\",\"k:83934c0f9b005f378ba3520f9dea952fb0a90e5aa36f1b5ff837d9b30c471790\",23.67,\"2\"],\"name\":\"free.mytoken-123.TRANSFER_XCHAIN\"},{\"args\":[],\"name\":\"coin.GAS\"}]}],\"meta\":{\"creationTime\":1665722463,\"ttl\":600,\"gasLimit\":2300,\"chainId\":\"1\",\"gasPrice\":1.0e-6,\"sender\":\"k:9ed54a1020ebbbf8bbe425346498434edd79e4cd36fe874ea58853e78eab4995\"},\"nonce\":\"2022-10-14 04:41:03.193557 UTC\"}",
        [
-         { "header": "Token:", "prompt": "free.mytoken-123" },
-         { "header": "Transfer", "prompt": "Cross-chain 23.67 from k:9ed54a1020ebbbf8bbe425346498434edd79e4cd36fe874ea58853e78eab4995 to k:83934c0f9b005f378ba3520f9dea952fb0a90e5aa36f1b5ff837d9b30c471790 to chain 2 on network testnet04" },
-         { "header": "Paying Gas", "prompt": "at most 2300 at price 1.0e-6" },
+         { "header": "Transfer", "prompt": "free.mytoken-123" },
+         { "header": "From", "prompt": "k:9ed54a1020ebbbf8bbe425346498434edd79e4cd36fe874ea58853e78eab4995", "paginate": true },
+         { "header": "To", "prompt": "k:83934c0f9b005f378ba3520f9dea952fb0a90e5aa36f1b5ff837d9b30c471790", "paginate": true },
+         { "header": "To Chain", "prompt": "2" },
+         { "header": "Amount", "prompt": "23.67" },
+         { "header": "Network", "prompt": "testnet04" },
+         { "header": "Paying Gas (1/2)", "prompt": "At most 2300" },
+         { "header": "Paying Gas (2/2)", "prompt": "Price 1.0e-6" },
          {"text": "Sign Transaction?", "x": 19, "y": 11,},
          {"text": "Confirm", "x": 43, "y": 11,}
        ]
