@@ -843,11 +843,8 @@ fn handle_tx_param_1(
 
     scroller_paginated("From", |w| Ok(write!(w, "k:{}", pkh_str)?))?;
     scroller_paginated("To", |w| Ok(write!(w, "k:{}", recipient_str)?))?;
-    match tx_type {
-        2 => {
-            scroller("To Chain", |w| Ok(write!(w, "{}", recipient_chain_str)?))?;
-        }
-        _ => {}
+    if tx_type == 2 {
+        scroller("To Chain", |w| Ok(write!(w, "{}", recipient_chain_str)?))?;
     }
     scroller("Amount", |w| Ok(write!(w, "{}", amount_str)?))?;
     scroller("Network", |w| Ok(write!(w, "{}", network_str)?))?;
@@ -918,18 +915,10 @@ fn handle_tx_params_2(
     write!(hasher, "}}").ok()?;
 
     scroller("Paying Gas (1/2)", |w| {
-        Ok(write!(
-            w,
-            "At most {}",
-            from_utf8(gas_limit)?,
-        )?)
+        Ok(write!(w, "At most {}", from_utf8(gas_limit)?,)?)
     })?;
     scroller("Paying Gas (2/2)", |w| {
-        Ok(write!(
-            w,
-            "Price {}",
-            from_utf8(gas_price)?
-        )?)
+        Ok(write!(w, "Price {}", from_utf8(gas_price)?)?)
     })?;
     Some(())
 }
