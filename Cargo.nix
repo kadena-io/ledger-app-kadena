@@ -399,8 +399,8 @@ rec {
         workspace_member = null;
         src = pkgs.fetchgit {
           url = "https://github.com/alamgu/ledger-log";
-          rev = "02f702bbec9ca9802151fd261508580eb3826287";
-          sha256 = "03qic29qkvis54bgh40wwja89kcp6kz6acd0ifzyvcqxicpmikmy";
+          rev = "aa326b3078f5a470047b0d13bc2c00cec39e600c";
+          sha256 = "016j013zq38zci0dz60y3daz3l7bj3jd5w17r18gpj450jkxkmb6";
         };
         dependencies = [
           {
@@ -485,8 +485,8 @@ rec {
         workspace_member = null;
         src = pkgs.fetchgit {
           url = "https://github.com/alamgu/ledger-prompts-ui";
-          rev = "24d2f36da07131074211559cd28f235c3f7c9984";
-          sha256 = "0gy73gv2vrajyrzigr2iwfnw0gmj1wfpig0xlbhw1vpkpjg23w0q";
+          rev = "c1b6ab13769735d3412fa9c3edf59b6ad5e68d1e";
+          sha256 = "0n8hiw4ambwdw6pg61j9clpnzn8mz3d6fzkb1f2ia64zydbdf6gs";
         };
         dependencies = [
           {

@@ -51,20 +51,38 @@ const fn mkvfn<A>(
 
 #[cfg(not(target_os = "nanos"))]
 #[inline(never)]
-fn scroller<F: for<'b> Fn(&mut PromptWrite<'b, 16>) -> Result<(), ScrollerError>>(
+pub fn scroller<F: for<'b> Fn(&mut PromptWrite<'b, 16>) -> Result<(), ScrollerError>>(
     title: &str,
     prompt_function: F,
 ) -> Option<()> {
-    ledger_prompts_ui::write_scroller_three_rows(title, prompt_function)
+    ledger_prompts_ui::write_scroller_three_rows(false, title, prompt_function)
 }
 
 #[cfg(target_os = "nanos")]
 #[inline(never)]
-fn scroller<F: for<'b> Fn(&mut PromptWrite<'b, 16>) -> Result<(), ScrollerError>>(
+pub fn scroller<F: for<'b> Fn(&mut PromptWrite<'b, 16>) -> Result<(), ScrollerError>>(
     title: &str,
     prompt_function: F,
 ) -> Option<()> {
-    ledger_prompts_ui::write_scroller(title, prompt_function)
+    ledger_prompts_ui::write_scroller(false, title, prompt_function)
+}
+
+#[cfg(not(target_os = "nanos"))]
+#[inline(never)]
+pub fn scroller_paginated<F: for<'b> Fn(&mut PromptWrite<'b, 16>) -> Result<(), ScrollerError>>(
+    title: &str,
+    prompt_function: F,
+) -> Option<()> {
+    ledger_prompts_ui::write_scroller_three_rows(true, title, prompt_function)
+}
+
+#[cfg(target_os = "nanos")]
+#[inline(never)]
+pub fn scroller_paginated<F: for<'b> Fn(&mut PromptWrite<'b, 16>) -> Result<(), ScrollerError>>(
+    title: &str,
+    prompt_function: F,
+) -> Option<()> {
+    ledger_prompts_ui::write_scroller(true, title, prompt_function)
 }
 
 fn mkstr(v: Option<&[u8]>) -> Result<&str, ScrollerError> {
