@@ -847,7 +847,6 @@ fn handle_tx_param_1(
         scroller("To Chain", |w| Ok(write!(w, "{}", recipient_chain_str)?))?;
     }
     scroller("Amount", |w| Ok(write!(w, "{}", amount_str)?))?;
-    scroller("Network", |w| Ok(write!(w, "{}", network_str)?))?;
     Some(())
 }
 
