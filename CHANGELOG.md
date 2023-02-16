@@ -1,3 +1,9 @@
+## 0.2.2
+
+* Changes to the prompts for the transfer transaction signing flow. Show the sender, recipient and amount in separate prompts and do pagination of prompts.
+* Fix for a potential stack overflow issue on NanoS device which could occur while converting the transaction hash to base64 format for displaying.
+* Miscelaneous fixes and upgrades to the build infrastructure and Github CI actions.
+
 ## 0.2.1
 
 Added support for the following
